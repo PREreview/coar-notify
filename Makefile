@@ -1,8 +1,10 @@
-.PHONY: fix format start typecheck
+.PHONY: check fix format start typecheck
 
 node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
+
+check: format typecheck
 
 fix: node_modules
 	npx prettier --ignore-unknown --write '**'
