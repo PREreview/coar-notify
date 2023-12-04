@@ -34,3 +34,24 @@ jobs:
 
       - name: 'Run formatter'
         run: npx prettier --ignore-unknown --check '**'
+
+  typecheck:
+    name: 'Typecheck'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4.1.1
+
+      - name: 'Set up Node.js'
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version-file: package.json
+          cache: ${{ !env.ACT && 'npm' || '' }}
+
+      - name: 'Install dependencies'
+        run: npm ci
+
+      - name: 'Run typechecker'
+        run: npx tsc --noEmit

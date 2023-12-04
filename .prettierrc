@@ -1,7 +1,9 @@
 {
   "arrowParens": "avoid",
+  "importOrder": ["^[./]"],
+  "importOrderSortSpecifiers": true,
   "printWidth": 120,
   "semi": false,
   "singleQuote": true,
-  "plugins": ["prettier-plugin-sh"]
+  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-sh"]
 }
