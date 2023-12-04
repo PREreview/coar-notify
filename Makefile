@@ -1,4 +1,6 @@
-.PHONY: build check fix format lint start start-services typecheck
+.PHONY: build build-image check fix format lint smoke-test start start-services typecheck
+
+IMAGE_TAG=prereview-coar-notify
 
 node_modules: package.json package-lock.json
 	npm install
@@ -6,6 +8,9 @@ node_modules: package.json package-lock.json
 
 build: node_modules
 	npx tsc --project tsconfig.build.json
+
+build-image:
+	docker build --target prod --tag ${IMAGE_TAG} .
 
 check: format lint typecheck
 
@@ -21,6 +26,10 @@ lint: node_modules
 
 typecheck: node_modules
 	npx tsc --noEmit
+
+smoke-test: SHELL := /usr/bin/env bash
+smoke-test: build-image start-services
+	REDIS_PORT=$(shell docker compose port redis 6379 | awk -F":" '{print $$2}') scripts/smoke-test.sh ${IMAGE_TAG}
 
 start: node_modules start-services
 	REDIS_URI=redis://$(shell docker compose port redis 6379) npx tsx --require dotenv/config src
