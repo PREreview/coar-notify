@@ -60,6 +60,19 @@ const serve = HttpServer.router.empty.pipe(
                   Doi.toUrl(reviewAction.object['ietf:cite-as']).href
                 }|${reviewAction.object['ietf:cite-as']}>`,
               },
+              accessory: {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Write a PREreview',
+                },
+                url: new URL(
+                  `https://prereview.org/preprints/doi-${reviewAction.object['ietf:cite-as']
+                    .toLowerCase()
+                    .replaceAll('-', '+')
+                    .replaceAll('/', '-')}/write-a-prereview`,
+                ),
+              },
             },
           ],
         }),

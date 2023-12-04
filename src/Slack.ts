@@ -1,6 +1,7 @@
 import { HttpClient } from '@effect/platform'
 import { Schema } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
+import * as Url from './Url.js'
 
 export interface SlackApiConfig {
   readonly accessToken: string
@@ -20,9 +21,16 @@ const MrkdwnTextObjectSchema = Schema.struct({
 
 const TextObjectSchema = Schema.union(PlainTextObjectSchema, MrkdwnTextObjectSchema)
 
+const ButtonElementSchema = Schema.struct({
+  type: Schema.literal('button'),
+  text: PlainTextObjectSchema,
+  url: Url.UrlFromStringSchema(Schema.string),
+})
+
 const SectionBlockSchema = Schema.struct({
   type: Schema.literal('section'),
   text: TextObjectSchema,
+  accessory: Schema.optional(Schema.union(ButtonElementSchema)),
 })
 
 const BlockSchema = Schema.union(SectionBlockSchema)
