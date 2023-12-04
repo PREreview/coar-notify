@@ -1,8 +1,11 @@
-.PHONY: check fix format lint start typecheck
+.PHONY: build check fix format lint start typecheck
 
 node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
+
+build: node_modules
+	npx tsc --project tsconfig.build.json
 
 check: format lint typecheck
 
