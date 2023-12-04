@@ -13,7 +13,23 @@ const NotificationSchema = Schema.struct({
 })
 
 const serve = HttpServer.router.empty.pipe(
-  HttpServer.router.get('/health', HttpServer.response.json({ status: 'ok' })),
+  HttpServer.router.get(
+    '/health',
+    Effect.gen(function* (_) {
+      yield* _(Redis.ping())
+
+      return yield* _(HttpServer.response.json({ status: 'ok' }))
+    }).pipe(
+      Effect.catchTags({
+        RedisError: error =>
+          Effect.gen(function* (_) {
+            yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
+
+            return yield* _(HttpServer.response.json({ status: 'error' }, { status: 503 }))
+          }),
+      }),
+    ),
+  ),
   HttpServer.router.post(
     '/inbox',
     Effect.gen(function* (_) {
