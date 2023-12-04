@@ -1,4 +1,4 @@
-.PHONY: build check fix format lint start typecheck
+.PHONY: build check fix format lint start start-services typecheck
 
 node_modules: package.json package-lock.json
 	npm install
@@ -22,5 +22,8 @@ lint: node_modules
 typecheck: node_modules
 	npx tsc --noEmit
 
-start: node_modules
-	npx tsx --require dotenv/config src
+start: node_modules start-services
+	REDIS_URI=redis://$(shell docker compose port redis 6379) npx tsx --require dotenv/config src
+
+start-services:
+	docker compose up --detach

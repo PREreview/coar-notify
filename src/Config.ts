@@ -1,4 +1,5 @@
 import { Config, Effect, Layer } from 'effect'
+import { RedisConfig } from './Redis.js'
 import { SlackApiConfig } from './Slack.js'
 
 const slackApiConfig = Config.nested(
@@ -6,4 +7,12 @@ const slackApiConfig = Config.nested(
   'SLACK',
 )
 
-export const ConfigLive = Layer.mergeAll(Layer.effect(SlackApiConfig, Effect.config(slackApiConfig)))
+const redisConfig = Config.nested(
+  Config.mapAttempt(Config.string('URI'), uri => ({ uri: new URL(uri) }) satisfies RedisConfig),
+  'REDIS',
+)
+
+export const ConfigLive = Layer.mergeAll(
+  Layer.effect(SlackApiConfig, Effect.config(slackApiConfig)),
+  Layer.effect(RedisConfig, Effect.config(redisConfig)),
+)

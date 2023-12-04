@@ -3,15 +3,28 @@ import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
 
+export interface RedisConfig {
+  readonly uri: URL
+}
+
 export const Redis = Context.Tag<Redis>('IoRedis/Redis')
+
+export const RedisConfig = Context.Tag<RedisConfig>()
 
 export class RedisError extends Data.TaggedError('RedisError')<{
   readonly error: unknown
 }> {}
 
-export const layer: Layer.Layer<never, never, Redis> = Layer.scoped(
+export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
   Redis,
-  Effect.acquireRelease(Effect.succeed(new IoRedis.Redis()), redis => Effect.sync(() => redis.disconnect())),
+  Effect.acquireRelease(
+    Effect.gen(function* (_) {
+      const config = yield* _(RedisConfig)
+
+      return new IoRedis.Redis(config.uri.href)
+    }),
+    redis => Effect.sync(() => redis.disconnect()),
+  ),
 )
 
 export const ping = (): Effect.Effect<Redis, RedisError, 'PONG'> =>
