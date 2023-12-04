@@ -32,7 +32,7 @@ smoke-test: build-image start-services
 	REDIS_PORT=$(shell docker compose port redis 6379 | awk -F":" '{print $$2}') scripts/smoke-test.sh ${IMAGE_TAG}
 
 start: node_modules start-services
-	REDIS_URI=redis://$(shell docker compose port redis 6379) npx tsx --require dotenv/config src
+	REDIS_URL=redis://$(shell docker compose port redis 6379) npx tsx --require dotenv/config src
 
 start-services:
 	docker compose up --detach

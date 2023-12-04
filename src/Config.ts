@@ -8,7 +8,7 @@ const slackApiConfig = Config.nested(
 )
 
 const redisConfig = Config.nested(
-  Config.mapAttempt(Config.string('URI'), uri => ({ uri: new URL(uri) }) satisfies RedisConfig),
+  Config.mapAttempt(Config.string('URL'), url => ({ url: new URL(url) }) satisfies RedisConfig),
   'REDIS',
 )
 
