@@ -141,3 +141,68 @@ jobs:
 
       - name: 'Run typechecker'
         run: npx tsc --noEmit
+
+  push:
+    name: 'Push image'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    needs:
+      - build-image
+      - format
+      - lint
+      - test-smoke
+      - typecheck
+
+    steps:
+      - name: 'Set up flyctl'
+        uses: superfly/flyctl-actions/setup-flyctl@v1.4
+
+      - name: 'Log in to the registry'
+        run: flyctl auth docker
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: 'Download image'
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: image
+          path: /tmp
+
+      - name: 'Load image'
+        run: docker load --input /tmp/image.tar
+
+      - name: 'Generate image name'
+        id: image
+        run: echo "image=registry.fly.io/prereview-coar-notify:${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: 'Tag image'
+        run: docker tag ${{ needs.build-image.outputs.image }} ${{ steps.image.outputs.image }}
+
+      - name: 'Push image'
+        run: docker push ${{ steps.image.outputs.image }}
+
+  deploy:
+    name: 'Deploy (${{ matrix.instance }})'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - push
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4.1.1
+        with:
+          sparse-checkout: fly.toml
+          sparse-checkout-cone-mode: false
+
+      - name: 'Set up flyctl'
+        uses: superfly/flyctl-actions/setup-flyctl@v1.4
+
+      - name: 'Deploy app'
+        run: flyctl deploy --image ${{ needs.push.outputs.image }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

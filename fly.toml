@@ -1,0 +1,17 @@
+app = "prereview-coar-notify"
+primary_region = "iad"
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 0
+
+[[http_service.checks]]
+grace_period = "15s"
+interval = "5s"
+method = "GET"
+timeout = "1s"
+path = "/health"
+protocol = "http"
