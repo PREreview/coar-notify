@@ -6,6 +6,9 @@ node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
 
+.env:
+	cp .env.dist .env
+
 build: node_modules
 	npx tsc --project tsconfig.build.json
 
@@ -31,7 +34,7 @@ smoke-test: SHELL := /usr/bin/env bash
 smoke-test: build-image start-services
 	REDIS_PORT=$(shell docker compose port redis 6379 | awk -F":" '{print $$2}') scripts/smoke-test.sh ${IMAGE_TAG}
 
-start: node_modules start-services
+start: .env node_modules start-services
 	REDIS_URL=redis://$(shell docker compose port redis 6379) npx tsx --require dotenv/config src
 
 start-services:

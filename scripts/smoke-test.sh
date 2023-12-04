@@ -21,7 +21,7 @@ function finish() {
 trap finish EXIT
 
 echo "Starting the container"
-container=$(docker run --env SLACK_ACCESS_TOKEN=token --env REDIS_URL="redis://host.docker.internal:$REDIS_PORT" --add-host=host.docker.internal:host-gateway --detach "$1")
+container=$(docker run --env-file .env.dist --env REDIS_URL="redis://host.docker.internal:$REDIS_PORT" --add-host=host.docker.internal:host-gateway --detach "$1")
 
 timeout --foreground 20 bash << EOT
   while true; do
