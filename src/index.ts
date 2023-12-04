@@ -3,6 +3,7 @@ import { Effect, Layer } from 'effect'
 import { createServer } from 'node:http'
 
 const serve = HttpServer.router.empty.pipe(
+  HttpServer.router.get('/health', HttpServer.response.json({ status: 'ok' })),
   Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: 404 })),
   HttpServer.server.serve(HttpServer.middleware.logger),
 )
