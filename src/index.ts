@@ -1,7 +1,6 @@
 import { HttpClient, HttpServer, Runtime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
 import { Effect, Layer } from 'effect'
-import IoRedis from 'ioredis'
 import { createServer } from 'node:http'
 import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
@@ -112,13 +111,10 @@ const serve = HttpServer.router.empty.pipe(
 
 const ServerLive = HttpServer.server.layer(() => createServer(), { port: 3000 })
 
-const RedisLive = Layer.effect(
-  Redis.Redis,
-  Effect.acquireRelease(Effect.succeed(new IoRedis.Redis()), redis => Effect.sync(() => redis.disconnect())),
-)
+const RedisLive = Redis.layer
 
 const HttpLive = Layer.scopedDiscard(serve).pipe(
   Layer.provide(Layer.mergeAll(ConfigLive, HttpClient.client.layer, ServerLive, RedisLive)),
 )
 
-Layer.launch(HttpLive).pipe(Effect.tapErrorCause(Effect.logError), Effect.scoped, Runtime.runMain)
+Layer.launch(HttpLive).pipe(Effect.tapErrorCause(Effect.logError), Runtime.runMain)
