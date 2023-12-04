@@ -4,6 +4,7 @@ import { createServer } from 'node:http'
 
 const serve = HttpServer.router.empty.pipe(
   HttpServer.router.get('/health', HttpServer.response.json({ status: 'ok' })),
+  HttpServer.router.post('/inbox', HttpServer.response.empty({ status: 503 })),
   Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: 404 })),
   HttpServer.server.serve(HttpServer.middleware.logger),
 )
