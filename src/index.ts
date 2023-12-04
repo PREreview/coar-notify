@@ -1,10 +1,13 @@
-import { HttpServer, Runtime } from '@effect/platform-node'
+import { HttpClient, HttpServer, Runtime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
 import { Effect, Layer } from 'effect'
 import IoRedis from 'ioredis'
 import { createServer } from 'node:http'
 import * as CoarNotify from './CoarNotify.js'
+import { ConfigLive } from './Config.js'
+import * as Doi from './Doi.js'
 import * as Redis from './Redis.js'
+import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
 
 const NotificationSchema = Schema.struct({
@@ -45,6 +48,23 @@ const serve = HttpServer.router.empty.pipe(
 
       yield* _(Redis.lpush('notifications', encoded))
 
+      yield* _(
+        Slack.chatPostMessage({
+          channel: 'C05N0JHBC1Y',
+          blocks: [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `A new request from ${reviewAction.actor.name} has come in for a review of <${
+                  Doi.toUrl(reviewAction.object['ietf:cite-as']).href
+                }|${reviewAction.object['ietf:cite-as']}>`,
+              },
+            },
+          ],
+        }),
+      )
+
       return yield* _(HttpServer.response.empty({ status: 201 }))
     }).pipe(
       Effect.catchTags({
@@ -60,6 +80,16 @@ const serve = HttpServer.router.empty.pipe(
             return HttpServer.response.empty({ status: 503 })
           }),
         RequestError: () => HttpServer.response.empty({ status: 400 }),
+        SlackErrorResponse: error =>
+          Effect.gen(function* (_) {
+            yield* _(
+              Effect.logError('Unable post chat message on Slack').pipe(
+                Effect.annotateLogs({ message: error.message }),
+              ),
+            )
+
+            return HttpServer.response.empty({ status: 503 })
+          }),
       }),
     ),
   ),
@@ -74,6 +104,8 @@ const RedisLive = Layer.effect(
   Effect.acquireRelease(Effect.succeed(new IoRedis.Redis()), redis => Effect.sync(() => redis.disconnect())),
 )
 
-const HttpLive = Layer.scopedDiscard(serve).pipe(Layer.provide(Layer.mergeAll(ServerLive, RedisLive)))
+const HttpLive = Layer.scopedDiscard(serve).pipe(
+  Layer.provide(Layer.mergeAll(ConfigLive, HttpClient.client.layer, ServerLive, RedisLive)),
+)
 
 Layer.launch(HttpLive).pipe(Effect.tapErrorCause(Effect.logError), Effect.scoped, Runtime.runMain)

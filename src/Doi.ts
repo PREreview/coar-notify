@@ -9,7 +9,7 @@ const isDoi: Predicate.Refinement<unknown, Doi> = (u): u is Doi =>
 
 export const Doi = Brand.refined<Doi>(isDoi, s => Brand.error(`Expected ${s} to be a DOI`))
 
-const toUrl: (doi: Doi) => URL = doi => {
+export const toUrl: (doi: Doi) => URL = doi => {
   const url = new URL('https://doi.org')
   url.pathname = doi.replace(/\/(\.{1,2})\//g, '/$1%2F').replace(/\\/g, '%5C')
 

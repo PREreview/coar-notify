@@ -20,4 +20,4 @@ typecheck: node_modules
 	npx tsc --noEmit
 
 start: node_modules
-	npx tsx src
+	npx tsx --require dotenv/config src
