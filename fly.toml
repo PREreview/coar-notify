@@ -1,6 +1,9 @@
 app = "prereview-coar-notify"
 primary_region = "iad"
 
+[env]
+REDIS_IP_VERSION = "6"
+
 [http_service]
 internal_port = 3000
 force_https = true

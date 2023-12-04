@@ -4,6 +4,7 @@ import IoRedis from 'ioredis'
 export type Redis = IoRedis.Redis
 
 export interface RedisConfig {
+  readonly family: number
   readonly url: URL
 }
 
@@ -21,7 +22,7 @@ export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
     Effect.gen(function* (_) {
       const config = yield* _(RedisConfig)
 
-      return new IoRedis.Redis(config.url.href)
+      return new IoRedis.Redis(config.url.href, { family: config.family })
     }),
     redis => Effect.sync(() => redis.disconnect()),
   ),
