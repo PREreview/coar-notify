@@ -1,4 +1,6 @@
 import { Schema } from '@effect/schema'
+import * as Doi from './Doi.js'
+import * as Url from './Url.js'
 
 export const ReviewActionSchema = Schema.struct({
   '@context': Schema.tuple(
@@ -6,4 +8,24 @@ export const ReviewActionSchema = Schema.struct({
     Schema.literal('https://purl.org/coar/notify'),
   ),
   id: Schema.string,
+  type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
+  origin: Schema.struct({
+    id: Url.UrlFromStringSchema(Schema.string),
+    inbox: Url.UrlFromStringSchema(Schema.string),
+    type: Schema.literal('Organization', 'Service'),
+  }),
+  target: Schema.struct({
+    id: Url.UrlFromStringSchema(Schema.string),
+    inbox: Url.UrlFromStringSchema(Schema.string),
+    type: Schema.literal('Organization', 'Service'),
+  }),
+  object: Schema.struct({
+    id: Schema.string,
+    'ietf:cite-as': Doi.DoiUrlSchema,
+  }),
+  actor: Schema.struct({
+    id: Url.UrlFromStringSchema(Schema.string),
+    type: Schema.literal('Application', 'Group', 'Organization', 'Person', 'Service'),
+    name: Schema.string,
+  }),
 })
