@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "engines": {
+    "node": "20",
+    "npm": "9 || 10"
+  },
+  "devDependencies": {
+    "prettier": "^3.1.0",
+    "prettier-plugin-sh": "^0.13.1"
+  }
+}

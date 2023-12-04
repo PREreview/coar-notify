@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  format:
+    name: 'Format'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4.1.1
+
+      - name: 'Set up Node.js'
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version-file: package.json
+          cache: ${{ !env.ACT && 'npm' || '' }}
+
+      - name: 'Install dependencies'
+        run: npm ci
+
+      - name: 'Run formatter'
+        run: npx prettier --ignore-unknown --check '**'
