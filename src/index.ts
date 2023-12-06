@@ -49,7 +49,7 @@ const serve = HttpServer.router.empty.pipe(
 
       yield* _(
         Slack.chatPostMessage({
-          channel: 'C05N0JHBC1Y',
+          channel: 'C05B95LEN5C',
           blocks: [
             {
               type: 'section',
