@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
 import * as Url from './Url.js'
