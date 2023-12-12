@@ -1,5 +1,5 @@
 import { HttpClient, HttpServer, Runtime } from '@effect/platform-node'
-import { Schema } from '@effect/schema'
+import { Schema, TreeFormatter } from '@effect/schema'
 import { Effect, Layer } from 'effect'
 import { createServer } from 'node:http'
 import * as CoarNotify from './CoarNotify.js'
@@ -80,7 +80,16 @@ const serve = HttpServer.router.empty.pipe(
       return yield* _(HttpServer.response.empty({ status: 201 }))
     }).pipe(
       Effect.catchTags({
-        ParseError: () => HttpServer.response.empty({ status: 400 }),
+        ParseError: error =>
+          Effect.gen(function* (_) {
+            yield* _(
+              Effect.logInfo('Invalid request').pipe(
+                Effect.annotateLogs({ message: TreeFormatter.formatErrors(error.errors) }),
+              ),
+            )
+
+            return HttpServer.response.empty({ status: 400 })
+          }),
         RedisError: error =>
           Effect.gen(function* (_) {
             yield* _(
