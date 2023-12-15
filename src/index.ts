@@ -20,7 +20,7 @@ const serve = HttpServer.router.empty.pipe(
     Effect.gen(function* (_) {
       yield* _(Redis.ping())
 
-      return yield* _(HttpServer.response.json({ status: 'ok' }))
+      return yield* _(HttpServer.response.json({ status: 'ok' }), HttpServer.middleware.withLoggerDisabled)
     }).pipe(
       Effect.catchTags({
         RedisError: error =>
