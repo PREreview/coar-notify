@@ -1,4 +1,4 @@
-import { Context, Data, Effect, Layer } from 'effect'
+import { Context, Data, Effect, Layer, Runtime } from 'effect'
 import IoRedis from 'ioredis'
 
 export type Redis = IoRedis.Redis
@@ -21,8 +21,21 @@ export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
   Effect.acquireRelease(
     Effect.gen(function* (_) {
       const config = yield* _(RedisConfig)
+      const runtime = yield* _(Effect.runtime<never>())
 
-      return new IoRedis.Redis(config.url.href, { family: config.family })
+      const redis = new IoRedis.Redis(config.url.href, { family: config.family })
+
+      redis.on('connect', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connected')))
+      redis.on('close', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connection closed')))
+      redis.on('reconnecting', () => Runtime.runSync(runtime)(Effect.logInfo('Redis reconnecting')))
+      redis.removeAllListeners('error')
+      redis.on('error', (error: Error) =>
+        Runtime.runSync(runtime)(
+          Effect.logError('Redis connection error').pipe(Effect.annotateLogs({ error: error.message })),
+        ),
+      )
+
+      return redis
     }),
     redis => Effect.sync(() => redis.disconnect()),
   ),

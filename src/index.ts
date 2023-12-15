@@ -1,6 +1,6 @@
 import { HttpClient, HttpServer, Runtime } from '@effect/platform-node'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Effect, Layer } from 'effect'
+import { Effect, Layer, LogLevel, Logger } from 'effect'
 import { createServer } from 'node:http'
 import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
@@ -127,4 +127,8 @@ const HttpLive = Layer.scopedDiscard(serve).pipe(
   Layer.provide(ConfigLive),
 )
 
-Layer.launch(HttpLive).pipe(Effect.tapErrorCause(Effect.logError), Runtime.runMain)
+Layer.launch(HttpLive).pipe(
+  Effect.tapErrorCause(Effect.logError),
+  Logger.withMinimumLogLevel(LogLevel.Debug),
+  Runtime.runMain,
+)
