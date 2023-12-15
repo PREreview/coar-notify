@@ -1,11 +1,11 @@
 import { ParseResult, Schema } from '@effect/schema'
 
-export const UrlSchema: Schema.Schema<URL> = Schema.instanceOf(URL)
+export const UrlFromSelfSchema: Schema.Schema<URL> = Schema.instanceOf(URL)
 
 export const UrlFromStringSchema = <I, A extends string>(self: Schema.Schema<I, A>): Schema.Schema<I, URL> =>
   Schema.transformOrFail(
     self,
-    UrlSchema,
+    UrlFromSelfSchema,
     (s, _, ast) =>
       ParseResult.try({
         try: () => new URL(s),
@@ -14,3 +14,5 @@ export const UrlFromStringSchema = <I, A extends string>(self: Schema.Schema<I, 
     url => ParseResult.succeed(url.href),
     { strict: false },
   )
+
+export const UrlSchema = UrlFromStringSchema(Schema.string)

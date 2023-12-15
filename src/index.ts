@@ -10,7 +10,7 @@ import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
 
 const NotificationSchema = Schema.struct({
-  timestamp: Temporal.InstantFromMillisecondsSchema(Schema.number),
+  timestamp: Temporal.InstantInMillisecondsSchema,
   notification: CoarNotify.ReviewActionSchema,
 })
 

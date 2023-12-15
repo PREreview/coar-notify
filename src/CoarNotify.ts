@@ -10,13 +10,13 @@ export const ReviewActionSchema = Schema.struct({
   id: Schema.string,
   type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
   origin: Schema.struct({
-    id: Url.UrlFromStringSchema(Schema.string),
-    inbox: Url.UrlFromStringSchema(Schema.string),
+    id: Url.UrlSchema,
+    inbox: Url.UrlSchema,
     type: Schema.literal('Organization', 'Service'),
   }),
   target: Schema.struct({
-    id: Url.UrlFromStringSchema(Schema.string),
-    inbox: Url.UrlFromStringSchema(Schema.string),
+    id: Url.UrlSchema,
+    inbox: Url.UrlSchema,
     type: Schema.literal('Organization', 'Service'),
   }),
   object: Schema.struct({
@@ -24,7 +24,7 @@ export const ReviewActionSchema = Schema.struct({
     'ietf:cite-as': Doi.DoiUrlSchema,
   }),
   actor: Schema.struct({
-    id: Url.UrlFromStringSchema(Schema.string),
+    id: Url.UrlSchema,
     type: Schema.literal('Application', 'Group', 'Organization', 'Person', 'Service'),
     name: Schema.string,
   }),

@@ -24,7 +24,7 @@ const TextObjectSchema = Schema.union(PlainTextObjectSchema, MrkdwnTextObjectSch
 const ButtonElementSchema = Schema.struct({
   type: Schema.literal('button'),
   text: PlainTextObjectSchema,
-  url: Url.UrlFromStringSchema(Schema.string),
+  url: Url.UrlSchema,
 })
 
 const SectionBlockSchema = Schema.struct({
