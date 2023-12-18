@@ -1,9 +1,15 @@
 import { Config, Effect, Layer } from 'effect'
 import { RedisConfig } from './Redis.js'
+import { SlackChannelConfig } from './Router.js'
 import { SlackApiConfig } from './Slack.js'
 
 const slackApiConfig = Config.nested(
   Config.map(Config.string('ACCESS_TOKEN'), accessToken => ({ accessToken }) satisfies SlackApiConfig),
+  'SLACK',
+)
+
+const slackChannelConfig = Config.nested(
+  Config.map(Config.string('CHANNEL_ID'), id => ({ id }) satisfies SlackChannelConfig),
   'SLACK',
 )
 
@@ -17,5 +23,6 @@ const redisConfig = Config.nested(
 
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackApiConfig, Effect.config(slackApiConfig)),
+  Layer.effect(SlackChannelConfig, Effect.config(slackChannelConfig)),
   Layer.effect(RedisConfig, Effect.config(redisConfig)),
 )

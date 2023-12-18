@@ -2,6 +2,7 @@ app = "prereview-coar-notify"
 primary_region = "iad"
 
 [env]
+SLACK_CHANNEL_ID = "C05B95LEN5C"
 REDIS_IP_VERSION = "6"
 
 [http_service]

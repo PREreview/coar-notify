@@ -1,11 +1,17 @@
 import { HttpServer } from '@effect/platform-node'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Effect } from 'effect'
+import { Context, Effect } from 'effect'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Redis from './Redis.js'
 import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
+
+export interface SlackChannelConfig {
+  readonly id: string
+}
+
+export const SlackChannelConfig = Context.Tag<SlackChannelConfig>()
 
 const NotificationSchema = Schema.struct({
   timestamp: Temporal.InstantInMillisecondsSchema,
@@ -47,7 +53,7 @@ export const Router = HttpServer.router.empty.pipe(
 
       yield* _(
         Slack.chatPostMessage({
-          channel: 'C05B95LEN5C',
+          channel: (yield* _(SlackChannelConfig)).id,
           blocks: [
             {
               type: 'section',
