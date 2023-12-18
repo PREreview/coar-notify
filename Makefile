@@ -1,4 +1,4 @@
-.PHONY: build build-image check fix format lint smoke-test start start-services typecheck
+.PHONY: build build-image check fix format lint smoke-test start start-services test typecheck
 
 IMAGE_TAG=prereview-coar-notify
 
@@ -15,7 +15,7 @@ build: node_modules
 build-image:
 	docker build --target prod --tag ${IMAGE_TAG} .
 
-check: format lint typecheck
+check: format lint test typecheck
 
 fix: node_modules
 	npx eslint . --fix --max-warnings 0
@@ -29,6 +29,9 @@ lint: node_modules
 
 typecheck: node_modules
 	npx tsc --noEmit
+
+test:
+	npx vitest run
 
 smoke-test: SHELL := /usr/bin/env bash
 smoke-test: build-image start-services

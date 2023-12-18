@@ -28,6 +28,14 @@
     "no-comments/disallowComments": ["error"],
     "quotes": ["error", "single", { "avoidEscape": true }]
   },
+  "overrides": [
+    {
+      "files": ["test/**/*.ts"],
+      "rules": {
+        "import/no-internal-modules": "off"
+      }
+    }
+  ],
   "settings": {
     "import/resolver": {
       "typescript": true
