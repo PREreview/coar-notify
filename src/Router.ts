@@ -1,6 +1,6 @@
 import { HttpServer } from '@effect/platform-node'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Context, Effect } from 'effect'
+import { Context, Data, Effect } from 'effect'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Redis from './Redis.js'
@@ -18,16 +18,26 @@ const NotificationSchema = Schema.struct({
   notification: CoarNotify.ReviewActionSchema,
 })
 
+class RedisTimeout extends Data.TaggedError('RedisTimeout') {
+  readonly message = 'Connection timeout'
+}
+
 export const Router = HttpServer.router.empty.pipe(
   HttpServer.router.get(
     '/health',
     Effect.gen(function* (_) {
-      yield* _(Redis.ping())
+      yield* _(Redis.ping(), Effect.timeoutFail({ duration: '900 millis', onTimeout: () => new RedisTimeout() }))
 
       return yield* _(HttpServer.response.json({ status: 'ok' }), HttpServer.middleware.withLoggerDisabled)
     }).pipe(
       Effect.catchTags({
         RedisError: error =>
+          Effect.gen(function* (_) {
+            yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
+
+            return yield* _(HttpServer.response.json({ status: 'error' }, { status: 503 }))
+          }),
+        RedisTimeout: error =>
           Effect.gen(function* (_) {
             yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
 
