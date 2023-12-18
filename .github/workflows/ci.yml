@@ -103,7 +103,7 @@ jobs:
       - name: 'Install dependencies'
         run: npm ci
 
-      - name: 'Run the linter'
+      - name: 'Run the tests'
         run: npx vitest run
 
   test-smoke:
