@@ -11,6 +11,7 @@
     "@js-temporal/polyfill": "^0.4.4",
     "doi-regex": "^0.1.13",
     "effect": "^2.0.0-next.58",
+    "http-status-codes": "^2.3.0",
     "ioredis": "^5.3.2"
   },
   "devDependencies": {

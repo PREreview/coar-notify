@@ -1,6 +1,7 @@
 import { HttpServer } from '@effect/platform-node'
 import { Schema, TreeFormatter } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
+import { StatusCodes } from 'http-status-codes'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Redis from './Redis.js'
@@ -35,13 +36,13 @@ export const Router = HttpServer.router.empty.pipe(
           Effect.gen(function* (_) {
             yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
 
-            return yield* _(HttpServer.response.json({ status: 'error' }, { status: 503 }))
+            return yield* _(HttpServer.response.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
           }),
         RedisTimeout: error =>
           Effect.gen(function* (_) {
             yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
 
-            return yield* _(HttpServer.response.json({ status: 'error' }, { status: 503 }))
+            return yield* _(HttpServer.response.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
           }),
       }),
     ),
@@ -91,7 +92,7 @@ export const Router = HttpServer.router.empty.pipe(
         }),
       )
 
-      return yield* _(HttpServer.response.empty({ status: 201 }))
+      return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
     }).pipe(
       Effect.catchTags({
         ParseError: error =>
@@ -102,7 +103,7 @@ export const Router = HttpServer.router.empty.pipe(
               ),
             )
 
-            return HttpServer.response.empty({ status: 400 })
+            return HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST })
           }),
         RedisError: error =>
           Effect.gen(function* (_) {
@@ -112,9 +113,9 @@ export const Router = HttpServer.router.empty.pipe(
               ),
             )
 
-            return HttpServer.response.empty({ status: 503 })
+            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
-        RequestError: () => HttpServer.response.empty({ status: 400 }),
+        RequestError: () => HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST }),
         SlackErrorResponse: error =>
           Effect.gen(function* (_) {
             yield* _(
@@ -123,11 +124,11 @@ export const Router = HttpServer.router.empty.pipe(
               ),
             )
 
-            return HttpServer.response.empty({ status: 503 })
+            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
       }),
     ),
   ),
-  Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: 404 })),
+  Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: StatusCodes.NOT_FOUND })),
   HttpServer.server.serve(HttpServer.middleware.logger),
 )
