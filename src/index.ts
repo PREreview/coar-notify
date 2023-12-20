@@ -9,7 +9,7 @@ const ServerLive = HttpServer.server.layer(() => createServer(), { port: 3000 })
 
 const RedisLive = Redis.layer
 
-const HttpLive = Layer.scopedDiscard(Router).pipe(
+const HttpLive = Router.pipe(
   Layer.provide(Layer.mergeAll(HttpClient.client.layer, ServerLive, RedisLive)),
   Layer.provide(ConfigLive),
 )
