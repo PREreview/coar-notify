@@ -6,7 +6,7 @@ export const ReviewActionSchema = Schema.struct({
   '@context': Schema.tuple(
     Schema.literal('https://www.w3.org/ns/activitystreams'),
     Schema.literal('https://purl.org/coar/notify'),
-  ),
+  ).pipe(Schema.rest(Schema.string)),
   id: Schema.string,
   type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
   origin: Schema.struct({

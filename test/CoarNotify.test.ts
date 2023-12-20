@@ -7,7 +7,7 @@ describe('ReviewActionSchema', () => {
   test('accepts valid input', () => {
     expect(
       Parser.parseSync(_.ReviewActionSchema)({
-        '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify'],
+        '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify', 'http://schema.org/'],
         actor: {
           id: 'https://orcid.org/0000-0002-1825-0097',
           name: 'Josiah Carberry',
@@ -38,7 +38,7 @@ describe('ReviewActionSchema', () => {
         updated: '2022-10-06T15:00:00.000000',
       }),
     ).toStrictEqual({
-      '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify'],
+      '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify', 'http://schema.org/'],
       actor: {
         id: new URL('https://orcid.org/0000-0002-1825-0097'),
         name: 'Josiah Carberry',
