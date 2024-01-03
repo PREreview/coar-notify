@@ -30,7 +30,7 @@ lint: node_modules
 typecheck: node_modules
 	npx tsc --noEmit
 
-test:
+test: node_modules
 	npx vitest run
 
 smoke-test: SHELL := /usr/bin/env bash
