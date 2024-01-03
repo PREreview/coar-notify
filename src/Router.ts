@@ -54,7 +54,7 @@ export const Router = HttpServer.router.empty.pipe(
       const reviewAction = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.ReviewActionSchema))
 
       const encoded = yield* _(
-        Schema.encode(Schema.ParseJson.pipe(Schema.compose(NotificationSchema)))({
+        Schema.encode(Schema.parseJson(NotificationSchema))({
           timestamp,
           notification: reviewAction,
         }),
