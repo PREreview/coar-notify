@@ -5,6 +5,8 @@ import type * as Doi from '../src/Doi.js'
 
 export * from 'fast-check'
 
+export const url = (): fc.Arbitrary<URL> => fc.webUrl().map(url => new URL(url))
+
 export const instant = (): fc.Arbitrary<Temporal.Instant> =>
   fc.date().map(date => Temporal.Instant.from(date.toISOString()))
 
