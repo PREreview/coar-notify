@@ -22,6 +22,10 @@ updates:
     schedule:
       interval: 'daily'
     groups:
+      effect:
+        patterns:
+          - '@effect/*'
+          - 'effect'
       typescript-eslint:
         patterns:
           - '@typescript-eslint/*'
