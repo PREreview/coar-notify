@@ -13,7 +13,8 @@ export const Redis = Context.Tag<Redis>('IoRedis/Redis')
 export const RedisConfig = Context.Tag<RedisConfig>()
 
 export class RedisError extends Data.TaggedError('RedisError')<{
-  readonly error: unknown
+  readonly cause?: Error
+  readonly message: string
 }> {}
 
 export const layer: Layer.Layer<RedisConfig, never, Redis> = Layer.scoped(
@@ -46,10 +47,10 @@ export const ping = (): Effect.Effect<Redis, RedisError, 'PONG'> =>
     const redis = yield* _(Redis)
 
     if (redis.status !== 'ready') {
-      yield* _(Effect.fail(new RedisError({ error: `Redis not ready (${redis.status}` })))
+      yield* _(Effect.fail(new RedisError({ message: `Redis not ready (${redis.status})` })))
     }
 
-    return yield* _(Effect.tryPromise({ try: () => redis.ping(), catch: error => new RedisError({ error }) }))
+    return yield* _(Effect.tryPromise({ try: () => redis.ping(), catch: toRedisError }))
   })
 
 export const lpush = (
@@ -58,5 +59,8 @@ export const lpush = (
   Effect.gen(function* (_) {
     const redis = yield* _(Redis)
 
-    yield* _(Effect.tryPromise({ try: () => redis.lpush(...args), catch: error => new RedisError({ error }) }))
+    yield* _(Effect.tryPromise({ try: () => redis.lpush(...args), catch: toRedisError }))
   })
+
+const toRedisError = (error: unknown): RedisError =>
+  new RedisError(error instanceof Error ? { cause: error, message: error.message } : { message: String(error) })
