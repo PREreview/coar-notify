@@ -4,6 +4,7 @@ import { Context, Data, Effect } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
+import * as Nodemailer from './Nodemailer.js'
 import * as Redis from './Redis.js'
 import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
@@ -92,6 +93,28 @@ export const Router = HttpServer.router.empty.pipe(
         }),
       )
 
+      if (reviewAction.actor.id.protocol === 'mailto:') {
+        yield* _(
+          Nodemailer.sendMail({
+            from: { name: 'PREreview', address: 'help@prereview.org' },
+            to: { name: reviewAction.actor.name, address: reviewAction.actor.id.pathname },
+            subject: 'Review requested from the PREreview community',
+            text: `
+Hi ${reviewAction.actor.name},
+
+Thank you for requesting a review from PREreview.
+
+While we cannot guarantee a review, we’ve let our community know.
+
+If you have any questions, please let us know at help@prereview.org.
+
+All the best,
+PREreview
+`.trim(),
+          }),
+        )
+      }
+
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
     }).pipe(
       Effect.catchTags({
@@ -122,6 +145,14 @@ export const Router = HttpServer.router.empty.pipe(
               Effect.logError('Unable post chat message on Slack').pipe(
                 Effect.annotateLogs({ message: error.message }),
               ),
+            )
+
+            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
+          }),
+        TransporterError: error =>
+          Effect.gen(function* (_) {
+            yield* _(
+              Effect.logError('Unable to send email to author').pipe(Effect.annotateLogs({ message: error.message })),
             )
 
             return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
