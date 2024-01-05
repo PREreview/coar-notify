@@ -1,4 +1,4 @@
-import { Context, Data, Effect, Layer } from 'effect'
+import { Context, Data, Effect, Layer, Option } from 'effect'
 import Nodemailer from 'nodemailer'
 
 export type Transporter = Nodemailer.Transporter<unknown>
@@ -10,9 +10,22 @@ export class TransporterError extends Data.TaggedError('TransporterError')<{
   readonly message: string
 }> {}
 
+export interface SmtpConfig {
+  readonly url: URL
+}
+
+export const SmtpConfig = Context.Tag<SmtpConfig>()
+
 export const layer: Layer.Layer<never, never, Transporter> = Layer.scoped(
   Transporter,
-  Effect.succeed(Nodemailer.createTransport({ streamTransport: true })),
+  Effect.gen(function* (_) {
+    const smtpConfig = yield* _(Effect.serviceOption(SmtpConfig))
+
+    return Option.match(smtpConfig, {
+      onNone: () => Nodemailer.createTransport({ streamTransport: true }),
+      onSome: smtpConfig => Nodemailer.createTransport(smtpConfig.url.href),
+    })
+  }),
 )
 
 export const sendMail = (
