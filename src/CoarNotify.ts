@@ -2,7 +2,7 @@ import { Schema } from '@effect/schema'
 import * as Doi from './Doi.js'
 import * as Url from './Url.js'
 
-export const ReviewActionSchema = Schema.struct({
+export const RequestReviewSchema = Schema.struct({
   '@context': Schema.tuple(
     Schema.literal('https://www.w3.org/ns/activitystreams'),
     Schema.literal('https://purl.org/coar/notify'),

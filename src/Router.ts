@@ -17,7 +17,7 @@ export const SlackChannelConfig = Context.Tag<SlackChannelConfig>()
 
 const NotificationSchema = Schema.struct({
   timestamp: Temporal.InstantInMillisecondsSchema,
-  notification: CoarNotify.ReviewActionSchema,
+  notification: CoarNotify.RequestReviewSchema,
 })
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
@@ -52,12 +52,12 @@ export const Router = HttpServer.router.empty.pipe(
     '/inbox',
     Effect.gen(function* (_) {
       const timestamp = yield* _(Temporal.Timestamp)
-      const reviewAction = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.ReviewActionSchema))
+      const requestReview = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.RequestReviewSchema))
 
       const encoded = yield* _(
         Schema.encode(Schema.parseJson(NotificationSchema))({
           timestamp,
-          notification: reviewAction,
+          notification: requestReview,
         }),
       )
 
@@ -71,9 +71,9 @@ export const Router = HttpServer.router.empty.pipe(
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `A new request from ${reviewAction.actor.name} has come in for a review of <${
-                  Doi.toUrl(reviewAction.object['ietf:cite-as']).href
-                }|${reviewAction.object['ietf:cite-as']}>`,
+                text: `A new request from ${requestReview.actor.name} has come in for a review of <${
+                  Doi.toUrl(requestReview.object['ietf:cite-as']).href
+                }|${requestReview.object['ietf:cite-as']}>`,
               },
               accessory: {
                 type: 'button',
@@ -82,7 +82,7 @@ export const Router = HttpServer.router.empty.pipe(
                   text: 'Write a PREreview',
                 },
                 url: new URL(
-                  `https://prereview.org/preprints/doi-${reviewAction.object['ietf:cite-as']
+                  `https://prereview.org/preprints/doi-${requestReview.object['ietf:cite-as']
                     .toLowerCase()
                     .replaceAll('-', '+')
                     .replaceAll('/', '-')}/write-a-prereview`,
@@ -93,14 +93,14 @@ export const Router = HttpServer.router.empty.pipe(
         }),
       )
 
-      if (reviewAction.actor.id.protocol === 'mailto:') {
+      if (requestReview.actor.id.protocol === 'mailto:') {
         yield* _(
           Nodemailer.sendMail({
             from: { name: 'PREreview', address: 'help@prereview.org' },
-            to: { name: reviewAction.actor.name, address: reviewAction.actor.id.pathname },
+            to: { name: requestReview.actor.name, address: requestReview.actor.id.pathname },
             subject: 'Review requested from the PREreview community',
             text: `
-Hi ${reviewAction.actor.name},
+Hi ${requestReview.actor.name},
 
 Thank you for requesting a review from PREreview.
 

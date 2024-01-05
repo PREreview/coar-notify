@@ -3,10 +3,10 @@ import { describe, expect, test } from 'vitest'
 import * as _ from '../src/CoarNotify.js'
 import * as Doi from '../src/Doi.js'
 
-describe('ReviewActionSchema', () => {
+describe('RequestReviewSchema', () => {
   test('accepts valid input', () => {
     expect(
-      Parser.parseSync(_.ReviewActionSchema)({
+      Parser.parseSync(_.RequestReviewSchema)({
         '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify', 'http://schema.org/'],
         actor: {
           id: 'https://orcid.org/0000-0002-1825-0097',
@@ -65,7 +65,7 @@ describe('ReviewActionSchema', () => {
 
   test('rejects invalid input', () => {
     expect(() =>
-      Parser.parseSync(_.ReviewActionSchema)({
+      Parser.parseSync(_.RequestReviewSchema)({
         '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify'],
         actor: {
           id: 'https://orcid.org/0000-0002-1825-0097',
