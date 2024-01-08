@@ -1,4 +1,4 @@
-.PHONY: build build-image check fix format lint smoke-test start start-services test typecheck
+.PHONY: build build-image check fix format lint mailcatcher smoke-test start start-services test typecheck
 
 IMAGE_TAG=prereview-coar-notify
 
