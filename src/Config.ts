@@ -1,4 +1,5 @@
-import { Config, Layer } from 'effect'
+import { Config, Effect, Layer, Option } from 'effect'
+import { SmtpConfig } from './Nodemailer.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './Router.js'
 import { SlackApiConfig } from './Slack.js'
@@ -21,8 +22,18 @@ const redisConfig: Config.Config<RedisConfig> = Config.nested(
   'REDIS',
 )
 
+const smtpConfig: Config.Config<Option.Option<SmtpConfig>> = Config.option(
+  Config.nested(
+    Config.mapAttempt(Config.string('URL'), url => ({ url: new URL(url) })),
+    'SMTP',
+  ),
+)
+
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackApiConfig, slackApiConfig),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
+  Layer.unwrapEffect(
+    smtpConfig.pipe(Effect.map(Option.match({ onNone: () => Layer.empty, onSome: Layer.succeed(SmtpConfig) }))),
+  ),
 )
