@@ -42,3 +42,6 @@ start: .env node_modules start-services
 
 start-services:
 	docker compose up --detach
+
+mailcatcher: node_modules start-services
+	npx open-cli http://$(shell docker compose port mailcatcher 1080 | sed 's/0\.\0\.0\.0/localhost/')
