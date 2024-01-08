@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  mailcatcher:
+    image: sj26/mailcatcher
+    ports:
+      - '1025'
+      - '1080:1080'
   redis:
     image: redis
     ports:
