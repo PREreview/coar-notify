@@ -122,7 +122,7 @@ PREreview
           Effect.gen(function* (_) {
             yield* _(
               Effect.logInfo('Invalid request').pipe(
-                Effect.annotateLogs({ message: TreeFormatter.formatErrors(error.errors) }),
+                Effect.annotateLogs({ message: TreeFormatter.formatError(error) }),
               ),
             )
 

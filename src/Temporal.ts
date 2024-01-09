@@ -15,7 +15,7 @@ export const InstantFromMillisecondsSchema = <I, A extends number>(
     (number, _, ast) =>
       ParseResult.try({
         try: () => Temporal.Instant.fromEpochMilliseconds(number),
-        catch: () => ParseResult.parseError([ParseResult.type(ast, number)]),
+        catch: () => ParseResult.parseError(ParseResult.type(ast, number)),
       }),
     instant => ParseResult.succeed(instant.epochMilliseconds),
     { strict: false },
