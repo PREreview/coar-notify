@@ -104,12 +104,20 @@ Hi ${requestReview.actor.name},
 
 Thank you for requesting a review from PREreview.
 
-While we cannot guarantee a review, we’ve let our community know.
+While we cannot guarantee a review, we’ve shared your request with our PREreview Slack community.
+
+You can join our Slack Community and check out the #request-a-review channel by signing up at https://bit.ly/PREreview-Slack.
 
 If you have any questions, please let us know at help@prereview.org.
 
 All the best,
 PREreview
+
+---
+
+PREreview is a platform, resource center, and convener.
+We provide ways for feedback to preprints to be done openly, rapidly, constructively, and by a global community of peers.
+Join us at https://prereview.org and sign up to our vibrant Slack community at https://bit.ly/PREreview-Slack.
 `.trim(),
           }),
         )
