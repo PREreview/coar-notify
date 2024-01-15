@@ -108,12 +108,12 @@ export const Router = HttpServer.router.empty.pipe(
                       <mj-text>Hi ${requestReview.actor.name},</mj-text>
                       <mj-text>Thank you for requesting a review from PREreview.</mj-text>
                       <mj-text>
-                        While we cannot guarantee a review, we’ve shared your request with our PREreview Slack
-                        community.
+                        While we cannot guarantee a review, we’ve shared your request with our PREreview community on
+                        our #request-a-review Slack channel.
                       </mj-text>
                       <mj-text>
-                        You can join our Slack Community and check out the #request-a-review channel by signing up at
-                        <a href="https://bit.ly/PREreview-Slack">bit.ly/PREreview-Slack</a>.
+                        You can join our Slack Community and add further details to your review request by signing up
+                        at <a href="https://bit.ly/PREreview-Slack">bit.ly/PREreview-Slack</a>.
                       </mj-text>
                       <mj-text>
                         If you have any questions, please let us know at
@@ -150,9 +150,9 @@ Hi ${requestReview.actor.name},
 
 Thank you for requesting a review from PREreview.
 
-While we cannot guarantee a review, we’ve shared your request with our PREreview Slack community.
+While we cannot guarantee a review, we’ve shared your request with our PREreview community on our #request-a-review Slack channel.
 
-You can join our Slack Community and check out the #request-a-review channel by signing up at https://bit.ly/PREreview-Slack.
+You can join our Slack Community and add further details to your review request by signing up at https://bit.ly/PREreview-Slack.
 
 If you have any questions, please let us know at help@prereview.org.
 
