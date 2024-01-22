@@ -108,6 +108,6 @@ describe('DoiUrlSchema', () => {
   test.prop([fc.doi()])('encoding', doi => {
     const actual = Schema.encodeSync(_.DoiUrlSchema)(doi)
 
-    expect(actual).toStrictEqual(new URL(`https://doi.org/${doi}`).href)
+    expect(actual).toStrictEqual(_.toUrl(doi).href)
   })
 })
