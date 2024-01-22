@@ -35,7 +35,7 @@
     "fast-check": "^3.15.0",
     "open-cli": "^8.0.0",
     "prettier": "^3.1.1",
-    "prettier-plugin-sh": "^0.13.1",
+    "prettier-plugin-sh": "^0.14.0",
     "prettier-plugin-toml": "^2.0.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
