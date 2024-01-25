@@ -58,7 +58,7 @@ test.prop([fc.doi().map(doi => [doi, new URL(`https://doi.org/${doi}`).href] sat
 describe('DoiSchema', () => {
   describe('decoding', () => {
     test.prop([fc.doi()])('with a DOI', doi => {
-      const actual = Schema.parseSync(_.DoiSchema)(doi)
+      const actual = Schema.decodeUnknownSync(_.DoiSchema)(doi)
 
       expect(actual).toBe(doi)
     })
@@ -66,7 +66,7 @@ describe('DoiSchema', () => {
     test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.startsWith('10.'))])(
       'with a non-DOI',
       value => {
-        const actual = Schema.parseEither(_.DoiSchema)(value)
+        const actual = Schema.decodeUnknownEither(_.DoiSchema)(value)
 
         expect(actual).toStrictEqual(Either.left(expect.anything()))
       },
@@ -90,7 +90,7 @@ describe('DoiUrlSchema', () => {
         )
         .map(([prefix, doi]) => [doi, `${prefix}${doi}`] satisfies [_.Doi, string]),
     ])('with a DOI', ([expected, value]) => {
-      const actual = Schema.parseSync(_.DoiUrlSchema)(value)
+      const actual = Schema.decodeUnknownSync(_.DoiUrlSchema)(value)
 
       expect(actual).toBe(expected)
     })
@@ -98,7 +98,7 @@ describe('DoiUrlSchema', () => {
     test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.includes('10.') || !s.includes('doi.org'))])(
       'with a non-DOI',
       value => {
-        const actual = Schema.parseEither(_.DoiUrlSchema)(value)
+        const actual = Schema.decodeUnknownEither(_.DoiUrlSchema)(value)
 
         expect(actual).toStrictEqual(Either.left(expect.anything()))
       },
