@@ -18,13 +18,13 @@ test.prop([fc.epochMilliseconds()])('Timestamp', epochMilliseconds =>
 describe('InstantFromSelfSchema', () => {
   describe('decoding', () => {
     test.prop([fc.instant()])('with an instant', instant => {
-      const actual = Schema.parseSync(_.InstantFromSelfSchema)(instant)
+      const actual = Schema.decodeUnknownSync(_.InstantFromSelfSchema)(instant)
 
       expect(actual.epochMilliseconds).toStrictEqual(instant.epochMilliseconds)
     })
 
     test.prop([fc.anything()])('with a non-instant', value => {
-      const actual = Schema.parseEither(_.InstantFromSelfSchema)(value)
+      const actual = Schema.decodeUnknownEither(_.InstantFromSelfSchema)(value)
 
       expect(actual).toStrictEqual(Either.left(expect.anything()))
     })
@@ -40,7 +40,7 @@ describe('InstantFromSelfSchema', () => {
 describe('InstantInMillisecondsSchema', () => {
   describe('decoding', () => {
     test.prop([fc.epochMilliseconds()])('with milliseconds', epochMilliseconds => {
-      const actual = Schema.parseSync(_.InstantInMillisecondsSchema)(epochMilliseconds)
+      const actual = Schema.decodeUnknownSync(_.InstantInMillisecondsSchema)(epochMilliseconds)
 
       expect(actual.epochMilliseconds).toStrictEqual(epochMilliseconds)
     })
@@ -48,7 +48,7 @@ describe('InstantInMillisecondsSchema', () => {
     test.prop([fc.anything().filter(value => typeof value !== 'number' || !Number.isInteger(value))])(
       'with non-milliseconds',
       value => {
-        const actual = Schema.parseEither(_.InstantInMillisecondsSchema)(value)
+        const actual = Schema.decodeUnknownEither(_.InstantInMillisecondsSchema)(value)
 
         expect(actual).toStrictEqual(Either.left(expect.anything()))
       },
