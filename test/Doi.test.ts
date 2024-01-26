@@ -38,20 +38,31 @@ describe('Doi', () => {
   })
 })
 
-test.prop([fc.doi().map(doi => [doi, new URL(`https://doi.org/${doi}`).href] satisfies [_.Doi, string])], {
-  examples: [
-    [[_.Doi('10.0001/journal/pone.0011111'), 'https://doi.org/10.0001/journal/pone.0011111']],
-    [
-      [
-        _.Doi('10.1002/(SICI)1096-8644(199808)106:4<483::AID-AJPA4>3.0.CO;2-K'),
-        'https://doi.org/10.1002/(SICI)1096-8644(199808)106:4%3C483::AID-AJPA4%3E3.0.CO;2-K',
-      ],
-    ],
-    [[_.Doi('10.1000/./'), 'https://doi.org/10.1000/.%2F']],
-    [[_.Doi('10.1000/../'), 'https://doi.org/10.1000/..%2F']],
-    [[_.Doi('10.1000/\\'), 'https://doi.org/10.1000/%5C']],
+test.prop(
+  [
+    fc
+      .doi({
+        suffix: fc.string({ minLength: 1 }).filter(s => !/[\\/]/.test(s)),
+      })
+      .map(doi => [doi, new URL(`https://doi.org/${doi}`).href] satisfies [_.Doi, string]),
   ],
-})('toUrl', ([doi, url]) => {
+  {
+    examples: [
+      [[_.Doi('10.0001/journal/pone.0011111'), 'https://doi.org/10.0001/journal/pone.0011111']],
+      [
+        [
+          _.Doi('10.1002/(SICI)1096-8644(199808)106:4<483::AID-AJPA4>3.0.CO;2-K'),
+          'https://doi.org/10.1002/(SICI)1096-8644(199808)106:4%3C483::AID-AJPA4%3E3.0.CO;2-K',
+        ],
+      ],
+      [[_.Doi('10.1000/./'), 'https://doi.org/10.1000/.%2F']],
+      [[_.Doi('10.1000/../'), 'https://doi.org/10.1000/..%2F']],
+      [[_.Doi('10.1000/\\'), 'https://doi.org/10.1000/%5C']],
+      [[_.Doi('10.1000/\u0000'), 'https://doi.org/10.1000/%00']],
+    ],
+    numRuns: 10000,
+  },
+)('toUrl', ([doi, url]) => {
   expect(_.toUrl(doi).href).toStrictEqual(url)
 })
 
