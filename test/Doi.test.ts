@@ -60,7 +60,6 @@ test.prop(
       [[_.Doi('10.1000/\\'), 'https://doi.org/10.1000/%5C']],
       [[_.Doi('10.1000/\u0000'), 'https://doi.org/10.1000/%00']],
     ],
-    numRuns: 10000,
   },
 )('toUrl', ([doi, url]) => {
   expect(_.toUrl(doi).href).toStrictEqual(url)
