@@ -1,4 +1,4 @@
-import { HttpServer } from '@effect/platform-node'
+import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
 import { StatusCodes } from 'http-status-codes'
@@ -14,7 +14,7 @@ export interface SlackChannelConfig {
   readonly id: string
 }
 
-export const SlackChannelConfig = Context.Tag<SlackChannelConfig>()
+export const SlackChannelConfig = Context.GenericTag<SlackChannelConfig>('SlackChannelConfig')
 
 const NotificationSchema = Schema.struct({
   timestamp: Temporal.InstantInMillisecondsSchema,

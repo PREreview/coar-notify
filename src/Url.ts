@@ -1,8 +1,8 @@
 import { ParseResult, Schema } from '@effect/schema'
 
-export const UrlFromSelfSchema: Schema.Schema<never, URL> = Schema.instanceOf(URL)
+export const UrlFromSelfSchema: Schema.Schema<URL> = Schema.instanceOf(URL)
 
-export const UrlFromStringSchema = <R, I, A extends string>(self: Schema.Schema<R, I, A>): Schema.Schema<R, I, URL> =>
+export const UrlFromStringSchema = <A extends string, I, R>(self: Schema.Schema<A, I, R>): Schema.Schema<URL, I, R> =>
   Schema.transformOrFail(
     self,
     UrlFromSelfSchema,
