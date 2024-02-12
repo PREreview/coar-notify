@@ -6,9 +6,9 @@ export const InstantFromSelfSchema = Schema.instanceOf(Temporal.Instant)
 
 export const Timestamp = Clock.currentTimeMillis.pipe(Effect.map(n => Temporal.Instant.fromEpochMilliseconds(n)))
 
-export const InstantFromMillisecondsSchema = <R, I, A extends number>(
-  self: Schema.Schema<R, I, A>,
-): Schema.Schema<R, I, Temporal.Instant> =>
+export const InstantFromMillisecondsSchema = <A extends number, I, R>(
+  self: Schema.Schema<A, I, R>,
+): Schema.Schema<Temporal.Instant, I, R> =>
   Schema.transformOrFail(
     self,
     InstantFromSelfSchema,

@@ -3,7 +3,7 @@ import Nodemailer from 'nodemailer'
 
 export type Transporter = Nodemailer.Transporter<unknown>
 
-export const Transporter = Context.Tag<Transporter>('Nodemailer/Transporter')
+export const Transporter = Context.GenericTag<Transporter>('Nodemailer/Transporter')
 
 export class TransporterError extends Data.TaggedError('TransporterError')<{
   readonly cause?: Error
@@ -14,9 +14,9 @@ export interface SmtpConfig {
   readonly url: URL
 }
 
-export const SmtpConfig = Context.Tag<SmtpConfig>()
+export const SmtpConfig = Context.GenericTag<SmtpConfig>('SmtpConfig')
 
-export const layer: Layer.Layer<never, never, Transporter> = Layer.scoped(
+export const layer: Layer.Layer<Transporter> = Layer.scoped(
   Transporter,
   Effect.gen(function* (_) {
     const smtpConfig = yield* _(Effect.serviceOption(SmtpConfig))
@@ -30,7 +30,7 @@ export const layer: Layer.Layer<never, never, Transporter> = Layer.scoped(
 
 export const sendMail = (
   mailOptions: Nodemailer.SendMailOptions,
-): Effect.Effect<Transporter, TransporterError, unknown> =>
+): Effect.Effect<unknown, TransporterError, Transporter> =>
   Effect.gen(function* (_) {
     const transporter = yield* _(Transporter)
 

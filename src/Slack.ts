@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform-node'
+import { HttpClient } from '@effect/platform'
 import { Schema } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
 import * as Url from './Url.js'
@@ -7,7 +7,7 @@ export interface SlackApiConfig {
   readonly accessToken: string
 }
 
-export const SlackApiConfig = Context.Tag<SlackApiConfig>()
+export const SlackApiConfig = Context.GenericTag<SlackApiConfig>('SlackApiConfig')
 
 const PlainTextObjectSchema = Schema.struct({
   type: Schema.literal('plain_text'),
@@ -51,9 +51,9 @@ class SlackErrorResponse extends Data.TaggedError('SlackErrorResponse')<{ messag
 export const chatPostMessage = (
   message: Schema.Schema.To<typeof ChatPostMessageSchema>,
 ): Effect.Effect<
-  HttpClient.client.Client.Default | SlackApiConfig,
+  void,
   HttpClient.error.HttpClientError | SlackErrorResponse,
-  void
+  HttpClient.client.Client.Default | SlackApiConfig
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
