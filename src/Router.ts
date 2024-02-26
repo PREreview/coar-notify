@@ -126,7 +126,7 @@ export const Router = HttpServer.router.empty.pipe(
                     <mj-column width="25%" vertical-align="middle">
                       <mj-image
                         href="https://prereview.org"
-                        src="https://res.cloudinary.com/prereview/image/upload/f_auto,q_auto,w_300/v1704970584/emails/logo_tbhi5b"
+                        src="https://res.cloudinary.com/prereview/image/upload/f_auto,q_auto,w_300/emails/logo_tbhi5b"
                         padding="0"
                       />
                     </mj-column>
