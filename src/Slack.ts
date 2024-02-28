@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect } from 'effect'
+import { Context, Data, Effect, type Scope } from 'effect'
 import * as Url from './Url.js'
 
 export interface SlackApiConfig {
@@ -53,7 +53,7 @@ export const chatPostMessage = (
 ): Effect.Effect<
   void,
   HttpClient.error.HttpClientError | SlackErrorResponse,
-  HttpClient.client.Client.Default | SlackApiConfig
+  HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
