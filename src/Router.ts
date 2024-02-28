@@ -4,7 +4,6 @@ import { Context, Data, Effect } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
-import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as Redis from './Redis.js'
 import * as Slack from './Slack.js'
@@ -72,9 +71,12 @@ export const Router = HttpServer.router.empty.pipe(
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `A new request from ${requestReview.actor.name} has come in for a review of <${
-                  Doi.toUrl(requestReview.object['ietf:cite-as']).href
-                }|${requestReview.object['ietf:cite-as']}>`,
+                text: `A new request from ${requestReview.actor.name} has come in for a review of <${`https://prereview.org/preprints/doi-${requestReview.object[
+                  'ietf:cite-as'
+                ]
+                  .toLowerCase()
+                  .replaceAll('-', '+')
+                  .replaceAll('/', '-')}`}|${requestReview.object['ietf:cite-as']}>`,
               },
               accessory: {
                 type: 'button',
