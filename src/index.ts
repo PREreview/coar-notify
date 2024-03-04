@@ -3,6 +3,7 @@ import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Effect, Layer, LogLevel, Logger } from 'effect'
 import { createServer } from 'node:http'
 import { ConfigLive } from './Config.js'
+import { JsonLogger } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as Redis from './Redis.js'
 import { Router } from './Router.js'
@@ -14,6 +15,7 @@ const RedisLive = Redis.layer
 const HttpLive = Router.pipe(
   Layer.provide(Layer.mergeAll(HttpClient.client.layer, ServerLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
+  Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
 )
 
 Layer.launch(HttpLive).pipe(
