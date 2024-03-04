@@ -24,7 +24,7 @@ export const layer: Layer.Layer<Redis, never, RedisConfig> = Layer.scoped(
       const config = yield* _(RedisConfig)
       const runtime = yield* _(Effect.runtime())
 
-      const redis = new IoRedis.Redis(config.url.href, { family: config.family })
+      const redis = new IoRedis.Redis(config.url.href, { enableOfflineQueue: false, family: config.family })
 
       redis.on('connect', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connected')))
       redis.on('close', () => Runtime.runSync(runtime)(Effect.logDebug('Redis connection closed')))
