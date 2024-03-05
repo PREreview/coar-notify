@@ -77,7 +77,7 @@ export const Router = HttpServer.router.empty.pipe(
             return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
         RequestError: () => HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST }),
-        SlackErrorResponse: error =>
+        SlackError: error =>
           Effect.gen(function* (_) {
             yield* _(
               Effect.logError('Unable post chat message on Slack').pipe(

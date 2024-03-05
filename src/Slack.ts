@@ -46,15 +46,14 @@ const ErrorResponseSchema = Schema.struct({ ok: Schema.literal(false), error: Sc
 
 const SlackResponse = Schema.union(SuccessResponseSchema, ErrorResponseSchema)
 
-class SlackErrorResponse extends Data.TaggedError('SlackErrorResponse')<{ message: string }> {}
+export class SlackError extends Data.TaggedError('SlackError')<{
+  readonly cause?: Error | undefined
+  readonly message: string
+}> {}
 
 export const chatPostMessage = (
   message: Schema.Schema.To<typeof ChatPostMessageSchema>,
-): Effect.Effect<
-  void,
-  HttpClient.error.HttpClientError | SlackErrorResponse,
-  HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope
-> =>
+): Effect.Effect<void, SlackError, HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
@@ -67,12 +66,14 @@ export const chatPostMessage = (
     const response = yield* _(client(request), Effect.flatMap(HttpClient.response.schemaBodyJson(SlackResponse)))
 
     if (!response.ok) {
-      yield* _(Effect.fail(new SlackErrorResponse({ message: response.error })))
+      yield* _(Effect.fail(new SlackError({ message: response.error })))
     }
   }).pipe(
     Effect.catchTags({
-      BodyError: Effect.die,
-      ParseError: Effect.die,
+      BodyError: toSlackError,
+      ParseError: toSlackError,
+      RequestError: httpToSlackError,
+      ResponseError: httpToSlackError,
     }),
   )
 
@@ -86,3 +87,11 @@ const slackClient = Effect.gen(function* (_) {
     HttpClient.client.mapRequest(HttpClient.request.bearerToken(accessToken)),
   )
 })
+
+const toSlackError = (error: unknown): SlackError => {
+  return new SlackError(error instanceof Error ? { cause: error, message: error.message } : { message: String(error) })
+}
+
+const httpToSlackError = (error: HttpClient.error.HttpClientError): SlackError => {
+  return new SlackError({ cause: error.error instanceof Error ? error.error : undefined, message: error.reason })
+}
