@@ -14,6 +14,36 @@ import { Router } from './Router.js'
 
 const ServerLive = NodeHttpServer.server.layer(() => createServer(), { port: 3000 })
 
+const HttpClientLive = Layer.succeed(
+  HttpClient.client.Client,
+  HttpClient.client.makeDefault(request =>
+    Effect.Do.pipe(
+      Effect.tap(() =>
+        Effect.logDebug('Sending HTTP Request').pipe(
+          Effect.annotateLogs({ headers: HttpClient.headers.redact(request.headers, 'authorization') }),
+        ),
+      ),
+      Effect.zipRight(HttpClient.client.fetch()(request)),
+      Effect.tap(response =>
+        Effect.logDebug('Received HTTP response').pipe(
+          Effect.annotateLogs({ status: response.status, headers: response.headers }),
+        ),
+      ),
+      Effect.tapErrorTag('RequestError', error =>
+        Effect.logError('Error sending HTTP request').pipe(
+          Effect.annotateLogs({ reason: error.reason, error: error.error }),
+        ),
+      ),
+      Effect.annotateLogs({
+        url: request.url,
+        urlParams: HttpClient.urlParams.toString(request.urlParams),
+        method: request.method,
+      }),
+      Effect.withLogSpan('fetch'),
+    ),
+  ),
+)
+
 const RedisLive = Redis.layer
 
 export const NotificationsQueueLive = BullMq.makeLayer<
@@ -44,7 +74,7 @@ const HttpLive = Router.pipe(
     ),
   ),
   Layer.provide(NotificationsQueueLive),
-  Layer.provide(Layer.mergeAll(HttpClient.client.layer, ServerLive, RedisLive, Nodemailer.layer)),
+  Layer.provide(Layer.mergeAll(HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
 )
