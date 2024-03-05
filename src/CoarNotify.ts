@@ -2,6 +2,8 @@ import { Schema } from '@effect/schema'
 import * as Doi from './Doi.js'
 import * as Url from './Url.js'
 
+export type RequestReview = Schema.Schema.To<typeof RequestReviewSchema>
+
 export const RequestReviewSchema = Schema.struct({
   '@context': Schema.tuple(
     Schema.literal('https://www.w3.org/ns/activitystreams'),

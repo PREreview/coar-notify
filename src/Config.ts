@@ -1,7 +1,7 @@
 import { Config, Effect, Layer, Option } from 'effect'
 import { SmtpConfig } from './Nodemailer.js'
 import { RedisConfig } from './Redis.js'
-import { SlackChannelConfig } from './Router.js'
+import { SlackChannelConfig } from './ReviewRequest.js'
 import { SlackApiConfig } from './Slack.js'
 
 const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
