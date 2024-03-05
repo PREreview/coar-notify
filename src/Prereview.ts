@@ -1,7 +1,7 @@
 import { HttpClient } from '@effect/platform'
-import { Effect } from 'effect'
+import { Effect, Equal } from 'effect'
 import { StatusCodes } from 'http-status-codes'
-import * as Doi from './Doi.js'
+import type * as Doi from './Doi.js'
 
 export function writeAPrereviewUrl(doi: Doi.Doi) {
   return new URL(
@@ -20,7 +20,7 @@ export const preprintIsReady = (doi: Doi.Doi): Effect.Effect<boolean, never, Htt
 
     const response = yield* _(httpClient(request))
 
-    return response.status === StatusCodes.OK
+    return Equal.equals(response.status, StatusCodes.OK)
   }).pipe(
     Effect.catchTags({
       RequestError: () => Effect.succeed(false),
