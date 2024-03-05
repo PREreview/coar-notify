@@ -135,4 +135,14 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
         }),
       )
     }
-  })
+  }).pipe(
+    Effect.tapErrorTag('RedisError', error =>
+      Effect.logInfo('Unable to write notification to Redis').pipe(Effect.annotateLogs({ message: error.message })),
+    ),
+    Effect.tapErrorTag('SlackError', error =>
+      Effect.logInfo('Unable post chat message on Slack').pipe(Effect.annotateLogs({ message: error.message })),
+    ),
+    Effect.tapErrorTag('TransporterError', error =>
+      Effect.logInfo('Unable to send email to author').pipe(Effect.annotateLogs({ message: error.message })),
+    ),
+  )

@@ -66,35 +66,10 @@ export const Router = HttpServer.router.empty.pipe(
 
             return HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST })
           }),
-        RedisError: error =>
-          Effect.gen(function* (_) {
-            yield* _(
-              Effect.logError('Unable to write notification to Redis').pipe(
-                Effect.annotateLogs({ message: error.message }),
-              ),
-            )
-
-            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-          }),
+        RedisError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
         RequestError: () => HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST }),
-        SlackError: error =>
-          Effect.gen(function* (_) {
-            yield* _(
-              Effect.logError('Unable post chat message on Slack').pipe(
-                Effect.annotateLogs({ message: error.message }),
-              ),
-            )
-
-            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-          }),
-        TransporterError: error =>
-          Effect.gen(function* (_) {
-            yield* _(
-              Effect.logError('Unable to send email to author').pipe(Effect.annotateLogs({ message: error.message })),
-            )
-
-            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-          }),
+        SlackError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
+        TransporterError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
       }),
     ),
   ),
