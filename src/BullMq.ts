@@ -1,6 +1,6 @@
 import * as BullMq from 'bullmq'
 import { Context, Data, Effect, Layer, type ReadonlyRecord } from 'effect'
-import { JsonValue } from 'type-fest'
+import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
 export interface Queue<N extends string, Q extends QueueJobs> {
