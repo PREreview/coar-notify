@@ -4,6 +4,7 @@ import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
+import * as Prereview from './Prereview.js'
 import * as Redis from './Redis.js'
 import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
@@ -49,12 +50,7 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
                 type: 'plain_text',
                 text: 'Write a PREreview',
               },
-              url: new URL(
-                `https://prereview.org/preprints/doi-${requestReview.object['ietf:cite-as']
-                  .toLowerCase()
-                  .replaceAll('-', '+')
-                  .replaceAll('/', '-')}/write-a-prereview`,
-              ),
+              url: Prereview.writeAPrereviewUrl(requestReview.object['ietf:cite-as']),
             },
           },
         ],
