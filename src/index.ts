@@ -21,7 +21,7 @@ export const NotificationsQueueLive = BullMq.makeLayer<
   { 'request-review': Schema.Schema.From<typeof CoarNotify.RequestReviewSchema> }
 >({
   name: 'coar-notify',
-  defaultJobOptions: { removeOnComplete: true, removeOnFail: false },
+  defaultJobOptions: { delay: '10 seconds', removeOnComplete: true, removeOnFail: false },
 })
 
 const HttpLive = Router.pipe(

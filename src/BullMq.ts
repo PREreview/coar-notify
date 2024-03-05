@@ -32,6 +32,7 @@ export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, JsonValue>
 export interface QueueOptions<N extends string> {
   readonly name: N
   readonly defaultJobOptions?: {
+    readonly delay?: Duration.DurationInput
     readonly removeOnComplete?: boolean
     readonly removeOnFail?: boolean
   }
@@ -54,7 +55,15 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
       const redis = yield* _(Redis.Redis)
       const queue = new BullMq.Queue(layerOptions.name, {
         connection: redis,
-        defaultJobOptions: layerOptions.defaultJobOptions ?? {},
+        defaultJobOptions: layerOptions.defaultJobOptions
+          ? {
+              ...layerOptions.defaultJobOptions,
+              delay:
+                typeof layerOptions.defaultJobOptions.delay === 'undefined'
+                  ? 0
+                  : Duration.toMillis(layerOptions.defaultJobOptions.delay),
+            }
+          : {},
       })
 
       yield* _(Effect.addFinalizer(() => Effect.promise(() => queue.close())))
@@ -63,7 +72,13 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
         Effect.gen(function* (_) {
           const job = yield* _(Effect.tryPromise({ try: () => queue.add(jobName, payload), catch: toBullMqError }))
 
-          yield* _(Effect.logDebug('Job added to queue'), Effect.annotateLogs('jobId', job.id))
+          yield* _(
+            Effect.logDebug('Job added to queue'),
+            Effect.annotateLogs({
+              jobId: job.id,
+              delay: job.delay > 0 ? Duration.format(Duration.millis(job.delay)) : undefined,
+            }),
+          )
 
           return job.asJSON().id
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobName: jobName }))
