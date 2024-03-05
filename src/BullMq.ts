@@ -1,9 +1,22 @@
 import * as BullMq from 'bullmq'
-import { Context, Data, Effect, Layer, Random, type ReadonlyRecord, Runtime, type Schedule } from 'effect'
+import {
+  Clock,
+  Context,
+  Data,
+  Duration,
+  Effect,
+  Layer,
+  Random,
+  type ReadonlyRecord,
+  Runtime,
+  type Schedule,
+} from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
-export type Processor<R = never> = (data: JsonValue) => Effect.Effect<void, Error, R>
+export type Processor<R = never> = (data: JsonValue) => Effect.Effect<void, Error | DelayedJob, R>
+
+export class DelayedJob extends Data.TaggedClass('DelayedJob')<{ delay: Duration.DurationInput }> {}
 
 export interface Queue<N extends string, Q extends QueueJobs> {
   readonly name: N
@@ -99,6 +112,13 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                   yield* _(Effect.promise(() => job.moveToCompleted(undefined, token)))
                   yield* _(Effect.logDebug('Job completed'))
                 }),
+                Effect.catchTag('DelayedJob', ({ delay }) =>
+                  Effect.gen(function* (_) {
+                    const timestamp = yield* _(Clock.currentTimeMillis)
+                    yield* _(Effect.promise(() => job.moveToDelayed(timestamp + Duration.toMillis(delay), token)))
+                    yield* _(Effect.logDebug('Job delayed'), Effect.annotateLogs('delay', Duration.format(delay)))
+                  }),
+                ),
                 Effect.catchAll(error =>
                   Effect.gen(function* (_) {
                     yield* _(Effect.promise(() => job.moveToFailed(error, token)))

@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Effect } from 'effect'
+import { Context, Data, Effect } from 'effect'
 import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
@@ -20,6 +20,8 @@ const NotificationSchema = Schema.struct({
   notification: CoarNotify.RequestReviewSchema,
 })
 
+export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
+
 export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
   Effect.gen(function* (_) {
     const timestamp = yield* _(Temporal.Timestamp)
@@ -29,6 +31,12 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
         notification: requestReview,
       }),
     )
+
+    const preprintIsReady = yield* _(Prereview.preprintIsReady(requestReview.object['ietf:cite-as']))
+
+    if (!preprintIsReady) {
+      yield* _(Effect.fail(new PreprintNotReady()))
+    }
 
     yield* _(Redis.lpush('notifications', encoded))
 

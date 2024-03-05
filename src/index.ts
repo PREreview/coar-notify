@@ -34,7 +34,9 @@ const HttpLive = Router.pipe(
               const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
 
               yield* _(ReviewRequest.handleReviewRequest(requestReview))
-            }),
+            }).pipe(
+              Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
+            ),
           Schedule.spaced('10 seconds'),
         ),
       ),
