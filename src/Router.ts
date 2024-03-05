@@ -38,9 +38,9 @@ export const Router = HttpServer.router.empty.pipe(
     '/inbox',
     Effect.gen(function* (_) {
       const requestReview = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.RequestReviewSchema))
-      const raw = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
+      const encoded = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
-      yield* _(BullMq.add('coar-notify', 'request-review', raw))
+      yield* _(BullMq.add('coar-notify', 'request-review', encoded))
 
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
     }).pipe(
