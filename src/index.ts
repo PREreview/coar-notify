@@ -1,14 +1,15 @@
 import { HttpClient } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
-import type { Schema } from '@effect/schema'
+import { Schema } from '@effect/schema'
 import { Effect, Layer, LogLevel, Logger, Schedule } from 'effect'
 import { createServer } from 'node:http'
 import * as BullMq from './BullMq.js'
-import type * as CoarNotify from './CoarNotify.js'
+import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
 import { JsonLogger } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as Redis from './Redis.js'
+import * as ReviewRequest from './ReviewRequest.js'
 import { Router } from './Router.js'
 
 const ServerLive = NodeHttpServer.server.layer(() => createServer(), { port: 3000 })
@@ -28,7 +29,12 @@ const HttpLive = Router.pipe(
       Effect.fork(
         BullMq.run(
           'coar-notify',
-          data => Effect.logDebug('Found a notification').pipe(Effect.annotateLogs('data', data)),
+          data =>
+            Effect.gen(function* (_) {
+              const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
+
+              yield* _(ReviewRequest.handleReviewRequest(requestReview))
+            }),
           Schedule.spaced('10 seconds'),
         ),
       ),

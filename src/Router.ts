@@ -5,7 +5,6 @@ import { StatusCodes } from 'http-status-codes'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Redis from './Redis.js'
-import * as ReviewRequest from './ReviewRequest.js'
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
@@ -41,8 +40,6 @@ export const Router = HttpServer.router.empty.pipe(
       const requestReview = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.RequestReviewSchema))
       const raw = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
-      yield* _(ReviewRequest.handleReviewRequest(requestReview))
-
       yield* _(BullMq.add('coar-notify', 'request-review', raw))
 
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
@@ -66,10 +63,7 @@ export const Router = HttpServer.router.empty.pipe(
 
             return HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST })
           }),
-        RedisError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
         RequestError: () => HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST }),
-        SlackError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
-        TransporterError: () => Effect.succeed(HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })),
       }),
     ),
   ),

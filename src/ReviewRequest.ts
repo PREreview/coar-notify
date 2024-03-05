@@ -145,4 +145,5 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
     Effect.tapErrorTag('TransporterError', error =>
       Effect.logInfo('Unable to send email to author').pipe(Effect.annotateLogs({ message: error.message })),
     ),
+    Effect.scoped,
   )
