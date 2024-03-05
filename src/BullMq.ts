@@ -1,5 +1,6 @@
 import * as BullMq from 'bullmq'
 import { Context, Data, Effect, Layer, type ReadonlyRecord } from 'effect'
+import { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
 export interface Queue<N extends string, Q extends QueueJobs> {
@@ -7,7 +8,7 @@ export interface Queue<N extends string, Q extends QueueJobs> {
   readonly add: <J extends Extract<keyof Q, string>>(jobName: J, payload: Q[J]) => Effect.Effect<string, BullMqError>
 }
 
-export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, unknown>
+export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, JsonValue>
 
 export interface QueueOptions<N extends string> {
   readonly name: N
@@ -46,7 +47,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
   )
 }
 
-export const add = <N extends string, J extends string, P>(
+export const add = <N extends string, J extends string, P extends JsonValue>(
   queueName: N,
   jobName: J,
   payload: P,
