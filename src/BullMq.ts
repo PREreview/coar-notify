@@ -1,11 +1,17 @@
 import * as BullMq from 'bullmq'
-import { Context, Data, Effect, Layer, type ReadonlyRecord } from 'effect'
+import { Context, Data, Effect, Layer, Random, type ReadonlyRecord, type Schedule } from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
+
+export type Processor<R = never> = (data: JsonValue) => Effect.Effect<void, Error, R>
 
 export interface Queue<N extends string, Q extends QueueJobs> {
   readonly name: N
   readonly add: <J extends Extract<keyof Q, string>>(jobName: J, payload: Q[J]) => Effect.Effect<string, BullMqError>
+  readonly run: <R1 = never, R2 = never>(
+    handler: Processor<R1>,
+    schedule: Schedule.Schedule<unknown, void, R2>,
+  ) => Effect.Effect<void, never, R1 | R2>
 }
 
 export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, JsonValue>
@@ -42,7 +48,47 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
           return job.asJSON().id
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobName: jobName }))
 
-      return { name: layerOptions.name, add }
+      const run: Queue<N, Q>['run'] = (handler, schedule) =>
+        Effect.acquireUseRelease(
+          Effect.gen(function* (_) {
+            const connection = yield* _(
+              Redis.duplicate(redis, {
+                maxRetriesPerRequest: null,
+                lazyConnect: true,
+              }),
+            )
+
+            return new BullMq.Worker<JsonValue, unknown>(layerOptions.name, undefined, {
+              autorun: false,
+              connection,
+            })
+          }),
+          worker =>
+            Effect.gen(function* (_) {
+              const token = (yield* _(Random.nextInt)).toString()
+              const job = yield* _(
+                Effect.promise(() => worker.getNextJob(token)),
+                Effect.orElseSucceed(() => undefined),
+              )
+
+              if (!job) {
+                return
+              }
+
+              yield* _(
+                Effect.gen(function* (_) {
+                  yield* _(handler(job.data))
+
+                  yield* _(Effect.promise(() => job.moveToCompleted(undefined, token)))
+                }),
+                Effect.catchAll(error => Effect.promise(() => job.moveToFailed(error, token))),
+                Effect.annotateLogs({ job: job.id, jobName: job.name, attempt: job.attemptsStarted }),
+              )
+            }).pipe(Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
+          worker => Effect.promise(() => worker.close()),
+        ).pipe(Effect.annotateLogs('queue', layerOptions.name), Effect.scoped)
+
+      return { name: layerOptions.name, add, run }
     }),
   )
 }
@@ -56,6 +102,17 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
     const queue = yield* _(QueueTag(queueName))
 
     return yield* _(queue.add(jobName, payload))
+  })
+
+export const run = <N extends string, R1, R2>(
+  queueName: N,
+  handler: Processor<R1>,
+  schedule: Schedule.Schedule<unknown, void, R2>,
+): Effect.Effect<void, never, Queue<N, ReadonlyRecord.ReadonlyRecord<never, never>> | R1 | R2> =>
+  Effect.gen(function* (_) {
+    const queue = yield* _(QueueTag(queueName))
+
+    return yield* _(queue.run(handler, schedule))
   })
 
 const toBullMqError = (error: unknown): BullMqError =>
