@@ -3,6 +3,7 @@ import { Schema, TreeFormatter } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import mjml from 'mjml'
+import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
@@ -61,6 +62,8 @@ export const Router = HttpServer.router.empty.pipe(
           notification: requestReview,
         }),
       )
+
+      const raw = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
       yield* _(Redis.lpush('notifications', encoded))
 
@@ -169,9 +172,19 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
         )
       }
 
+      yield* _(BullMq.add('coar-notify', 'request-review', raw))
+
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
     }).pipe(
       Effect.catchTags({
+        BullMqError: error =>
+          Effect.gen(function* (_) {
+            yield* _(
+              Effect.logError('Unable to write job to BullMQ').pipe(Effect.annotateLogs({ message: error.message })),
+            )
+
+            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
+          }),
         ParseError: error =>
           Effect.gen(function* (_) {
             yield* _(
