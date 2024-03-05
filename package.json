@@ -16,7 +16,7 @@
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.3.2",
     "mjml": "^4.15.3",
-    "nodemailer": "^6.9.10"
+    "nodemailer": "^6.9.11"
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.1.0",
