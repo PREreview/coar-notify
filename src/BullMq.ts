@@ -31,6 +31,10 @@ export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, JsonValue>
 
 export interface QueueOptions<N extends string> {
   readonly name: N
+  readonly defaultJobOptions?: {
+    readonly removeOnComplete?: boolean
+    readonly removeOnFail?: boolean
+  }
 }
 
 export const QueueTag = <N extends string, Q extends QueueJobs>(name: N) =>
@@ -48,7 +52,10 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
     QueueTag<(typeof layerOptions)['name'], Q>(layerOptions.name),
     Effect.gen(function* (_) {
       const redis = yield* _(Redis.Redis)
-      const queue = new BullMq.Queue(layerOptions.name, { connection: redis })
+      const queue = new BullMq.Queue(layerOptions.name, {
+        connection: redis,
+        defaultJobOptions: layerOptions.defaultJobOptions ?? {},
+      })
 
       yield* _(Effect.addFinalizer(() => Effect.promise(() => queue.close())))
 
