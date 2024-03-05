@@ -1,5 +1,5 @@
 import * as BullMq from 'bullmq'
-import { Context, Data, Effect, Layer, Random, type ReadonlyRecord, type Schedule } from 'effect'
+import { Context, Data, Effect, Layer, Random, type ReadonlyRecord, Runtime, type Schedule } from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
@@ -51,6 +51,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
       const run: Queue<N, Q>['run'] = (handler, schedule) =>
         Effect.acquireUseRelease(
           Effect.gen(function* (_) {
+            const runtime = yield* _(Effect.runtime())
             const connection = yield* _(
               Redis.duplicate(redis, {
                 maxRetriesPerRequest: null,
@@ -58,10 +59,24 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
               }),
             )
 
-            return new BullMq.Worker<JsonValue, unknown>(layerOptions.name, undefined, {
+            const worker = new BullMq.Worker<JsonValue, unknown>(layerOptions.name, undefined, {
               autorun: false,
               connection,
             })
+
+            worker.on('ready', () =>
+              Runtime.runSync(runtime)(Effect.logDebug('Worker ready').pipe(Effect.annotateLogs('worker', worker.id))),
+            )
+            worker.on('closing', () =>
+              Runtime.runSync(runtime)(
+                Effect.logDebug('Worker closing').pipe(Effect.annotateLogs('worker', worker.id)),
+              ),
+            )
+            worker.on('closed', () =>
+              Runtime.runSync(runtime)(Effect.logDebug('Worker closed').pipe(Effect.annotateLogs('worker', worker.id))),
+            )
+
+            return worker
           }),
           worker =>
             Effect.gen(function* (_) {
@@ -77,11 +92,19 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 
               yield* _(
                 Effect.gen(function* (_) {
+                  yield* _(Effect.logDebug('Job active'))
+
                   yield* _(handler(job.data))
 
                   yield* _(Effect.promise(() => job.moveToCompleted(undefined, token)))
+                  yield* _(Effect.logDebug('Job completed'))
                 }),
-                Effect.catchAll(error => Effect.promise(() => job.moveToFailed(error, token))),
+                Effect.catchAll(error =>
+                  Effect.gen(function* (_) {
+                    yield* _(Effect.promise(() => job.moveToFailed(error, token)))
+                    yield* _(Effect.logDebug('Job failed'), Effect.annotateLogs('reason', job.failedReason))
+                  }),
+                ),
                 Effect.annotateLogs({ job: job.id, jobName: job.name, attempt: job.attemptsStarted }),
               )
             }).pipe(Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
