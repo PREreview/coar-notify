@@ -1,16 +1,5 @@
 import * as BullMq from 'bullmq'
-import {
-  Clock,
-  Context,
-  Data,
-  Duration,
-  Effect,
-  Layer,
-  Random,
-  type ReadonlyRecord,
-  Runtime,
-  type Schedule,
-} from 'effect'
+import { Clock, Context, Data, Duration, Effect, Layer, Random, type ReadonlyRecord, Runtime, Schedule } from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
@@ -65,6 +54,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
             }
           : {},
       })
+      const lockDuration = '30 seconds' satisfies Duration.DurationInput
 
       yield* _(Effect.addFinalizer(() => Effect.promise(() => queue.close())))
 
@@ -97,6 +87,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
             const worker = new BullMq.Worker<JsonValue, unknown>(layerOptions.name, undefined, {
               autorun: false,
               connection,
+              lockDuration: Duration.toMillis(lockDuration),
             })
 
             worker.on('ready', () =>
@@ -127,6 +118,15 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 
               yield* _(
                 Effect.gen(function* (_) {
+                  yield* _(
+                    Effect.promise(() => job.extendLock(token, Duration.toMillis(lockDuration))),
+                    Effect.tap(() => Effect.logInfo('Job lock extended')),
+                    Effect.annotateLogs('duration', Duration.format(lockDuration)),
+                    Effect.repeat(Schedule.fixed(Duration.toMillis(lockDuration) / 2)),
+                    Effect.delay(Duration.toMillis(lockDuration) / 2),
+                    Effect.fork,
+                  )
+
                   yield* _(Effect.logDebug('Job active'))
 
                   yield* _(handler(job.data))
@@ -149,7 +149,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                 ),
                 Effect.annotateLogs({ job: job.id, jobName: job.name, attempt: job.attemptsStarted }),
               )
-            }).pipe(Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
+            }).pipe(Effect.fork, Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
           worker => Effect.promise(() => worker.close()),
         ).pipe(Effect.annotateLogs('queue', layerOptions.name), Effect.scoped)
 
