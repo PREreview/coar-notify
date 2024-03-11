@@ -1,7 +1,7 @@
 import { HttpClient } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
-import { Effect, Layer, LogLevel, Logger, Schedule } from 'effect'
+import { Config, Effect, Layer, LogLevel, Logger, Schedule } from 'effect'
 import { createServer } from 'node:http'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
@@ -57,18 +57,24 @@ export const NotificationsQueueLive = BullMq.makeLayer<
 const HttpLive = Router.pipe(
   Layer.merge(
     Layer.effectDiscard(
-      Effect.fork(
-        BullMq.run(
-          'coar-notify',
-          data =>
-            Effect.gen(function* (_) {
-              const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
+      Config.withDefault(Config.integer('BULLMQ_WORKER_POLL'), 10).pipe(
+        Effect.flatMap(schedule =>
+          Effect.fork(
+            BullMq.run(
+              'coar-notify',
+              data =>
+                Effect.gen(function* (_) {
+                  const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
 
-              yield* _(ReviewRequest.handleReviewRequest(requestReview))
-            }).pipe(
-              Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
+                  yield* _(ReviewRequest.handleReviewRequest(requestReview))
+                }).pipe(
+                  Effect.catchTag('PreprintNotReady', () =>
+                    Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' })),
+                  ),
+                ),
+              Schedule.spaced(`${schedule} seconds`),
             ),
-          Schedule.spaced('10 seconds'),
+          ),
         ),
       ),
     ),
