@@ -1,9 +1,12 @@
-import { Data, Effect } from 'effect'
+import { Data, Effect, ReadonlyArray } from 'effect'
+import { decode } from 'html-entities'
+import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
 import type * as Doi from './Doi.js'
 
 export interface Preprint {
   readonly doi: Doi.Doi
+  readonly title: string
 }
 
 export const Preprint = Data.case<Preprint>()
@@ -27,7 +30,13 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       ),
     )
 
+    const title = yield* _(
+      ReadonlyArray.head(work.title),
+      Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
+    )
+
     return Preprint({
       doi: work.DOI,
+      title: decode(striptags(title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
     })
   })

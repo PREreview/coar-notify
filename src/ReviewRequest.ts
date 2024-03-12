@@ -53,7 +53,7 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
               type: 'mrkdwn',
               text: `A new request from ${requestReview.actor.name} has come in for a review of <${
                 Doi.toUrl(preprint.doi).href
-              }|${preprint.doi}>`,
+              }|${preprint.title}>`,
             },
             accessory: {
               type: 'button',

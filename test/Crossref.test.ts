@@ -9,16 +9,16 @@ import * as fc from './fc.js'
 describe('getWork', () => {
   test.prop([
     fc.doi(),
-    fc.doi().chain(doi =>
+    fc.record({ DOI: fc.doi(), title: fc.array(fc.string()) }).chain(work =>
       fc.tuple(
-        fc.constant(doi),
+        fc.constant(work),
         fc.fetchResponse({
           status: fc.constant(StatusCodes.OK),
-          body: fc.constant({ message: { DOI: doi } }),
+          body: fc.constant({ message: work }),
         }),
       ),
     ),
-  ])('when the response can be decoded', (doi, [expectedDoi, response]) =>
+  ])('when the response can be decoded', (doi, [work, response]) =>
     Effect.gen(function* ($) {
       const fetchMock = yield* $(TestContext.FetchMock)
       const crossrefApi = yield* $(_.CrossrefApi)
@@ -27,7 +27,7 @@ describe('getWork', () => {
 
       const actual = yield* $(crossrefApi.getWork(doi))
 
-      expect(actual).toStrictEqual({ DOI: expectedDoi })
+      expect(actual).toStrictEqual(work)
       expect(fetchMock.done()).toBeTruthy()
     }).pipe(
       Effect.provide(_.CrossrefApiLive),

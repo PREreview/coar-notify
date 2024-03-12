@@ -62,4 +62,5 @@ const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema
 
 const WorkSchema = Schema.struct({
   DOI: Doi.DoiSchema,
+  title: Schema.array(Schema.string),
 })

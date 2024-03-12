@@ -13,10 +13,12 @@
     "bullmq": "^5.4.2",
     "doi-regex": "^0.1.13",
     "effect": "2.4.3",
+    "html-entities": "^2.5.2",
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.3.2",
     "mjml": "^4.15.3",
-    "nodemailer": "^6.9.12"
+    "nodemailer": "^6.9.12",
+    "striptags": "^3.2.0"
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.1.0",
