@@ -6,6 +6,7 @@ import { createServer } from 'node:http'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
+import * as Crossref from './Crossref.js'
 import { JsonLogger } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as Redis from './Redis.js'
@@ -79,7 +80,7 @@ const HttpLive = Router.pipe(
       ),
     ),
   ),
-  Layer.provide(NotificationsQueueLive),
+  Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
   Layer.provide(Layer.mergeAll(HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),

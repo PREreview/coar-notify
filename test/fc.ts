@@ -1,9 +1,26 @@
 import { Temporal } from '@js-temporal/polyfill'
 import doiRegex from 'doi-regex'
 import * as fc from 'fast-check'
+import type { MockResponseObject } from 'fetch-mock'
 import type * as Doi from '../src/Doi.js'
 
 export * from 'fast-check'
+
+export const error = (): fc.Arbitrary<Error> => fc.string().map(error => new Error(error))
+
+export const statusCode = (): fc.Arbitrary<number> => fc.integer({ min: 200, max: 599 })
+
+export const fetchResponse = ({
+  body,
+  status,
+}: {
+  body?: fc.Arbitrary<MockResponseObject['body']>
+  status?: fc.Arbitrary<MockResponseObject['status']>
+} = {}): fc.Arbitrary<MockResponseObject> =>
+  fc.record({
+    body: body ?? fc.option(fc.string(), { nil: undefined }),
+    status: status ?? fc.option(statusCode(), { nil: undefined }),
+  }) as never
 
 export const url = (): fc.Arbitrary<URL> => fc.webUrl().map(url => new URL(url))
 

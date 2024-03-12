@@ -2,6 +2,7 @@ import { Schema } from '@effect/schema'
 import { Context, Data, Effect } from 'effect'
 import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
+import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as Prereview from './Prereview.js'
@@ -38,6 +39,9 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
       yield* _(Effect.fail(new PreprintNotReady()))
     }
 
+    const crossrefApi = yield* _(Crossref.CrossrefApi)
+    const work = yield* _(crossrefApi.getWork(requestReview.object['ietf:cite-as']))
+
     yield* _(Redis.lpush('notifications', encoded))
 
     yield* _(
@@ -49,8 +53,8 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
             text: {
               type: 'mrkdwn',
               text: `A new request from ${requestReview.actor.name} has come in for a review of <${
-                Doi.toUrl(requestReview.object['ietf:cite-as']).href
-              }|${requestReview.object['ietf:cite-as']}>`,
+                Doi.toUrl(work.DOI).href
+              }|${work.DOI}>`,
             },
             accessory: {
               type: 'button',
@@ -58,7 +62,7 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
                 type: 'plain_text',
                 text: 'Write a PREreview',
               },
-              url: Prereview.writeAPrereviewUrl(requestReview.object['ietf:cite-as']),
+              url: Prereview.writeAPrereviewUrl(work.DOI),
             },
           },
         ],
@@ -140,6 +144,9 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
       )
     }
   }).pipe(
+    Effect.tapErrorTag('GetWorkError', error =>
+      Effect.logInfo('Unable to get work data from Crossref').pipe(Effect.annotateLogs({ message: error.message })),
+    ),
     Effect.tapErrorTag('RedisError', error =>
       Effect.logInfo('Unable to write notification to Redis').pipe(Effect.annotateLogs({ message: error.message })),
     ),
