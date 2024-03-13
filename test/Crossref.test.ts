@@ -9,15 +9,34 @@ import * as fc from './fc.js'
 describe('getWork', () => {
   test.prop([
     fc.doi(),
-    fc.record({ DOI: fc.doi(), title: fc.array(fc.string()) }).chain(work =>
-      fc.tuple(
-        fc.constant(work),
-        fc.fetchResponse({
-          status: fc.constant(StatusCodes.OK),
-          body: fc.constant({ message: work }),
-        }),
+    fc
+      .record({
+        author: fc.array(
+          fc.oneof(
+            fc.record(
+              {
+                family: fc.string(),
+                given: fc.string(),
+                prefix: fc.string(),
+                suffix: fc.string(),
+              },
+              { requiredKeys: ['family'] },
+            ),
+            fc.record({ name: fc.string() }),
+          ),
+        ),
+        DOI: fc.doi(),
+        title: fc.array(fc.string()),
+      })
+      .chain(work =>
+        fc.tuple(
+          fc.constant(work),
+          fc.fetchResponse({
+            status: fc.constant(StatusCodes.OK),
+            body: fc.constant({ message: work }),
+          }),
+        ),
       ),
-    ),
   ])('when the response can be decoded', (doi, [work, response]) =>
     Effect.gen(function* ($) {
       const fetchMock = yield* $(TestContext.FetchMock)

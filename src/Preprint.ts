@@ -1,10 +1,11 @@
-import { Data, Effect, ReadonlyArray } from 'effect'
+import { Data, Effect, Match, ReadonlyArray, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
 import type * as Doi from './Doi.js'
 
 export interface Preprint {
+  readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly title: string
 }
@@ -35,7 +36,21 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
     )
 
+    const authors = ReadonlyArray.map(work.author, author =>
+      Match.value(author).pipe(
+        Match.when({ name: Match.string }, author => author.name),
+        Match.when({ family: Match.string }, author =>
+          pipe(
+            ReadonlyArray.filter([author.prefix, author.given, author.family, author.suffix], String.isString),
+            ReadonlyArray.join(' '),
+          ),
+        ),
+        Match.exhaustive,
+      ),
+    )
+
     return Preprint({
+      authors,
       doi: work.DOI,
       title: decode(striptags(title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
     })

@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect } from 'effect'
+import { Context, Data, Effect, ReadonlyArray } from 'effect'
 import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
@@ -53,7 +53,10 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
               type: 'mrkdwn',
               text: `A new request from ${requestReview.actor.name} has come in for a review of <${
                 Doi.toUrl(preprint.doi).href
-              }|${preprint.title}>`,
+              }|${preprint.title}>${ReadonlyArray.match(preprint.authors, {
+                onEmpty: () => '',
+                onNonEmpty: authors => ` by ${formatList(authors)}`,
+              })}`,
             },
             accessory: {
               type: 'button',
@@ -157,3 +160,9 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
     ),
     Effect.scoped,
   )
+
+function formatList(list: ReadonlyArray<string>) {
+  const formatter = new Intl.ListFormat('en')
+
+  return formatter.format(list)
+}

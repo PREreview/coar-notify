@@ -13,11 +13,24 @@ describe('getPreprint', () => {
       Effect.gen(function* ($) {
         const actual = yield* $(_.getPreprint(doi))
 
-        expect(actual).toStrictEqual({ doi: expectedDoi, title: expectedTitle })
+        expect(actual).toStrictEqual({
+          authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
+          doi: expectedDoi,
+          title: expectedTitle,
+        })
       }).pipe(
         Effect.provide(
           Layer.succeed(Crossref.CrossrefApi, {
-            getWork: () => Effect.succeed({ DOI: expectedDoi, title: [expectedTitle] }),
+            getWork: () =>
+              Effect.succeed({
+                author: [
+                  { name: 'Author 1' },
+                  { family: 'Author 2' },
+                  { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
+                ],
+                DOI: expectedDoi,
+                title: [expectedTitle],
+              }),
           }),
         ),
         Effect.provide(TestContext.TestContext),
@@ -29,12 +42,16 @@ describe('getPreprint', () => {
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
-      expect(actual).toStrictEqual({ doi: expectedDoi, title: "Some &amp; &lt; &gt; ' Title" })
+      expect(actual).toStrictEqual({ authors: ['Author'], doi: expectedDoi, title: "Some &amp; &lt; &gt; ' Title" })
     }).pipe(
       Effect.provide(
         Layer.succeed(Crossref.CrossrefApi, {
           getWork: () =>
-            Effect.succeed({ DOI: expectedDoi, title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'] }),
+            Effect.succeed({
+              author: [{ name: 'Author' }],
+              DOI: expectedDoi,
+              title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
+            }),
         }),
       ),
       Effect.provide(TestContext.TestContext),
@@ -50,7 +67,9 @@ describe('getPreprint', () => {
       expect(actual.message).toStrictEqual('No title found')
     }).pipe(
       Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed({ DOI: expectedDoi, title: [] }) }),
+        Layer.succeed(Crossref.CrossrefApi, {
+          getWork: () => Effect.succeed({ author: [{ name: 'Author' }], DOI: expectedDoi, title: [] }),
+        }),
       ),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
