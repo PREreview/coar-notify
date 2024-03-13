@@ -1,4 +1,4 @@
-.PHONY: build build-image check fix format lint mailcatcher smoke-test start start-services test typecheck
+.PHONY: build build-image check fix format lint mailcatcher smoke-test start start-services test typecheck openai-test
 
 IMAGE_TAG=prereview-coar-notify
 
@@ -45,3 +45,6 @@ start-services:
 
 mailcatcher: node_modules start-services
 	npx open-cli http://$(shell docker compose port mailcatcher 1080 | sed 's/0\.\0\.0\.0/localhost/')
+
+openai-test: node_modules
+	npx tsx --require dotenv/config scripts/openai-test.ts
