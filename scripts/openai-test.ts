@@ -1,4 +1,3 @@
-import { abs } from 'effect/BigDecimal'
 import OpenAI from 'openai'
 import { promptData } from './prompt-data'
 
@@ -6,18 +5,71 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-const getMessage = async (title: string, abstract: string) => {
+const getMessage = async (title: string, authors: string, abstract: string) => {
   const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
     messages: [
       {
-        role: 'user',
-        content: `Given the following title and abstract of a scientific preprint, determine subject-matter keywords.\n\nUse these subject-matter keywords in a sentence asking people to review the preprint.\n\nLimit it to 20 words, and ensure that it is written in friendly, simple, natural language. Write in the active voice. You can include emojis. Do not include hashtags. Ensure you don't discourage those who might feel marginalised or suffer from something like imposter syndrome from participating. Don't repeat terms. Highlight subject-matter keywords in Slack-compatible Markdown.\n\nTitle: ${title}\n\nAbstract: \"\"\"\n${abstract}\n\"\"\"`,
+        role: 'system',
+        content: `
+Write in friendly, simple, natural language.
+Write in the active voice.
+Write in US English (en-US).
+You can include emojis.
+Do not include hashtags.
+Be positive, but ensure you don't discourage those who might feel marginalised or suffer from something like imposter syndrome from participating.
+Don't use hyperbole.
+Use objective vocabulary.
+Don't repeat terms.
+Use Slack-compatible Markdown.
+Our name for a peer review is 'PREreview'.
+        `,
       },
       {
         role: 'user',
-        content:
-          "Here are some examples:\n\nReview this preprint if you have an appetite for *biochemistry*, *protein breakdown*, or *oxindoles*. 🧪\nAre you interested in *biochemistry*, *protein degradation*, or *oxindoles*? Review this preprint!\nYou might want to review this preprint if you're into *peer review*, *preprint services*, and *scholarly communication*. 📝\n📣 We're looking for researchers interested in *biochemistry*, *protein degradation*, or *oxindoles* to review this preprint.\nCan you help review a preprint about *biochemistry*, *protein degradation*, and *oxindoles*?\nInterested in *ecology* and *implicit biases* in *ornithological research*? Help review this preprint on 🐦 bird study bias!\nInterested in *international higher education patterns* and *equity*? Help review this preprint on 🇦🇺 Australian universities and global perspectives.\n🏞️🦫🐟 Love studying *rivers*, *beavers*, and *fish habitats*? Help review this ecology preprint.\nInterested in *higher education* and *online classes* amidst COVID-19 in 🇳🇵 Nepal? Help review this preprint on *digital learning initiatives*!\nResearchers excited about *habituation*, *gene silencing*, *chicken welfare*, and *blood parameters* should review this preprint. ✨",
+        content: `
+Someone has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
+
+Determine keywords, disciplines and topics from the abstract.
+
+Use and emphasize these in a sentence of about 16 words, asking people to review the preprint.
+
+Do not use keywords that appear in the title.
+
+Do not use the word 'expertise'.
+        `,
+      },
+      {
+        role: 'user',
+        content: `
+Requester: Chad Sansing
+
+Title: ${title}
+
+Authors: ${authors}
+
+Abstract: """
+${abstract}
+"""
+  `,
+      },
+      {
+        role: 'user',
+        content: `
+Here are some examples:
+
+🛟 Chris Wilkinson needs your help with reviews of this preprint all about *biochemistry*, *protein degradation*, and *oxindoles*.
+
+📣 Help Chris Wilkinson by reviewing this preprint focused on *biochemistry*, *protein degradation*, and *oxindoles*.
+
+🤝 Junyue Rose invites you to review this preprint about *prison conditions*, *institutional racism*, and the *industrial-prison complex*.
+
+🐔 If you’re excited by *habituation*, *gene silencing*, *chicken welfare*, and *blood parameters*, help Maya Garcia by reviewing this preprint.
+
+🐟 If *rivers*, *beavers*, and *fish habitats* interest you, help Li Na Chen by writing a PREreview of this preprint.
+
+🔎 Grace Abara is looking for help with reviews of this preprint about *peer review*, *preprint services*, and *scholarly communication*.
+          `,
       },
     ],
     temperature: 0.25,
@@ -29,8 +81,8 @@ const getMessage = async (title: string, abstract: string) => {
   return response.choices[0].message.content
 }
 
-for (const { title, abstract } of promptData) {
-  const message = await getMessage(title, abstract)
+for (const { title, authors, abstract } of promptData) {
+  const message = await getMessage(title, authors, abstract)
   console.log(`
 Title: ${title}
 Message: ${message}
