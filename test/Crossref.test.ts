@@ -27,11 +27,12 @@ describe('getWork', () => {
             ),
           ),
           DOI: fc.doi(),
+          institution: fc.array(fc.record({ name: fc.string() })),
           subtype: fc.string(),
           title: fc.array(fc.string()),
           type: fc.string(),
         },
-        { requiredKeys: ['author', 'DOI', 'title', 'type'] },
+        { requiredKeys: ['author', 'DOI', 'institution', 'title', 'type'] },
       )
       .chain(work =>
         fc.tuple(

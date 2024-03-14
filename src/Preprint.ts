@@ -39,6 +39,10 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       yield* _(Effect.fail(new GetPreprintError({ message: 'Not from a supported server' })))
     }
 
+    if (Doi.hasRegistrant('1101')(work.DOI) && work.institution[0]?.name !== 'bioRxiv') {
+      yield* _(Effect.fail(new GetPreprintError({ message: 'Not from a supported server' })))
+    }
+
     const title = yield* _(
       ReadonlyArray.head(work.title),
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
