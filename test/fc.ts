@@ -1,8 +1,8 @@
-import { Temporal } from '@js-temporal/polyfill'
 import doiRegex from 'doi-regex'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
 import type * as Doi from '../src/Doi.js'
+import * as Temporal from '../src/Temporal.js'
 
 export * from 'fast-check'
 

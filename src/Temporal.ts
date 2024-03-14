@@ -2,6 +2,10 @@ import { ParseResult, Schema } from '@effect/schema'
 import { Temporal } from '@js-temporal/polyfill'
 import { Clock, Effect } from 'effect'
 
+export const { Instant } = Temporal
+
+export type Instant = Temporal.Instant
+
 export const InstantFromSelfSchema = Schema.instanceOf(Temporal.Instant)
 
 export const Timestamp = Clock.currentTimeMillis.pipe(Effect.map(n => Temporal.Instant.fromEpochMilliseconds(n)))
