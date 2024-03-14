@@ -29,7 +29,9 @@ describe('getPreprint', () => {
                   { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
                 ],
                 DOI: expectedDoi,
+                subtype: 'preprint',
                 title: [expectedTitle],
+                type: 'posted-content',
               }),
           }),
         ),
@@ -50,7 +52,9 @@ describe('getPreprint', () => {
             Effect.succeed({
               author: [{ name: 'Author' }],
               DOI: expectedDoi,
+              subtype: 'preprint',
               title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
+              type: 'posted-content',
             }),
         }),
       ),
@@ -68,7 +72,57 @@ describe('getPreprint', () => {
     }).pipe(
       Effect.provide(
         Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () => Effect.succeed({ author: [{ name: 'Author' }], DOI: expectedDoi, title: [] }),
+          getWork: () =>
+            Effect.succeed({
+              author: [{ name: 'Author' }],
+              DOI: expectedDoi,
+              subtype: 'preprint',
+              title: [],
+              type: 'posted-content',
+            }),
+        }),
+      ),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([
+    fc.doi(),
+    fc.doi(),
+    fc.string(),
+    fc.oneof(
+      fc.record(
+        {
+          type: fc.string().filter(string => string !== 'posted-content'),
+          subtype: fc.string(),
+        },
+        { requiredKeys: ['type'] },
+      ),
+      fc.record(
+        {
+          type: fc.constant('posted-content'),
+          subtype: fc.string().filter(string => string !== 'preprint'),
+        },
+        { requiredKeys: ['type'] },
+      ),
+    ),
+  ])("when a work isn't a preprint", (doi, expectedDoi, title, type) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+
+      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual.message).toStrictEqual('Not a preprint')
+    }).pipe(
+      Effect.provide(
+        Layer.succeed(Crossref.CrossrefApi, {
+          getWork: () =>
+            Effect.succeed({
+              author: [{ name: 'Author' }],
+              DOI: expectedDoi,
+              title: [title],
+              ...type,
+            }),
         }),
       ),
       Effect.provide(TestContext.TestContext),

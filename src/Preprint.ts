@@ -31,6 +31,10 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       ),
     )
 
+    if (work.type !== 'posted-content' || work.subtype !== 'preprint') {
+      yield* _(Effect.fail(new GetPreprintError({ message: 'Not a preprint' })))
+    }
+
     const title = yield* _(
       ReadonlyArray.head(work.title),
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),

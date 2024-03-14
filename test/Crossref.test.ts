@@ -10,24 +10,29 @@ describe('getWork', () => {
   test.prop([
     fc.doi(),
     fc
-      .record({
-        author: fc.array(
-          fc.oneof(
-            fc.record(
-              {
-                family: fc.string(),
-                given: fc.string(),
-                prefix: fc.string(),
-                suffix: fc.string(),
-              },
-              { requiredKeys: ['family'] },
+      .record(
+        {
+          author: fc.array(
+            fc.oneof(
+              fc.record(
+                {
+                  family: fc.string(),
+                  given: fc.string(),
+                  prefix: fc.string(),
+                  suffix: fc.string(),
+                },
+                { requiredKeys: ['family'] },
+              ),
+              fc.record({ name: fc.string() }),
             ),
-            fc.record({ name: fc.string() }),
           ),
-        ),
-        DOI: fc.doi(),
-        title: fc.array(fc.string()),
-      })
+          DOI: fc.doi(),
+          subtype: fc.string(),
+          title: fc.array(fc.string()),
+          type: fc.string(),
+        },
+        { requiredKeys: ['author', 'DOI', 'title', 'type'] },
+      )
       .chain(work =>
         fc.tuple(
           fc.constant(work),

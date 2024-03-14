@@ -75,5 +75,7 @@ const WorkSchema = Schema.struct({
     ),
   ),
   DOI: Doi.DoiSchema,
+  subtype: Schema.optional(Schema.string),
   title: Schema.array(Schema.string),
+  type: Schema.string,
 })
