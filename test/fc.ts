@@ -29,13 +29,16 @@ export const instant = (): fc.Arbitrary<Temporal.Instant> =>
 
 export const epochMilliseconds = (): fc.Arbitrary<number> => instant().map(instant => instant.epochMilliseconds)
 
-export const doi = ({ suffix }: { suffix?: fc.Arbitrary<string> } = {}): fc.Arbitrary<Doi.Doi> =>
+export const doi = ({
+  registrant,
+  suffix,
+}: { registrant?: fc.Arbitrary<string>; suffix?: fc.Arbitrary<string> } = {}): fc.Arbitrary<Doi.Doi> =>
   fc
-    .tuple(doiRegistrant(), suffix ?? fc.unicodeString({ minLength: 1 }))
+    .tuple(registrant ?? doiRegistrant(), suffix ?? fc.unicodeString({ minLength: 1 }))
     .map(([prefix, suffix]) => `10.${prefix}/${suffix}` as Doi.Doi)
     .filter(s => doiRegex({ exact: true }).test(s) && !s.endsWith('/.') && !s.endsWith('/..'))
 
-const doiRegistrant = (): fc.Arbitrary<string> =>
+export const doiRegistrant = (): fc.Arbitrary<string> =>
   fc
     .tuple(
       fc.stringOf(fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), { minLength: 2 }),

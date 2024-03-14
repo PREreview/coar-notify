@@ -38,6 +38,30 @@ describe('Doi', () => {
   })
 })
 
+describe('hasRegistrant', () => {
+  test.prop([
+    fc
+      .array(fc.doiRegistrant(), { minLength: 1 })
+      .chain(registrants =>
+        fc.tuple(fc.constant(registrants), fc.doi({ registrant: fc.constantFrom(...registrants) })),
+      ),
+  ])('when the registrant matches', ([registrants, doi]) => {
+    expect(_.hasRegistrant(...registrants)(doi)).toBeTruthy()
+  })
+
+  test.prop([fc.array(fc.doiRegistrant()), fc.doi()])('when the registrant does not match', (registrants, doi) => {
+    expect(_.hasRegistrant(...registrants)(doi)).toBeFalsy()
+  })
+})
+
+test.prop([
+  fc
+    .doiRegistrant()
+    .chain(registrant => fc.tuple(fc.constant(registrant), fc.doi({ registrant: fc.constant(registrant) }))),
+])('getRegistrant', ([registrant, doi]) => {
+  expect(_.getRegistrant(doi)).toStrictEqual(registrant)
+})
+
 test.prop(
   [
     fc

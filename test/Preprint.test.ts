@@ -7,30 +7,57 @@ import * as TestContext from './TestContext.js'
 import * as fc from './fc.js'
 
 describe('getPreprint', () => {
-  test.prop([fc.doi(), fc.doi(), fc.string().filter(string => !/[&<>]/.test(string))])(
-    'when a work is found',
-    (doi, expectedDoi, expectedTitle) =>
+  test.prop([
+    fc.doi(),
+    fc.doi({ registrant: fc.constantFrom('1101', '1590') }),
+    fc.string().filter(string => !/[&<>]/.test(string)),
+  ])('when a work is found', (doi, expectedDoi, expectedTitle) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi))
+
+      expect(actual).toStrictEqual({
+        authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
+        doi: expectedDoi,
+        title: expectedTitle,
+      })
+    }).pipe(
+      Effect.provide(
+        Layer.succeed(Crossref.CrossrefApi, {
+          getWork: () =>
+            Effect.succeed({
+              author: [
+                { name: 'Author 1' },
+                { family: 'Author 2' },
+                { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
+              ],
+              DOI: expectedDoi,
+              subtype: 'preprint',
+              title: [expectedTitle],
+              type: 'posted-content',
+            }),
+        }),
+      ),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([fc.doi(), fc.doi({ registrant: fc.constantFrom('1101', '1590') })])(
+    'when the title contains HTML',
+    (doi, expectedDoi) =>
       Effect.gen(function* ($) {
         const actual = yield* $(_.getPreprint(doi))
 
-        expect(actual).toStrictEqual({
-          authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
-          doi: expectedDoi,
-          title: expectedTitle,
-        })
+        expect(actual).toStrictEqual({ authors: ['Author'], doi: expectedDoi, title: "Some &amp; &lt; &gt; ' Title" })
       }).pipe(
         Effect.provide(
           Layer.succeed(Crossref.CrossrefApi, {
             getWork: () =>
               Effect.succeed({
-                author: [
-                  { name: 'Author 1' },
-                  { family: 'Author 2' },
-                  { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
-                ],
+                author: [{ name: 'Author' }],
                 DOI: expectedDoi,
                 subtype: 'preprint',
-                title: [expectedTitle],
+                title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
                 type: 'posted-content',
               }),
           }),
@@ -40,56 +67,35 @@ describe('getPreprint', () => {
       ),
   )
 
-  test.prop([fc.doi(), fc.doi()])('when the title contains HTML', (doi, expectedDoi) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi))
+  test.prop([fc.doi(), fc.doi({ registrant: fc.constantFrom('1101', '1590') }), fc.string()])(
+    "when a work doesn't have a title",
+    (doi, expectedDoi) =>
+      Effect.gen(function* ($) {
+        const actual = yield* $(_.getPreprint(doi), Effect.flip)
 
-      expect(actual).toStrictEqual({ authors: ['Author'], doi: expectedDoi, title: "Some &amp; &lt; &gt; ' Title" })
-    }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              subtype: 'preprint',
-              title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
-              type: 'posted-content',
-            }),
-        }),
+        expect(actual).toBeInstanceOf(_.GetPreprintError)
+        expect(actual.message).toStrictEqual('No title found')
+      }).pipe(
+        Effect.provide(
+          Layer.succeed(Crossref.CrossrefApi, {
+            getWork: () =>
+              Effect.succeed({
+                author: [{ name: 'Author' }],
+                DOI: expectedDoi,
+                subtype: 'preprint',
+                title: [],
+                type: 'posted-content',
+              }),
+          }),
+        ),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
       ),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
-  )
-
-  test.prop([fc.doi(), fc.doi(), fc.string()])("when a work doesn't have a title", (doi, expectedDoi) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
-
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
-      expect(actual.message).toStrictEqual('No title found')
-    }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              subtype: 'preprint',
-              title: [],
-              type: 'posted-content',
-            }),
-        }),
-      ),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
   )
 
   test.prop([
     fc.doi(),
-    fc.doi(),
+    fc.doi({ registrant: fc.constantFrom('1101', '1590') }),
     fc.string(),
     fc.oneof(
       fc.record(
@@ -122,6 +128,34 @@ describe('getPreprint', () => {
               DOI: expectedDoi,
               title: [title],
               ...type,
+            }),
+        }),
+      ),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([
+    fc.doi(),
+    fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1101', '1590'].includes(registrant)) }),
+    fc.string(),
+  ])("when the preprint server isn't supported", (doi, expectedDoi, title) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+
+      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual.message).toStrictEqual('Not from a supported server')
+    }).pipe(
+      Effect.provide(
+        Layer.succeed(Crossref.CrossrefApi, {
+          getWork: () =>
+            Effect.succeed({
+              author: [{ name: 'Author' }],
+              DOI: expectedDoi,
+              subtype: 'preprint',
+              title: [title],
+              type: 'posted-content',
             }),
         }),
       ),

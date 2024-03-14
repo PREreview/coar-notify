@@ -2,7 +2,7 @@ import { Data, Effect, Match, ReadonlyArray, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
-import type * as Doi from './Doi.js'
+import * as Doi from './Doi.js'
 
 export interface Preprint {
   readonly authors: ReadonlyArray<string>
@@ -33,6 +33,10 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
 
     if (work.type !== 'posted-content' || work.subtype !== 'preprint') {
       yield* _(Effect.fail(new GetPreprintError({ message: 'Not a preprint' })))
+    }
+
+    if (!Doi.hasRegistrant('1101', '1590')(work.DOI)) {
+      yield* _(Effect.fail(new GetPreprintError({ message: 'Not from a supported server' })))
     }
 
     const title = yield* _(
