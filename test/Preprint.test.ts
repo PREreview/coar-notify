@@ -11,7 +11,10 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(fc.doi({ registrant: fc.constant('1590') }), fc.array(fc.record({ name: fc.string() }))),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('1590') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      ),
     ),
     fc.string().filter(string => !/[&<>]/.test(string)),
   ])('when a work is found', (doi, [expectedDoi, institution], expectedTitle) =>
@@ -50,7 +53,10 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(fc.doi({ registrant: fc.constant('1590') }), fc.array(fc.record({ name: fc.string() }))),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('1590') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      ),
     ),
   ])('when the title contains HTML', (doi, [expectedDoi, institution]) =>
     Effect.gen(function* ($) {
@@ -80,7 +86,10 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(fc.doi({ registrant: fc.constant('1590') }), fc.array(fc.record({ name: fc.string() }))),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('1590') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      ),
     ),
     fc.string(),
   ])("when a work doesn't have a title", (doi, [expectedDoi, institution]) =>
@@ -112,7 +121,10 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(fc.doi({ registrant: fc.constant('1590') }), fc.array(fc.record({ name: fc.string() }))),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('1590') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      ),
     ),
     fc.string(),
     fc.oneof(
@@ -160,7 +172,7 @@ describe('getPreprint', () => {
     fc.oneof(
       fc.tuple(
         fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1101', '1590'].includes(registrant)) }),
-        fc.array(fc.record({ name: fc.string() })),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
       ),
       fc.tuple(
         fc.doi({ registrant: fc.constant('1101') }),

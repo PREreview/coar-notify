@@ -32,7 +32,7 @@ describe('getWork', () => {
           title: fc.array(fc.string()),
           type: fc.string(),
         },
-        { requiredKeys: ['author', 'DOI', 'institution', 'title', 'type'] },
+        { requiredKeys: ['author', 'DOI', 'title', 'type'] },
       )
       .chain(work =>
         fc.tuple(
