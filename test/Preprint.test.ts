@@ -10,20 +10,22 @@ describe('getPreprint', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
+      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }]), fc.constant('biorxiv')),
       fc.tuple(
         fc.doi({ registrant: fc.constant('1590') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.constant('scielo'),
       ),
     ),
     fc.string().filter(string => !/[&<>]/.test(string)),
-  ])('when a work is found', (doi, [expectedDoi, institution], expectedTitle) =>
+  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
       expect(actual).toStrictEqual({
         authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
         doi: expectedDoi,
+        server: expectedServer,
         title: expectedTitle,
       })
     }).pipe(

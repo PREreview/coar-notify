@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, ReadonlyArray } from 'effect'
+import { Context, Data, Effect, Match, ReadonlyArray } from 'effect'
 import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
@@ -66,6 +66,16 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
               },
               url: Prereview.writeAPrereviewUrl(preprint.doi),
             },
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*Server*\n${Match.value(preprint.server).pipe(
+                  Match.when('biorxiv', () => 'bioRxiv'),
+                  Match.when('scielo', () => 'SciELO Preprints'),
+                  Match.exhaustive,
+                )}`,
+              },
+            ],
           },
         ],
       }),

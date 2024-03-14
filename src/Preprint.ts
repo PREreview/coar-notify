@@ -1,4 +1,4 @@
-import { Data, Effect, Match, ReadonlyArray, String, pipe } from 'effect'
+import { Data, Effect, Either, Match, ReadonlyArray, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
@@ -7,6 +7,7 @@ import * as Doi from './Doi.js'
 export interface Preprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
+  readonly server: 'biorxiv' | 'scielo'
   readonly title: string
 }
 
@@ -35,13 +36,13 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       yield* _(Effect.fail(new GetPreprintError({ message: 'Not a preprint' })))
     }
 
-    if (!Doi.hasRegistrant('1101', '1590')(work.DOI)) {
-      yield* _(Effect.fail(new GetPreprintError({ message: 'Not from a supported server' })))
-    }
-
-    if (Doi.hasRegistrant('1101')(work.DOI) && work.institution?.[0]?.name !== 'bioRxiv') {
-      yield* _(Effect.fail(new GetPreprintError({ message: 'Not from a supported server' })))
-    }
+    const server = yield* _(
+      Match.value([Doi.getRegistrant(work.DOI), work]),
+      Match.when(['1101', { institution: [{ name: 'bioRxiv' }] }], () => 'biorxiv' as const),
+      Match.when(['1590'], () => 'scielo' as const),
+      Match.either,
+      Either.mapLeft(() => new GetPreprintError({ message: 'Not from a supported server' })),
+    )
 
     const title = yield* _(
       ReadonlyArray.head(work.title),
@@ -64,6 +65,7 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
     return Preprint({
       authors,
       doi: work.DOI,
+      server,
       title: decode(striptags(title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
     })
   })

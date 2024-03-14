@@ -31,6 +31,7 @@ const SectionBlockSchema = Schema.struct({
   type: Schema.literal('section'),
   text: TextObjectSchema,
   accessory: Schema.optional(Schema.union(ButtonElementSchema)),
+  fields: Schema.optional(Schema.array(TextObjectSchema)),
 })
 
 const BlockSchema = Schema.union(SectionBlockSchema)
