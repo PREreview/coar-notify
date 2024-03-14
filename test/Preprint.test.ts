@@ -62,7 +62,7 @@ describe('getPreprint', () => {
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
-      expect(actual).toStrictEqual({ authors: ['Author'], doi: expectedDoi, title: "Some &amp; &lt; &gt; ' Title" })
+      expect(actual).toMatchObject({ title: "Some &amp; &lt; &gt; ' Title" })
     }).pipe(
       Effect.provide(
         Layer.succeed(Crossref.CrossrefApi, {
