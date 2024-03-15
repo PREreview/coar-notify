@@ -77,8 +77,7 @@ describe('PlainDateInTupleSchema', () => {
     test.prop([
       fc.oneof(
         fc.anything().filter(value => !Array.isArray(value)),
-        fc.array(fc.anything().filter(value => !(typeof value === 'number'))),
-        fc.array(fc.double()),
+        fc.array(fc.anything().filter(value => typeof value !== 'number' || !Number.isSafeInteger(value))),
         fc.tuple(
           fc.integer(),
           fc.oneof(fc.integer({ max: 0 }), fc.integer({ min: 13 })),
