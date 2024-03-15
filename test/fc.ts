@@ -1,4 +1,5 @@
 import doiRegex from 'doi-regex'
+import { ReadonlyArray } from 'effect'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
 import type * as Crossref from '../src/Crossref.js'
@@ -6,6 +7,12 @@ import type * as Doi from '../src/Doi.js'
 import * as Temporal from '../src/Temporal.js'
 
 export * from 'fast-check'
+
+export const nonEmptyArray = <T>(
+  arb: fc.Arbitrary<T>,
+  constraints?: fc.ArrayConstraints,
+): fc.Arbitrary<ReadonlyArray.NonEmptyArray<T>> =>
+  fc.array(arb, { minLength: 1, ...constraints }).filter(ReadonlyArray.isNonEmptyArray)
 
 export const error = (): fc.Arbitrary<Error> => fc.string().map(error => new Error(error))
 

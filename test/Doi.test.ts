@@ -41,7 +41,7 @@ describe('Doi', () => {
 describe('hasRegistrant', () => {
   test.prop([
     fc
-      .array(fc.doiRegistrant(), { minLength: 1 })
+      .nonEmptyArray(fc.doiRegistrant())
       .chain(registrants =>
         fc.tuple(fc.constant(registrants), fc.doi({ registrant: fc.constantFrom(...registrants) })),
       ),
