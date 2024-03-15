@@ -69,6 +69,10 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
             fields: [
               {
                 type: 'mrkdwn',
+                text: `*Posted*\n${renderDate(preprint.posted)}`,
+              },
+              {
+                type: 'mrkdwn',
                 text: `*Server*\n${Match.value(preprint.server).pipe(
                   Match.when('biorxiv', () => 'bioRxiv'),
                   Match.when('scielo', () => 'SciELO Preprints'),
@@ -175,4 +179,8 @@ function formatList(list: ReadonlyArray<string>) {
   const formatter = new Intl.ListFormat('en')
 
   return formatter.format(list)
+}
+
+function renderDate(date: Temporal.PlainDate) {
+  return date.toLocaleString('en', { dateStyle: 'long' })
 }

@@ -35,6 +35,15 @@ export const url = (): fc.Arbitrary<URL> => fc.webUrl().map(url => new URL(url))
 export const instant = (): fc.Arbitrary<Temporal.Instant> =>
   fc.date().map(date => Temporal.Instant.from(date.toISOString()))
 
+export const plainDate = (): fc.Arbitrary<Temporal.PlainDate> =>
+  fc
+    .record({
+      year: fc.integer({ min: -271820, max: 275759 }),
+      month: fc.integer({ min: 1, max: 12 }),
+      day: fc.integer({ min: 1, max: 31 }),
+    })
+    .map(args => Temporal.PlainDate.from(args))
+
 export const epochMilliseconds = (): fc.Arbitrary<number> => instant().map(instant => instant.epochMilliseconds)
 
 export const doi = ({
@@ -75,6 +84,7 @@ export const crossrefWork = (
       ),
       DOI: doi(),
       institution: fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      published: fc.option(plainDate(), { nil: undefined }),
       subtype: fc.option(fc.string(), { nil: undefined }),
       title: fc.array(fc.string()),
       type: fc.string(),
@@ -82,6 +92,8 @@ export const crossrefWork = (
     })
     .map(work => {
       return Object.fromEntries(
-        Object.entries(work).filter(([key, value]) => !['institution', 'subtype'].includes(key) || value !== undefined),
+        Object.entries(work).filter(
+          ([key, value]) => !['institution', 'published', 'subtype'].includes(key) || value !== undefined,
+        ),
       ) as never
     })

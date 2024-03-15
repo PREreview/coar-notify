@@ -3,6 +3,7 @@ import { type ParseResult, Schema } from '@effect/schema'
 import { Context, Data, Effect, Equal, Layer, Match } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
+import * as Temporal from './Temporal.js'
 
 export type Work = Schema.Schema.To<typeof WorkSchema>
 
@@ -60,6 +61,14 @@ export const CrossrefApiLive = Layer.effect(
 
 const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.struct({ message: messageSchema })
 
+const DateFromPartsSchema = Schema.transform(
+  Schema.struct({ 'date-parts': Schema.tuple(Schema.from(Temporal.PlainDateInTupleSchema)) }),
+  Schema.from(Temporal.PlainDateInTupleSchema),
+  input => input['date-parts'][0],
+  parts => ({ 'date-parts': [parts] }),
+  { strict: false },
+).pipe(Schema.compose(Temporal.PlainDateInTupleSchema))
+
 export const WorkSchema = Schema.struct({
   author: Schema.array(
     Schema.union(
@@ -77,6 +86,7 @@ export const WorkSchema = Schema.struct({
   DOI: Doi.DoiSchema,
   institution: Schema.optional(Schema.array(Schema.struct({ name: Schema.string }))),
   subtype: Schema.optional(Schema.string),
+  published: Schema.optional(DateFromPartsSchema),
   title: Schema.array(Schema.string),
   type: Schema.string,
 })

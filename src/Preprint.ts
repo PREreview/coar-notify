@@ -3,10 +3,12 @@ import { decode } from 'html-entities'
 import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
+import * as Temporal from './Temporal.js'
 
 export interface Preprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
+  readonly posted: Temporal.PlainDate
   readonly server: 'biorxiv' | 'scielo'
   readonly title: string
 }
@@ -49,6 +51,13 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
     )
 
+    const posted = yield* _(
+      Match.value(work.published),
+      Match.when(Match.instanceOfUnsafe(Temporal.PlainDate), date => Either.right(date)),
+      Match.when(undefined, () => Either.left(new GetPreprintError({ message: 'No published date found' }))),
+      Match.exhaustive,
+    )
+
     const authors = ReadonlyArray.map(work.author, author =>
       Match.value(author).pipe(
         Match.when({ name: Match.string }, author => author.name),
@@ -65,6 +74,7 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
     return Preprint({
       authors,
       doi: work.DOI,
+      posted,
       server,
       title: decode(striptags(title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
     })

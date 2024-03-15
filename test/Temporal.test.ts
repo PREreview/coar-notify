@@ -61,3 +61,47 @@ describe('InstantInMillisecondsSchema', () => {
     expect(actual).toStrictEqual(instant.epochMilliseconds)
   })
 })
+
+describe('PlainDateInTupleSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainDate()])('with date parts', plainDate => {
+      const actual = Schema.decodeUnknownSync(_.PlainDateInTupleSchema)([
+        plainDate.year,
+        plainDate.month,
+        plainDate.day,
+      ])
+
+      expect(actual).toStrictEqual(plainDate)
+    })
+
+    test.prop([
+      fc.oneof(
+        fc.anything().filter(value => !Array.isArray(value)),
+        fc.array(fc.anything().filter(value => !(typeof value === 'number'))),
+        fc.array(fc.double()),
+        fc.tuple(
+          fc.integer(),
+          fc.oneof(fc.integer({ max: 0 }), fc.integer({ min: 13 })),
+          fc.integer({ min: 1, max: 31 }),
+        ),
+        fc.tuple(
+          fc.integer(),
+          fc.integer({ min: 1, max: 12 }),
+          fc.oneof(fc.integer({ max: 0 }), fc.integer({ min: 32 })),
+        ),
+        fc.nonEmptyArray(fc.integer(), { maxLength: 2 }),
+        fc.nonEmptyArray(fc.integer(), { minLength: 4 }),
+      ),
+    ])('with non-date parts', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainDateInTupleSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainDate()])('encoding', plainDate => {
+    const actual = Schema.encodeSync(_.PlainDateInTupleSchema)(plainDate)
+
+    expect(actual).toStrictEqual([plainDate.year, plainDate.month, plainDate.day])
+  })
+})

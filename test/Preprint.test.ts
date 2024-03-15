@@ -18,13 +18,15 @@ describe('getPreprint', () => {
       ),
     ),
     fc.string().filter(string => !/[&<>]/.test(string)),
-  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle) =>
+    fc.plainDate(),
+  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, posted) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
       expect(actual).toStrictEqual({
         authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
         doi: expectedDoi,
+        posted,
         server: expectedServer,
         title: expectedTitle,
       })
@@ -40,6 +42,7 @@ describe('getPreprint', () => {
               ],
               DOI: expectedDoi,
               institution,
+              published: posted,
               subtype: 'preprint',
               title: [expectedTitle],
               type: 'posted-content',
@@ -60,7 +63,8 @@ describe('getPreprint', () => {
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
       ),
     ),
-  ])('when the title contains HTML', (doi, [expectedDoi, institution]) =>
+    fc.plainDate(),
+  ])('when the title contains HTML', (doi, [expectedDoi, institution], posted) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
@@ -73,6 +77,7 @@ describe('getPreprint', () => {
               author: [{ name: 'Author' }],
               DOI: expectedDoi,
               institution,
+              published: posted,
               subtype: 'preprint',
               title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
               type: 'posted-content',
@@ -107,6 +112,38 @@ describe('getPreprint', () => {
 
       expect(actual).toBeInstanceOf(_.GetPreprintError)
       expect(actual.message).toStrictEqual('No title found')
+    }).pipe(
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([
+    fc.doi(),
+    fc.oneof(
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        institution: fc.constant([{ name: 'bioRxiv' }]),
+        published: fc.constant(undefined),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        published: fc.constant(undefined),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+    ),
+  ])("when a work doesn't have a published date", (doi, work) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+
+      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual.message).toStrictEqual('No published date found')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
       Effect.provide(TestContext.TestContext),
