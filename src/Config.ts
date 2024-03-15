@@ -1,5 +1,6 @@
 import { Config, Effect, Layer, Option } from 'effect'
 import { SmtpConfig } from './Nodemailer.js'
+import { OpenAiConfig } from './OpenAi.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
 import { SlackApiConfig } from './Slack.js'
@@ -29,10 +30,20 @@ const smtpConfig: Config.Config<Option.Option<SmtpConfig>> = Config.option(
   ),
 )
 
+const openAiConfig = OpenAiConfig.layer(
+  Config.nested(
+    Config.all({
+      apiKey: Config.secret('API_KEY'),
+    }),
+    'OPENAI',
+  ),
+)
+
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackApiConfig, slackApiConfig),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
+  openAiConfig,
   Layer.unwrapEffect(
     smtpConfig.pipe(Effect.map(Option.match({ onNone: () => Layer.empty, onSome: Layer.succeed(SmtpConfig) }))),
   ),

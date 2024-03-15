@@ -9,6 +9,7 @@ import { ConfigLive } from './Config.js'
 import * as Crossref from './Crossref.js'
 import { JsonLogger } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
+import { OpenAi } from './OpenAi.js'
 import * as Redis from './Redis.js'
 import * as ReviewRequest from './ReviewRequest.js'
 import { Router } from './Router.js'
@@ -81,7 +82,7 @@ const HttpLive = Router.pipe(
     ),
   ),
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
-  Layer.provide(Layer.mergeAll(HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
+  Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
 )

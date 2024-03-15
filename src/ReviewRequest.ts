@@ -4,6 +4,7 @@ import mjml from 'mjml'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
+import * as OpenAi from './OpenAi.js'
 import * as Preprint from './Preprint.js'
 import * as Prereview from './Prereview.js'
 import * as Redis from './Redis.js'
@@ -40,6 +41,80 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
     }
 
     const preprint = yield* _(Preprint.getPreprint(requestReview.object['ietf:cite-as']))
+
+    const intro = yield* _(
+      OpenAi.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `
+Write in friendly, simple, natural language.
+Write in the active voice.
+Write in US English (en-US).
+You can include emojis.
+Do not include hashtags.
+Be positive, but ensure you don't discourage those who might feel marginalised or suffer from something like imposter syndrome from participating.
+Don't use hyperbole.
+Use objective vocabulary.
+Don't repeat terms.
+Use Slack-compatible Markdown.
+Our name for a peer review is 'PREreview'.
+        `,
+          },
+          {
+            role: 'user',
+            content: `
+Someone has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
+
+Determine keywords, disciplines and topics from the title.
+
+Use and emphasize these in a sentence of about 16 words, asking people to review the preprint.
+
+Do not use the word 'expertise'.
+        `,
+          },
+          {
+            role: 'user',
+            content: `
+Requester: ${requestReview.actor.name}
+
+Title: ${preprint.title}
+
+${ReadonlyArray.match(preprint.authors, {
+  onEmpty: () => '',
+  onNonEmpty: authors => `Authors: ${formatList(authors)}`,
+})}
+  `,
+          },
+          {
+            role: 'user',
+            content: `
+Here are some examples:
+
+🛟 Chris Wilkinson needs your help with reviews of this preprint all about *biochemistry*, *protein degradation*, and *oxindoles*.
+
+📣 Help Chris Wilkinson by reviewing this preprint focused on *biochemistry*, *protein degradation*, and *oxindoles*.
+
+🤝 Junyue Rose invites you to review this preprint about *prison conditions*, *institutional racism*, and the *industrial-prison complex*.
+
+🐔 If you’re excited by *habituation*, *gene silencing*, *chicken welfare*, and *blood parameters*, help Maya Garcia by reviewing this preprint.
+
+🐟 If *rivers*, *beavers*, and *fish habitats* interest you, help Li Na Chen by writing a PREreview of this preprint.
+
+🔎 Grace Abara is looking for help with reviews of this preprint about *peer review*, *preprint services*, and *scholarly communication*.
+          `,
+          },
+        ],
+        temperature: 0.25,
+        max_tokens: 256,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      }),
+    )
+
+    yield* _(Effect.logInfo('Generated intro'), Effect.annotateLogs({ doi: preprint.doi, intro }))
 
     yield* _(Redis.lpush('notifications', encoded))
 
@@ -164,6 +239,9 @@ Join us at https://prereview.org and sign up to our vibrant Slack community at h
   }).pipe(
     Effect.tapErrorTag('GetPreprintError', error =>
       Effect.logInfo('Unable to get preprint data').pipe(Effect.annotateLogs({ message: error.message })),
+    ),
+    Effect.tapErrorTag('OpenAiError', error =>
+      Effect.logInfo('Unable to get generated intro from OpenAI').pipe(Effect.annotateLogs({ message: error.message })),
     ),
     Effect.tapErrorTag('RedisError', error =>
       Effect.logInfo('Unable to write notification to Redis').pipe(Effect.annotateLogs({ message: error.message })),
