@@ -1,3 +1,4 @@
+import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
 import { Effect, Equal } from 'effect'
 import { StatusCodes } from 'http-status-codes'
@@ -9,40 +10,15 @@ import * as fc from './fc.js'
 describe('getWork', () => {
   test.prop([
     fc.doi(),
-    fc
-      .record(
-        {
-          author: fc.array(
-            fc.oneof(
-              fc.record(
-                {
-                  family: fc.string(),
-                  given: fc.string(),
-                  prefix: fc.string(),
-                  suffix: fc.string(),
-                },
-                { requiredKeys: ['family'] },
-              ),
-              fc.record({ name: fc.string() }),
-            ),
-          ),
-          DOI: fc.doi(),
-          institution: fc.array(fc.record({ name: fc.string() })),
-          subtype: fc.string(),
-          title: fc.array(fc.string()),
-          type: fc.string(),
-        },
-        { requiredKeys: ['author', 'DOI', 'title', 'type'] },
-      )
-      .chain(work =>
-        fc.tuple(
-          fc.constant(work),
-          fc.fetchResponse({
-            status: fc.constant(StatusCodes.OK),
-            body: fc.constant({ message: work }),
-          }),
-        ),
+    fc.crossrefWork().chain(work =>
+      fc.tuple(
+        fc.constant(work),
+        fc.fetchResponse({
+          status: fc.constant(StatusCodes.OK),
+          body: fc.constant({ message: Schema.encodeSync(_.WorkSchema)(work) }),
+        }),
       ),
+    ),
   ])('when the response can be decoded', (doi, [work, response]) =>
     Effect.gen(function* ($) {
       const fetchMock = yield* $(TestContext.FetchMock)

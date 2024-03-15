@@ -1,6 +1,7 @@
 import doiRegex from 'doi-regex'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
+import type * as Crossref from '../src/Crossref.js'
 import type * as Doi from '../src/Doi.js'
 import * as Temporal from '../src/Temporal.js'
 
@@ -45,3 +46,35 @@ export const doiRegistrant = (): fc.Arbitrary<string> =>
       fc.array(fc.stringOf(fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), { minLength: 1 })),
     )
     .map(([one, two]) => [one, ...two].join('.'))
+
+export const crossrefWork = (
+  props: { [K in keyof Crossref.Work]?: fc.Arbitrary<Crossref.Work[K]> } = {},
+): fc.Arbitrary<Crossref.Work> =>
+  fc
+    .record({
+      author: fc.array(
+        fc.oneof(
+          fc.record(
+            {
+              family: fc.string(),
+              given: fc.string(),
+              prefix: fc.string(),
+              suffix: fc.string(),
+            },
+            { requiredKeys: ['family'] },
+          ),
+          fc.record({ name: fc.string() }),
+        ),
+      ),
+      DOI: doi(),
+      institution: fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+      subtype: fc.option(fc.string(), { nil: undefined }),
+      title: fc.array(fc.string()),
+      type: fc.string(),
+      ...props,
+    })
+    .map(work => {
+      return Object.fromEntries(
+        Object.entries(work).filter(([key, value]) => !['institution', 'subtype'].includes(key) || value !== undefined),
+      ) as never
+    })

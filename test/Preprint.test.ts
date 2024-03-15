@@ -87,33 +87,28 @@ describe('getPreprint', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(
-        fc.doi({ registrant: fc.constant('1590') }),
-        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
-      ),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        institution: fc.constant([{ name: 'bioRxiv' }]),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
     ),
-    fc.string(),
-  ])("when a work doesn't have a title", (doi, [expectedDoi, institution]) =>
+  ])("when a work doesn't have a title", (doi, work) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintError)
       expect(actual.message).toStrictEqual('No title found')
     }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              institution,
-              subtype: 'preprint',
-              title: [],
-              type: 'posted-content',
-            }),
-        }),
-      ),
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
     ),
@@ -122,48 +117,22 @@ describe('getPreprint', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(
-        fc.doi({ registrant: fc.constant('1590') }),
-        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
-      ),
+      fc.crossrefWork({
+        type: fc.string().filter(string => string !== 'posted-content'),
+      }),
+      fc.crossrefWork({
+        type: fc.constant('posted-content'),
+        subtype: fc.string().filter(string => string !== 'preprint'),
+      }),
     ),
-    fc.string(),
-    fc.oneof(
-      fc.record(
-        {
-          type: fc.string().filter(string => string !== 'posted-content'),
-          subtype: fc.string(),
-        },
-        { requiredKeys: ['type'] },
-      ),
-      fc.record(
-        {
-          type: fc.constant('posted-content'),
-          subtype: fc.string().filter(string => string !== 'preprint'),
-        },
-        { requiredKeys: ['type'] },
-      ),
-    ),
-  ])("when a work isn't a preprint", (doi, [expectedDoi, institution], title, type) =>
+  ])("when a work isn't a preprint", (doi, work) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintError)
       expect(actual.message).toStrictEqual('Not a preprint')
     }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              institution,
-              title: [title],
-              ...type,
-            }),
-        }),
-      ),
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
     ),
@@ -172,36 +141,27 @@ describe('getPreprint', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(
-        fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1101', '1590'].includes(registrant)) }),
-        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
-      ),
-      fc.tuple(
-        fc.doi({ registrant: fc.constant('1101') }),
-        fc.array(fc.record({ name: fc.string().filter(name => name !== 'bioRxiv') })),
-      ),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1101', '1590'].includes(registrant)) }),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'bioRxiv') })),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
     ),
-    fc.string(),
-  ])("when the preprint server isn't supported", (doi, [expectedDoi, institution], title) =>
+  ])("when the preprint server isn't supported", (doi, work) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintError)
       expect(actual.message).toStrictEqual('Not from a supported server')
     }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              institution,
-              subtype: 'preprint',
-              title: [title],
-              type: 'posted-content',
-            }),
-        }),
-      ),
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
     ),

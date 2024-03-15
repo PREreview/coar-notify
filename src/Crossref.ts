@@ -60,7 +60,7 @@ export const CrossrefApiLive = Layer.effect(
 
 const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.struct({ message: messageSchema })
 
-const WorkSchema = Schema.struct({
+export const WorkSchema = Schema.struct({
   author: Schema.array(
     Schema.union(
       Schema.struct({
