@@ -54,6 +54,12 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
     const posted = yield* _(
       Match.value(work.published),
       Match.when(Match.instanceOfUnsafe(Temporal.PlainDate), date => Either.right(date)),
+      Match.when(Match.instanceOfUnsafe(Temporal.PlainYear), () =>
+        Either.left(new GetPreprintError({ message: 'Published date incomplete' })),
+      ),
+      Match.when(Match.instanceOfUnsafe(Temporal.PlainYearMonth), () =>
+        Either.left(new GetPreprintError({ message: 'Published date incomplete' })),
+      ),
       Match.when(undefined, () => Either.left(new GetPreprintError({ message: 'No published date found' }))),
       Match.exhaustive,
     )

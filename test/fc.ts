@@ -35,6 +35,17 @@ export const url = (): fc.Arbitrary<URL> => fc.webUrl().map(url => new URL(url))
 export const instant = (): fc.Arbitrary<Temporal.Instant> =>
   fc.date().map(date => Temporal.Instant.from(date.toISOString()))
 
+export const plainYear = (): fc.Arbitrary<Temporal.PlainYear> =>
+  fc.integer({ min: -271820, max: 275759 }).map(year => Temporal.PlainYear.from({ year }))
+
+export const plainYearMonth = (): fc.Arbitrary<Temporal.PlainYearMonth> =>
+  fc
+    .record({
+      year: fc.integer({ min: -271820, max: 275759 }),
+      month: fc.integer({ min: 1, max: 12 }),
+    })
+    .map(args => Temporal.PlainYearMonth.from(args))
+
 export const plainDate = (): fc.Arbitrary<Temporal.PlainDate> =>
   fc
     .record({
@@ -84,7 +95,7 @@ export const crossrefWork = (
       ),
       DOI: doi(),
       institution: fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
-      published: fc.option(plainDate(), { nil: undefined }),
+      published: fc.option(fc.oneof(plainYear(), plainYearMonth(), plainDate()), { nil: undefined }),
       subtype: fc.option(fc.string(), { nil: undefined }),
       title: fc.array(fc.string()),
       type: fc.string(),

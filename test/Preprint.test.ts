@@ -125,6 +125,38 @@ describe('getPreprint', () => {
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.constant([{ name: 'bioRxiv' }]),
+        published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+    ),
+  ])('when a work has an incomplete published date', (doi, work) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+
+      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual.message).toStrictEqual('Published date incomplete')
+    }).pipe(
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([
+    fc.doi(),
+    fc.oneof(
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        institution: fc.constant([{ name: 'bioRxiv' }]),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),

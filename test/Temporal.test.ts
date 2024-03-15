@@ -5,6 +5,30 @@ import { describe, expect } from 'vitest'
 import * as _ from '../src/Temporal.js'
 import * as fc from './fc.js'
 
+describe('PlainYear', () => {
+  test.prop([fc.integer({ min: -271820, max: 275760 })])('with a year', year => {
+    const actual = new _.PlainYear(year)
+
+    expect(actual.year).toStrictEqual(year)
+  })
+
+  test.prop([fc.oneof(fc.double({ max: -271821 }), fc.double({ min: 275761 }))])('with a non-year', value => {
+    expect(() => new _.PlainYear(value)).toThrow()
+  })
+
+  describe('from', () => {
+    test.prop([fc.integer({ min: -271820, max: 275760 })])('with a year', year => {
+      const actual = _.PlainYear.from({ year })
+
+      expect(actual.year).toStrictEqual(year)
+    })
+
+    test.prop([fc.oneof(fc.double({ max: -271821 }), fc.double({ min: 275761 }))])('with a non-year', value => {
+      expect(() => _.PlainYear.from({ year: value }, { overflow: 'reject' })).toThrow()
+    })
+  })
+})
+
 test.prop([fc.epochMilliseconds()])('Timestamp', epochMilliseconds =>
   Effect.gen(function* ($) {
     yield* $(TestClock.setTime(epochMilliseconds))
@@ -59,6 +83,67 @@ describe('InstantInMillisecondsSchema', () => {
     const actual = Schema.encodeSync(_.InstantInMillisecondsSchema)(instant)
 
     expect(actual).toStrictEqual(instant.epochMilliseconds)
+  })
+})
+
+describe('PlainYearInTupleSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainYear()])('with date parts', plainYear => {
+      const actual = Schema.decodeUnknownSync(_.PlainYearInTupleSchema)([plainYear.year])
+
+      expect(actual).toStrictEqual(plainYear)
+    })
+
+    test.prop([
+      fc.oneof(
+        fc.anything().filter(value => !Array.isArray(value)),
+        fc.array(fc.anything().filter(value => typeof value !== 'number' || value < -271820 || value > 275760)),
+        fc.nonEmptyArray(fc.integer(), { minLength: 2 }),
+      ),
+    ])('with non-date parts', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainYearInTupleSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainYear()])('encoding', plainYear => {
+    const actual = Schema.encodeSync(_.PlainYearInTupleSchema)(plainYear)
+
+    expect(actual).toStrictEqual([plainYear.year])
+  })
+})
+
+describe('PlainYearMonthInTupleSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainYearMonth()])('with date parts', plainYearMonth => {
+      const actual = Schema.decodeUnknownSync(_.PlainYearMonthInTupleSchema)([
+        plainYearMonth.year,
+        plainYearMonth.month,
+      ])
+
+      expect(actual).toStrictEqual(plainYearMonth)
+    })
+
+    test.prop([
+      fc.oneof(
+        fc.anything().filter(value => !Array.isArray(value)),
+        fc.array(fc.anything().filter(value => typeof value !== 'number' || !Number.isSafeInteger(value))),
+        fc.tuple(fc.integer(), fc.oneof(fc.integer({ max: 0 }), fc.integer({ min: 13 }))),
+        fc.nonEmptyArray(fc.integer(), { maxLength: 1 }),
+        fc.nonEmptyArray(fc.integer(), { minLength: 3 }),
+      ),
+    ])('with non-date parts', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainYearMonthInTupleSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainYearMonth()])('encoding', plainYearMonth => {
+    const actual = Schema.encodeSync(_.PlainYearMonthInTupleSchema)(plainYearMonth)
+
+    expect(actual).toStrictEqual([plainYearMonth.year, plainYearMonth.month])
   })
 })
 

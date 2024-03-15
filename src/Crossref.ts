@@ -61,13 +61,19 @@ export const CrossrefApiLive = Layer.effect(
 
 const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.struct({ message: messageSchema })
 
+const PartialDateSchema = Schema.union(
+  Temporal.PlainYearInTupleSchema,
+  Temporal.PlainYearMonthInTupleSchema,
+  Temporal.PlainDateInTupleSchema,
+)
+
 const DateFromPartsSchema = Schema.transform(
-  Schema.struct({ 'date-parts': Schema.tuple(Schema.from(Temporal.PlainDateInTupleSchema)) }),
-  Schema.from(Temporal.PlainDateInTupleSchema),
+  Schema.struct({ 'date-parts': Schema.tuple(Schema.from(PartialDateSchema)) }),
+  Schema.from(PartialDateSchema),
   input => input['date-parts'][0],
   parts => ({ 'date-parts': [parts] }),
   { strict: false },
-).pipe(Schema.compose(Temporal.PlainDateInTupleSchema))
+).pipe(Schema.compose(PartialDateSchema))
 
 export const WorkSchema = Schema.struct({
   author: Schema.array(
