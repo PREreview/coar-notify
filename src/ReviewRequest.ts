@@ -82,6 +82,8 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
             ],
           },
         ],
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     )
 
