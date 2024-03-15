@@ -6,6 +6,7 @@ import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
 
 export interface Preprint {
+  readonly abstract: string
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate
@@ -51,6 +52,11 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
     )
 
+    const abstract = yield* _(
+      Effect.fromNullable(work.abstract),
+      Effect.mapError(() => new GetPreprintError({ message: 'No abstract found' })),
+    )
+
     const posted = yield* _(
       Match.value(work.published),
       Match.when(Match.instanceOfUnsafe(Temporal.PlainDate), date => Either.right(date)),
@@ -78,6 +84,7 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
     )
 
     return Preprint({
+      abstract,
       authors,
       doi: work.DOI,
       posted,

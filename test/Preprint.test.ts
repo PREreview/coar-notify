@@ -18,12 +18,14 @@ describe('getPreprint', () => {
       ),
     ),
     fc.string().filter(string => !/[&<>]/.test(string)),
+    fc.string(),
     fc.plainDate(),
-  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, posted) =>
+  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, abstract, posted) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
       expect(actual).toStrictEqual({
+        abstract,
         authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
         doi: expectedDoi,
         posted,
@@ -35,6 +37,7 @@ describe('getPreprint', () => {
         Layer.succeed(Crossref.CrossrefApi, {
           getWork: () =>
             Effect.succeed({
+              abstract,
               author: [
                 { name: 'Author 1' },
                 { family: 'Author 2' },
@@ -63,8 +66,9 @@ describe('getPreprint', () => {
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
       ),
     ),
+    fc.string(),
     fc.plainDate(),
-  ])('when the title contains HTML', (doi, [expectedDoi, institution], posted) =>
+  ])('when the title contains HTML', (doi, [expectedDoi, institution], abstract, posted) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprint(doi))
 
@@ -74,6 +78,7 @@ describe('getPreprint', () => {
         Layer.succeed(Crossref.CrossrefApi, {
           getWork: () =>
             Effect.succeed({
+              abstract,
               author: [{ name: 'Author' }],
               DOI: expectedDoi,
               institution,
@@ -123,6 +128,39 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
+        abstract: fc.constant(undefined),
+        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        institution: fc.constant([{ name: 'bioRxiv' }]),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.constant(undefined),
+        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+    ),
+  ])("when a work doesn't have an abstract", (doi, work) =>
+    Effect.gen(function* ($) {
+      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+
+      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual.message).toStrictEqual('No abstract found')
+    }).pipe(
+      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    ),
+  )
+
+  test.prop([
+    fc.doi(),
+    fc.oneof(
+      fc.crossrefWork({
+        abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.constant([{ name: 'bioRxiv' }]),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -131,6 +169,7 @@ describe('getPreprint', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
+        abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
@@ -155,6 +194,7 @@ describe('getPreprint', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
+        abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.constant([{ name: 'bioRxiv' }]),
         published: fc.constant(undefined),
@@ -163,6 +203,7 @@ describe('getPreprint', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
+        abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),

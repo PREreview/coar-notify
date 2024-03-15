@@ -67,9 +67,11 @@ Our name for a peer review is 'PREreview'.
             content: `
 Someone has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
 
-Determine keywords, disciplines and topics from the title.
+Determine keywords, disciplines and topics from the abstract.
 
 Use and emphasize these in a sentence of about 16 words, asking people to review the preprint.
+
+Do not use keywords that appear in the title.
 
 Do not use the word 'expertise'.
         `,
@@ -85,6 +87,10 @@ ${ReadonlyArray.match(preprint.authors, {
   onEmpty: () => '',
   onNonEmpty: authors => `Authors: ${formatList(authors)}`,
 })}
+
+Abstract: """
+${preprint.abstract}
+"""
   `,
           },
           {

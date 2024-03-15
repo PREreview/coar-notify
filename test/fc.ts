@@ -79,6 +79,7 @@ export const crossrefWork = (
 ): fc.Arbitrary<Crossref.Work> =>
   fc
     .record({
+      abstract: fc.option(fc.string(), { nil: undefined }),
       author: fc.array(
         fc.oneof(
           fc.record(
@@ -104,7 +105,7 @@ export const crossrefWork = (
     .map(work => {
       return Object.fromEntries(
         Object.entries(work).filter(
-          ([key, value]) => !['institution', 'published', 'subtype'].includes(key) || value !== undefined,
+          ([key, value]) => !['abstract', 'institution', 'published', 'subtype'].includes(key) || value !== undefined,
         ),
       ) as never
     })

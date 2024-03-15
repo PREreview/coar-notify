@@ -76,6 +76,7 @@ const DateFromPartsSchema = Schema.transform(
 ).pipe(Schema.compose(PartialDateSchema))
 
 export const WorkSchema = Schema.struct({
+  abstract: Schema.optional(Schema.string),
   author: Schema.array(
     Schema.union(
       Schema.struct({
