@@ -1,4 +1,4 @@
-import { Parser } from '@effect/schema'
+import { ParseResult } from '@effect/schema'
 import { describe, expect, test } from 'vitest'
 import * as _ from '../src/CoarNotify.js'
 import * as Doi from '../src/Doi.js'
@@ -6,7 +6,7 @@ import * as Doi from '../src/Doi.js'
 describe('RequestReviewSchema', () => {
   test('accepts valid input', () => {
     expect(
-      Parser.decodeUnknownSync(_.RequestReviewSchema)({
+      ParseResult.decodeUnknownSync(_.RequestReviewSchema)({
         '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify', 'http://schema.org/'],
         actor: {
           id: 'https://orcid.org/0000-0002-1825-0097',
@@ -65,7 +65,7 @@ describe('RequestReviewSchema', () => {
 
   test('rejects invalid input', () => {
     expect(() =>
-      Parser.decodeUnknownSync(_.RequestReviewSchema)({
+      ParseResult.decodeUnknownSync(_.RequestReviewSchema)({
         '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify'],
         actor: {
           id: 'https://orcid.org/0000-0002-1825-0097',

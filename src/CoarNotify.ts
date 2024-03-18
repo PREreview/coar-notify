@@ -2,13 +2,14 @@ import { Schema } from '@effect/schema'
 import * as Doi from './Doi.js'
 import * as Url from './Url.js'
 
-export type RequestReview = Schema.Schema.To<typeof RequestReviewSchema>
+export type RequestReview = Schema.Schema.Type<typeof RequestReviewSchema>
 
 export const RequestReviewSchema = Schema.struct({
   '@context': Schema.tuple(
     Schema.literal('https://www.w3.org/ns/activitystreams'),
     Schema.literal('https://purl.org/coar/notify'),
-  ).pipe(Schema.rest(Schema.string)),
+    ...[Schema.string],
+  ),
   id: Schema.string,
   type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
   origin: Schema.struct({
