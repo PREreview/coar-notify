@@ -6,9 +6,8 @@ export type RequestReview = Schema.Schema.Type<typeof RequestReviewSchema>
 
 export const RequestReviewSchema = Schema.struct({
   '@context': Schema.tuple(
-    Schema.literal('https://www.w3.org/ns/activitystreams'),
-    Schema.literal('https://purl.org/coar/notify'),
-    ...[Schema.string],
+    [Schema.literal('https://www.w3.org/ns/activitystreams'), Schema.literal('https://purl.org/coar/notify')],
+    Schema.string,
   ),
   id: Schema.string,
   type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
