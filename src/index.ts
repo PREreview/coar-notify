@@ -50,7 +50,7 @@ const RedisLive = Redis.layer
 
 export const NotificationsQueueLive = BullMq.makeLayer<
   'coar-notify',
-  { 'request-review': Schema.Schema.From<typeof CoarNotify.RequestReviewSchema> }
+  { 'request-review': Schema.Schema.Encoded<typeof CoarNotify.RequestReviewSchema> }
 >({
   name: 'coar-notify',
   defaultJobOptions: { delay: '10 seconds', removeOnComplete: true, removeOnFail: false },

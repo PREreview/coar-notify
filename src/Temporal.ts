@@ -41,7 +41,7 @@ export const InstantFromMillisecondsSchema = <A extends number, I, R>(
     (number, _, ast) =>
       ParseResult.try({
         try: () => Temporal.Instant.fromEpochMilliseconds(number),
-        catch: () => ParseResult.type(ast, number),
+        catch: () => new ParseResult.Type(ast, number),
       }),
     instant => ParseResult.succeed(instant.epochMilliseconds),
     { strict: false },
@@ -55,7 +55,7 @@ export const PlainYearInTupleSchema: Schema.Schema<PlainYear, readonly [number]>
   ([year], _, ast) =>
     ParseResult.try({
       try: () => PlainYear.from({ year }, { overflow: 'reject' }),
-      catch: () => ParseResult.type(ast, [year]),
+      catch: () => new ParseResult.Type(ast, [year]),
     }),
   plainYear => ParseResult.succeed([plainYear.year]),
   { strict: false },
@@ -68,7 +68,7 @@ export const PlainYearMonthInTupleSchema: Schema.Schema<Temporal.PlainYearMonth,
     ([year, month], _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainYearMonth.from({ year, month }, { overflow: 'reject' }),
-        catch: () => ParseResult.type(ast, [year, month]),
+        catch: () => new ParseResult.Type(ast, [year, month]),
       }),
     plainYearMonth => ParseResult.succeed([plainYearMonth.year, plainYearMonth.month]),
     { strict: false },
@@ -81,7 +81,7 @@ export const PlainDateInTupleSchema: Schema.Schema<Temporal.PlainDate, readonly 
     ([year, month, day], _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainDate.from({ year, month, day }, { overflow: 'reject' }),
-        catch: () => ParseResult.type(ast, [year, month, day]),
+        catch: () => new ParseResult.Type(ast, [year, month, day]),
       }),
     plainDate => ParseResult.succeed([plainDate.year, plainDate.month, plainDate.day]),
     { strict: false },

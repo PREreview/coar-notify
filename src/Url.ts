@@ -9,7 +9,7 @@ export const UrlFromStringSchema = <A extends string, I, R>(self: Schema.Schema<
     (s, _, ast) =>
       ParseResult.try({
         try: () => new URL(s),
-        catch: () => ParseResult.type(ast, s),
+        catch: () => new ParseResult.Type(ast, s),
       }),
     url => ParseResult.succeed(url.href),
     { strict: false },

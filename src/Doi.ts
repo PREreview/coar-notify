@@ -33,7 +33,7 @@ export const DoiSchema = Schema.string.pipe(Schema.fromBrand(Doi))
 
 export const DoiUrlSchema: Schema.Schema<Doi, string> = Schema.transformOrFail(
   Schema.string,
-  Schema.to(DoiSchema),
-  s => Either.fromOption(parse(s), () => ParseResult.type(DoiSchema.ast, s)),
+  Schema.typeSchema(DoiSchema),
+  s => Either.fromOption(parse(s), () => new ParseResult.Type(DoiSchema.ast, s)),
   doi => ParseResult.succeed(toUrl(doi).href),
 )

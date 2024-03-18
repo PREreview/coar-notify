@@ -55,7 +55,7 @@ export class SlackError extends Data.TaggedError('SlackError')<{
 }> {}
 
 export const chatPostMessage = (
-  message: Schema.Schema.To<typeof ChatPostMessageSchema>,
+  message: Schema.Schema.Type<typeof ChatPostMessageSchema>,
 ): Effect.Effect<void, SlackError, HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)

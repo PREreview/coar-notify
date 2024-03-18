@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
 
-export type Work = Schema.Schema.To<typeof WorkSchema>
+export type Work = Schema.Schema.Type<typeof WorkSchema>
 
 export class GetWorkError extends Data.TaggedError('GetWorkError')<{
   readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError
@@ -68,8 +68,8 @@ const PartialDateSchema = Schema.union(
 )
 
 const DateFromPartsSchema = Schema.transform(
-  Schema.struct({ 'date-parts': Schema.tuple(Schema.from(PartialDateSchema)) }),
-  Schema.from(PartialDateSchema),
+  Schema.struct({ 'date-parts': Schema.tuple(Schema.encodedSchema(PartialDateSchema)) }),
+  Schema.encodedSchema(PartialDateSchema),
   input => input['date-parts'][0],
   parts => ({ 'date-parts': [parts] }),
   { strict: false },
