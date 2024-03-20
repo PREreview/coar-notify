@@ -135,10 +135,11 @@ Here are some examples:
               type: 'mrkdwn',
               text: `${intro}
 
-<${Doi.toUrl(preprint.doi).href}|${preprint.title}>${ReadonlyArray.match(preprint.authors, {
-                onEmpty: () => '',
-                onNonEmpty: authors => ` by ${formatList(authors)}`,
-              })}`,
+*<${Doi.toUrl(preprint.doi).href}|${preprint.title}>*
+${ReadonlyArray.match(preprint.authors, {
+  onEmpty: () => '',
+  onNonEmpty: authors => `by ${formatList(authors)}`,
+})}`.trim(),
             },
             accessory: {
               type: 'button',
