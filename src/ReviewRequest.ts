@@ -123,8 +123,6 @@ Here are some examples:
       Effect.map(String.trim),
     )
 
-    yield* _(Effect.logInfo('Generated intro'), Effect.annotateLogs({ doi: preprint.doi, intro }))
-
     yield* _(Redis.lpush('notifications', encoded))
 
     yield* _(
@@ -135,9 +133,9 @@ Here are some examples:
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `A new request from ${requestReview.actor.name} has come in for a review of <${
-                Doi.toUrl(preprint.doi).href
-              }|${preprint.title}>${ReadonlyArray.match(preprint.authors, {
+              text: `${intro}
+
+<${Doi.toUrl(preprint.doi).href}|${preprint.title}>${ReadonlyArray.match(preprint.authors, {
                 onEmpty: () => '',
                 onNonEmpty: authors => ` by ${formatList(authors)}`,
               })}`,
