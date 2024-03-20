@@ -80,12 +80,24 @@ Do not use the word 'expertise' or 'explore'.
           {
             role: 'user',
             content: `
+Here's the details of the preprint:
+
 Title: """${preprint.title}"""
 
 ${ReadonlyArray.match(preprint.authors, {
   onEmpty: () => '',
   onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
 })}
+
+Preprint server: """${Match.value(preprint.server).pipe(
+              Match.when('biorxiv', () => 'bioRxiv'),
+              Match.when('scielo', () => 'SciELO Preprints'),
+              Match.exhaustive,
+            )}"""
+
+DOI: """${preprint.doi}"""
+
+Posted: """${renderDate(preprint.posted)}"""
 
 Abstract: """
 ${preprint.abstract}
