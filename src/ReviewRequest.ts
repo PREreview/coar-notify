@@ -66,7 +66,7 @@ Our name for a peer review is 'PREreview'.
           {
             role: 'user',
             content: `
-Someone has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
+${requestReview.actor.name} has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
 
 Determine keywords, disciplines and topics from the abstract.
 
@@ -80,8 +80,6 @@ Do not use the word 'expertise' or 'explore'.
           {
             role: 'user',
             content: `
-Requester: """${requestReview.actor.name}"""
-
 Title: """${preprint.title}"""
 
 ${ReadonlyArray.match(preprint.authors, {
