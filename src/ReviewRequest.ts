@@ -80,13 +80,13 @@ Do not use the word 'expertise'.
           {
             role: 'user',
             content: `
-Requester: ${requestReview.actor.name}
+Requester: """${requestReview.actor.name}"""
 
-Title: ${preprint.title}
+Title: """${preprint.title}"""
 
 ${ReadonlyArray.match(preprint.authors, {
   onEmpty: () => '',
-  onNonEmpty: authors => `Authors: ${formatList(authors)}`,
+  onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
 })}
 
 Abstract: """
