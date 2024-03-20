@@ -1,6 +1,7 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Match, ReadonlyArray } from 'effect'
+import { Context, Data, Effect, Match, ReadonlyArray, String } from 'effect'
 import mjml from 'mjml'
+import slackifyMarkdown from 'slackify-markdown'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
@@ -58,7 +59,7 @@ Be positive, but ensure you don't discourage those who might feel marginalised o
 Don't use hyperbole.
 Use objective vocabulary.
 Don't repeat terms.
-Use Slack-compatible Markdown.
+Use Markdown formatting.
 Our name for a peer review is 'PREreview'.
         `,
           },
@@ -98,17 +99,17 @@ ${preprint.abstract}
             content: `
 Here are some examples:
 
-🛟 Chris Wilkinson needs your help with reviews of this preprint all about *biochemistry*, *protein degradation*, and *oxindoles*.
+🛟 Chris Wilkinson needs your help with reviews of this preprint all about **biochemistry**, **protein degradation**, and **oxindoles**.
 
-📣 Help Chris Wilkinson by reviewing this preprint focused on *biochemistry*, *protein degradation*, and *oxindoles*.
+📣 Help Chris Wilkinson by reviewing this preprint focused on **biochemistry**, **protein degradation**, and **oxindoles**.
 
-🤝 Junyue Rose invites you to review this preprint about *prison conditions*, *institutional racism*, and the *industrial-prison complex*.
+🤝 Junyue Rose invites you to review this preprint about **prison conditions**, **institutional racism**, and the **industrial-prison complex**.
 
-🐔 If you’re excited by *habituation*, *gene silencing*, *chicken welfare*, and *blood parameters*, help Maya Garcia by reviewing this preprint.
+🐔 If you’re excited by **habituation**, **gene silencing**, **chicken welfare**, and **blood parameters**, help Maya Garcia by reviewing this preprint.
 
-🐟 If *rivers*, *beavers*, and *fish habitats* interest you, help Li Na Chen by writing a PREreview of this preprint.
+🐟 If **rivers**, **beavers**, and **fish habitats** interest you, help Li Na Chen by writing a PREreview of this preprint.
 
-🔎 Grace Abara is looking for help with reviews of this preprint about *peer review*, *preprint services*, and *scholarly communication*.
+🔎 Grace Abara is looking for help with reviews of this preprint about **peer review**, **preprint services**, and **scholarly communication**.
           `,
           },
         ],
@@ -118,6 +119,8 @@ Here are some examples:
         frequency_penalty: 0,
         presence_penalty: 0,
       }),
+      Effect.map(slackifyMarkdown),
+      Effect.map(String.trim),
     )
 
     yield* _(Effect.logInfo('Generated intro'), Effect.annotateLogs({ doi: preprint.doi, intro }))
