@@ -74,7 +74,7 @@ Use and emphasize these in a sentence of about 16 words, asking people to review
 
 Do not use keywords that appear in the title.
 
-Do not use the word 'expertise'.
+Do not use the word 'expertise' or 'explore'.
         `,
           },
           {
