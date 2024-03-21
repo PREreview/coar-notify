@@ -66,11 +66,11 @@ Our name for a peer review is 'PREreview'.
           {
             role: 'user',
             content: `
-Someone has requested a review of a scientific preprint. They are not reviewing the preprint themselves; they might be an author.
+Someone has requested a review of a scientific preprint. The requester is not reviewing the preprint themselves; they might be an author.
 
 Determine keywords, disciplines and topics from the abstract.
 
-Use and emphasize these in a sentence of about 16 words, asking people to review the preprint.
+Use and emphasize these in a sentence of about 16 words, saying that the requester is looking for people to review the preprint.
 
 Do not use keywords that appear in the title.
 
