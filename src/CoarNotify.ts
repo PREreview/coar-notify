@@ -28,6 +28,6 @@ export const RequestReviewSchema = Schema.struct({
   actor: Schema.struct({
     id: Url.UrlSchema,
     type: Schema.literal('Application', 'Group', 'Organization', 'Person', 'Service'),
-    name: Schema.string,
+    name: Schema.string.pipe(Schema.trimmed(), Schema.nonEmpty()),
   }),
 })
