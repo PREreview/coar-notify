@@ -397,6 +397,7 @@ ${ReadonlyArray.match(preprint.authors, {
               unfurlMedia: false,
             }),
           ),
+          ReadonlyArray.intersperse(Effect.sleep('100 millis')),
         ),
       ),
     )
