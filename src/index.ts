@@ -7,7 +7,7 @@ import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
 import * as Crossref from './Crossref.js'
-import { JsonLogger } from './Logger.js'
+import { JsonLogger, LoggingHttpClient } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
 import { OpenAi } from './OpenAi.js'
 import * as Redis from './Redis.js'
@@ -19,35 +19,7 @@ const ServerLive = Router.pipe(
   Layer.provide(NodeHttpServer.server.layer(() => createServer(), { port: 3000 })),
 )
 
-const HttpClientLive = Layer.succeed(
-  HttpClient.client.Client,
-  HttpClient.client.makeDefault(request =>
-    Effect.Do.pipe(
-      Effect.tap(() =>
-        Effect.logDebug('Sending HTTP Request').pipe(
-          Effect.annotateLogs({ headers: HttpClient.headers.redact(request.headers, 'authorization') }),
-        ),
-      ),
-      Effect.zipRight(HttpClient.client.fetch()(request)),
-      Effect.tap(response =>
-        Effect.logDebug('Received HTTP response').pipe(
-          Effect.annotateLogs({ status: response.status, headers: response.headers }),
-        ),
-      ),
-      Effect.tapErrorTag('RequestError', error =>
-        Effect.logError('Error sending HTTP request').pipe(
-          Effect.annotateLogs({ reason: error.reason, error: error.error }),
-        ),
-      ),
-      Effect.annotateLogs({
-        url: request.url,
-        urlParams: HttpClient.urlParams.toString(request.urlParams),
-        method: request.method,
-      }),
-      Effect.withLogSpan('fetch'),
-    ),
-  ),
-)
+const HttpClientLive = Layer.succeed(HttpClient.client.Client, LoggingHttpClient)
 
 const RedisLive = Redis.layer
 
