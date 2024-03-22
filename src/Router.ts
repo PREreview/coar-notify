@@ -68,5 +68,4 @@ export const Router = HttpServer.router.empty.pipe(
     ),
   ),
   Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: StatusCodes.NOT_FOUND })),
-  HttpServer.server.serve(HttpServer.middleware.logger),
 )

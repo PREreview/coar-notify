@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient, HttpServer } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
 import { Config, Effect, Layer, LogLevel, Logger, Schedule } from 'effect'
@@ -78,6 +78,7 @@ export const NotificationsQueueLive = BullMq.makeLayer<
 })
 
 const Program = Router.pipe(
+  HttpServer.server.serve(HttpServer.middleware.logger),
   Layer.merge(QueueWorkerLive),
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
