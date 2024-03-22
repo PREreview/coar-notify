@@ -14,7 +14,10 @@ import * as Redis from './Redis.js'
 import * as ReviewRequest from './ReviewRequest.js'
 import { Router } from './Router.js'
 
-const ServerLive = NodeHttpServer.server.layer(() => createServer(), { port: 3000 })
+const ServerLive = Router.pipe(
+  HttpServer.server.serve(HttpServer.middleware.logger),
+  Layer.provide(NodeHttpServer.server.layer(() => createServer(), { port: 3000 })),
+)
 
 const HttpClientLive = Layer.succeed(
   HttpClient.client.Client,
@@ -77,11 +80,9 @@ export const NotificationsQueueLive = BullMq.makeLayer<
   defaultJobOptions: { delay: '10 seconds', removeOnComplete: true, removeOnFail: false },
 })
 
-const Program = Router.pipe(
-  HttpServer.server.serve(HttpServer.middleware.logger),
-  Layer.merge(QueueWorkerLive),
+const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
-  Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
+  Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
 )
