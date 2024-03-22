@@ -373,12 +373,32 @@ ${ReadonlyArray.match(preprint.authors, {
       }),
     )
 
-    yield* _(
-      Effect.logInfo('Generated threaded version'),
-      Effect.annotateLogs('message', {
-        doi: preprint.doi,
-        thread: threadToSlackBlocks(threaded, preprint),
+    const posts = threadToSlackBlocks(threaded, preprint)
+
+    const parent = yield* _(
+      Slack.chatPostMessage({
+        channel: Slack.SlackChannelId('C05N0JHBC1Y'),
+        blocks: ReadonlyArray.headNonEmpty(posts),
+        unfurlLinks: false,
+        unfurlMedia: false,
       }),
+    )
+
+    yield* _(
+      Effect.all(
+        pipe(
+          ReadonlyArray.tailNonEmpty(posts),
+          ReadonlyArray.map(blocks =>
+            Slack.chatPostMessage({
+              channel: parent.channel,
+              thread: parent.timestamp,
+              blocks,
+              unfurlLinks: false,
+              unfurlMedia: false,
+            }),
+          ),
+        ),
+      ),
     )
 
     if (requestReview.actor.id.protocol === 'mailto:') {
