@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Match, ReadonlyArray } from 'effect'
+import { Context, Data, Effect, Match, ReadonlyArray, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -34,6 +34,67 @@ const ThreadSchema = Schema.struct({
     }),
   ),
 })
+
+const threadToSlackBlocks = (
+  thread: Schema.Schema.Type<typeof ThreadSchema>,
+  preprint: Preprint.Preprint,
+): ReadonlyArray.NonEmptyReadonlyArray<ReadonlyArray.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
+  ReadonlyArray.map(thread.posts, post => [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: pipe(
+          post.text,
+          String.replaceAll(
+            '[ABSTRACT]',
+            `> ${decode(striptags(preprint.abstract)).replaceAll(/(?:\r\n|\r|\n)+/gm, ' ')}`,
+          ),
+          slackifyMarkdown,
+          String.trim,
+        ),
+      },
+      ...Match.value(post.fields).pipe(
+        Match.when(undefined, () => ({})),
+        Match.orElse(fields => ({
+          fields: ReadonlyArray.map(
+            fields,
+            field =>
+              ({
+                type: 'mrkdwn',
+                text: pipe(field, slackifyMarkdown, String.trim),
+              }) satisfies Slack.SlackTextObject,
+          ),
+        })),
+      ),
+    },
+    ...Match.value(post.actions).pipe(
+      Match.when(undefined, () => []),
+      Match.orElse(actions => [
+        {
+          type: 'actions',
+          elements: ReadonlyArray.map(actions, action =>
+            Match.value(action).pipe(
+              Match.when(
+                'write-prereview',
+                () =>
+                  ({
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Write a PREreview',
+                    },
+                    style: 'primary',
+                    url: Prereview.writeAPrereviewUrl(preprint.doi),
+                  }) as Slack.SlackButtonElement,
+              ),
+              Match.exhaustive,
+            ),
+          ),
+        } satisfies Slack.SlackBlock,
+      ]),
+    ),
+  ])
 
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
 
@@ -316,7 +377,7 @@ ${ReadonlyArray.match(preprint.authors, {
       Effect.logInfo('Generated threaded version'),
       Effect.annotateLogs('message', {
         doi: preprint.doi,
-        thread: threaded,
+        thread: threadToSlackBlocks(threaded, preprint),
       }),
     )
 

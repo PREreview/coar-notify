@@ -33,10 +33,20 @@ const MrkdwnTextObjectSchema = Schema.struct({
 
 const TextObjectSchema = Schema.union(PlainTextObjectSchema, MrkdwnTextObjectSchema)
 
+export type SlackTextObject = Schema.Schema.Type<typeof TextObjectSchema>
+
 const ButtonElementSchema = Schema.struct({
   type: Schema.literal('button'),
   text: PlainTextObjectSchema,
+  style: Schema.optional(Schema.literal('primary', 'danger')),
   url: Url.UrlSchema,
+})
+
+export type SlackButtonElement = Schema.Schema.Type<typeof ButtonElementSchema>
+
+const ActionsBlockSchema = Schema.struct({
+  type: Schema.literal('actions'),
+  elements: Schema.nonEmptyArray(ButtonElementSchema),
 })
 
 const SectionBlockSchema = Schema.struct({
@@ -46,7 +56,9 @@ const SectionBlockSchema = Schema.struct({
   fields: Schema.optional(Schema.array(TextObjectSchema)),
 })
 
-const BlockSchema = Schema.union(SectionBlockSchema)
+export const BlockSchema = Schema.union(ActionsBlockSchema, SectionBlockSchema)
+
+export type SlackBlock = Schema.Schema.Type<typeof BlockSchema>
 
 const ChatPostMessageSchema = Schema.struct({
   channel: ChannelIdSchema,
