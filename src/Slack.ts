@@ -73,6 +73,11 @@ const ChatPostMessageSchema = Schema.struct({
   unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
 })
 
+const ChatGetPermalinkSchema = Schema.struct({
+  channel: ChannelIdSchema,
+  timestamp: Schema.propertySignature(TimestampSchema).pipe(Schema.fromKey('message_ts')),
+})
+
 const SuccessResponseSchema = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
   Schema.struct({ ...schema.fields, ok: Schema.literal(true) })
 
@@ -82,6 +87,8 @@ const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.struc
   Schema.union(SuccessResponseSchema(schema), ErrorResponseSchema)
 
 const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
+
+const ChatGetPermalinkResponseSchema = SlackResponse(Schema.struct({ permalink: Url.UrlSchema }))
 
 export class SlackError extends Data.TaggedError('SlackError')<{
   readonly cause?: Error | undefined
@@ -117,6 +124,34 @@ export const chatPostMessage = (
   }).pipe(
     Effect.catchTags({
       BodyError: toSlackError,
+      ParseError: toSlackError,
+      RequestError: httpToSlackError,
+      ResponseError: httpToSlackError,
+    }),
+  )
+
+export const chatGetPermalink = (
+  message: Schema.Schema.Type<typeof ChatGetPermalinkSchema>,
+): Effect.Effect<URL, SlackError, HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope> =>
+  Effect.gen(function* (_) {
+    const client = yield* _(slackClient)
+
+    const urlParams = yield* _(Schema.encode(ChatGetPermalinkSchema)(message))
+
+    const request = HttpClient.request.get('chat.getPermalink', { urlParams })
+
+    const response = yield* _(
+      client(request),
+      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatGetPermalinkResponseSchema)),
+    )
+
+    if (!response.ok) {
+      return yield* _(Effect.fail(new SlackError({ message: response.error })))
+    }
+
+    return response.permalink
+  }).pipe(
+    Effect.catchTags({
       ParseError: toSlackError,
       RequestError: httpToSlackError,
       ResponseError: httpToSlackError,

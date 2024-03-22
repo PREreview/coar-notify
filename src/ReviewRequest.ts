@@ -328,7 +328,7 @@ Here are 2 examples from previous requests:
 
     yield* _(Redis.lpush('notifications', encoded))
 
-    yield* _(
+    const original = yield* _(
       Slack.chatPostMessage({
         channel: (yield* _(SlackChannelConfig)).id,
         blocks: [
@@ -373,6 +373,8 @@ ${ReadonlyArray.match(preprint.authors, {
       }),
     )
 
+    const originalLink = yield* _(Slack.chatGetPermalink(original))
+
     const posts = threadToSlackBlocks(threaded, preprint)
 
     const parent = yield* _(
@@ -385,7 +387,7 @@ ${ReadonlyArray.match(preprint.authors, {
             elements: [
               {
                 type: 'mrkdwn',
-                text: 'This is an experimental threaded-version a review request.',
+                text: `This is an experimental threaded-version of <${originalLink.href}|this review request>.`,
               },
             ],
           } satisfies Slack.SlackBlock),
