@@ -123,6 +123,137 @@ Here are some examples:
       }),
     )
 
+    const threaded = yield* _(
+      OpenAi.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: `
+Write in friendly, simple, natural language.
+Write in the active voice.
+Write in US English (en-US).
+You can include emojis.
+Do not include hashtags.
+Be positive, but ensure you don't discourage those who might feel marginalised or suffer from something like imposter syndrome from participating.
+Don't use hyperbole.
+Use objective vocabulary.
+Don't repeat terms.
+Use Markdown formatting.
+Use 'PREreview' instead of 'review' or 'peer review'.
+        `,
+          },
+          {
+            role: 'user',
+            content: `
+Someone has requested a review of a scientific preprint. The requester is not reviewing the preprint themselves; they might be an author.
+
+Write a series of posts to form a thread on Slack.
+
+For the opening post, write a sentence of about 16 words using the most important keywords, disciplines and topics mentioned in the abstract, saying that the requester is looking for people to review the preprint. Highlight the terms in bold. Include a prompt to see more details by opening the thread and looking at the replies.
+
+In the subsequent replies, thank the reader and encourage them to find out more information. Include details about the preprint, including the [ABSTRACT] as a placeholder for the abstract. In the final reply, provide a call to action to write the review or to pass on the request.
+
+The action 'Write a PREreview' (identified with 'write-prereview') must be attached to a reply.
+
+Return a JSON object, with a 'post' property containing the array with an entry for each post.
+        `,
+          },
+          {
+            role: 'user',
+            content: `
+Requester: """${requestReview.actor.name}"""
+
+Title: """${preprint.title}"""
+
+${ReadonlyArray.match(preprint.authors, {
+  onEmpty: () => '',
+  onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
+})}
+
+Preprint server: """${Match.value(preprint.server).pipe(
+              Match.when('biorxiv', () => 'bioRxiv'),
+              Match.when('scielo', () => 'SciELO Preprints'),
+              Match.exhaustive,
+            )}"""
+
+DOI: """${preprint.doi}"""
+
+Posted: """${renderDate(preprint.posted)}"""
+
+Abstract: """
+${preprint.abstract}
+"""
+  `,
+          },
+          {
+            role: 'user',
+            content: `
+Here are 2 examples from previous requests:
+
+\`\`\`json
+{
+  "posts": [
+    {
+      "text": "🏛️ Chris Wilkinson needs your help with reviews of a preprint all about **museum documentation**, **cultural heritage**, and **museology practices**. I’ll reply to this post with more details."
+    },
+    {
+      "text": "🙌 Thanks for taking a look. The preprint is:\\n\\n**[Teaching of Museological Documentation: A Study at the Federal University of Pará](https://doi.org/10.1101/2024.03.15.585231)**\\nby Jéssica Tarine Moitinho de Lima and Mariana Corrêa Velloso",
+      "fields": [
+        "**Posted**\\nMarch 6, 2024",
+        "**Server**\\nSciELO Preprints"
+      ]
+    },
+    {
+      "text": "Looks interesting? Have a look at the abstract: 🔍\\n\\n[ABSTRACT]"
+    },
+    {
+      "text": "Still with me? Great stuff. 👏\\n\\nPlease do help Chris Wilkinson with a PREreview, or pass this on to someone who could.",
+      "actions": [
+        "write-prereview"
+      ]
+    }
+  ]
+}
+\`\`\`
+
+\`\`\`json
+{
+  "posts": [
+    {
+      "text": "🌿 Help Chris Wilkinson by writing a PREreview on the role of **LHCBM1** in **non-photochemical quenching** in **Chlamydomonas reinhardtii**. 🧵 Take a look in the thread for details."
+    },
+    {
+      "text": "👋 Thanks for dropping by! Here are the details of the preprint:\\n\\n**[The role of LHCBM1 in non-photochemical quenching in _Chlamydomonas reinhardtii_](https://doi.org/10.1101/2024.03.15.585231)**\\nby Xin Liu, Wojciech Nawrocki, and Roberta Croce",
+      "fields": [
+        "**Posted**\\nJanuary 14, 2022",
+        "**Server**\\nbioRxiv"
+      ]
+    },
+    {
+      "text": "Want to dive deeper? Check out the abstract:\\n\\n[ABSTRACT]"
+    },
+    {
+      "text": "Thanks for reading this far. 🌟\\n\\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.",
+      "actions": [
+        "write-prereview"
+      ]
+    }
+  ]
+}
+\`\`\`
+          `,
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.75,
+        max_tokens: 2048,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      }),
+    )
+
     yield* _(Redis.lpush('notifications', encoded))
 
     yield* _(
@@ -167,6 +298,14 @@ ${ReadonlyArray.match(preprint.authors, {
         ],
         unfurlLinks: false,
         unfurlMedia: false,
+      }),
+    )
+
+    yield* _(
+      Effect.logInfo('Generated threaded version'),
+      Effect.annotateLogs('message', {
+        doi: preprint.doi,
+        thread: threaded,
       }),
     )
 
