@@ -19,7 +19,17 @@ const ServerLive = Router.pipe(
   Layer.provide(NodeHttpServer.server.layer(() => createServer(), { port: 3000 })),
 )
 
-const HttpClientLive = Layer.succeed(HttpClient.client.Client, LoggingHttpClient)
+const HttpClientLive = Layer.succeed(
+  HttpClient.client.Client,
+  LoggingHttpClient.pipe(
+    HttpClient.client.mapRequest(
+      HttpClient.request.setHeader(
+        'User-Agent',
+        'PREreview (https://prereview.org/; mailto:engineering@prereview.org)',
+      ),
+    ),
+  ),
+)
 
 const RedisLive = Redis.layer
 
