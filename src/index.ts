@@ -48,6 +48,27 @@ const HttpClientLive = Layer.succeed(
 
 const RedisLive = Redis.layer
 
+const QueueWorkerLive = Layer.effectDiscard(
+  Config.withDefault(Config.integer('BULLMQ_WORKER_POLL'), 10).pipe(
+    Effect.flatMap(schedule =>
+      Effect.fork(
+        BullMq.run(
+          'coar-notify',
+          data =>
+            Effect.gen(function* (_) {
+              const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
+
+              yield* _(ReviewRequest.handleReviewRequest(requestReview))
+            }).pipe(
+              Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
+            ),
+          Schedule.spaced(`${schedule} seconds`),
+        ),
+      ),
+    ),
+  ),
+)
+
 export const NotificationsQueueLive = BullMq.makeLayer<
   'coar-notify',
   { 'request-review': Schema.Schema.Encoded<typeof CoarNotify.RequestReviewSchema> }
@@ -57,30 +78,7 @@ export const NotificationsQueueLive = BullMq.makeLayer<
 })
 
 const HttpLive = Router.pipe(
-  Layer.merge(
-    Layer.effectDiscard(
-      Config.withDefault(Config.integer('BULLMQ_WORKER_POLL'), 10).pipe(
-        Effect.flatMap(schedule =>
-          Effect.fork(
-            BullMq.run(
-              'coar-notify',
-              data =>
-                Effect.gen(function* (_) {
-                  const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
-
-                  yield* _(ReviewRequest.handleReviewRequest(requestReview))
-                }).pipe(
-                  Effect.catchTag('PreprintNotReady', () =>
-                    Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' })),
-                  ),
-                ),
-              Schedule.spaced(`${schedule} seconds`),
-            ),
-          ),
-        ),
-      ),
-    ),
-  ),
+  Layer.merge(QueueWorkerLive),
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
