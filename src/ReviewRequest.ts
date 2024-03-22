@@ -1,7 +1,9 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Match, ReadonlyArray, String } from 'effect'
+import { Context, Data, Effect, Match, ReadonlyArray } from 'effect'
+import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
+import striptags from 'striptags'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
@@ -119,8 +121,6 @@ Here are some examples:
         frequency_penalty: 0,
         presence_penalty: 0,
       }),
-      Effect.map(slackifyMarkdown),
-      Effect.map(String.trim),
     )
 
     yield* _(Redis.lpush('notifications', encoded))
@@ -133,9 +133,9 @@ Here are some examples:
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `${intro}
+              text: `${slackifyMarkdown(intro).trim()}
 
-*<${Doi.toUrl(preprint.doi).href}|${preprint.title}>*
+*<${Doi.toUrl(preprint.doi).href}|${decode(striptags(preprint.title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}>*
 ${ReadonlyArray.match(preprint.authors, {
   onEmpty: () => '',
   onNonEmpty: authors => `by ${formatList(authors)}`,

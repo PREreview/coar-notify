@@ -1,6 +1,4 @@
 import { Data, Effect, Either, Match, ReadonlyArray, String, pipe } from 'effect'
-import { decode } from 'html-entities'
-import striptags from 'striptags'
 import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -89,6 +87,6 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       doi: work.DOI,
       posted,
       server,
-      title: decode(striptags(title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'),
+      title,
     })
   })

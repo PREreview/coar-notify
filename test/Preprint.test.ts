@@ -17,7 +17,7 @@ describe('getPreprint', () => {
         fc.constant('scielo'),
       ),
     ),
-    fc.string().filter(string => !/[&<>]/.test(string)),
+    fc.string(),
     fc.string(),
     fc.plainDate(),
   ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, abstract, posted) =>
@@ -48,43 +48,6 @@ describe('getPreprint', () => {
               published: posted,
               subtype: 'preprint',
               title: [expectedTitle],
-              type: 'posted-content',
-            }),
-        }),
-      ),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
-  )
-
-  test.prop([
-    fc.doi(),
-    fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }])),
-      fc.tuple(
-        fc.doi({ registrant: fc.constant('1590') }),
-        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
-      ),
-    ),
-    fc.string(),
-    fc.plainDate(),
-  ])('when the title contains HTML', (doi, [expectedDoi, institution], abstract, posted) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi))
-
-      expect(actual).toMatchObject({ title: "Some &amp; &lt; &gt; ' Title" })
-    }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              abstract,
-              author: [{ name: 'Author' }],
-              DOI: expectedDoi,
-              institution,
-              published: posted,
-              subtype: 'preprint',
-              title: ['Some &amp; &lt; &gt; &apos; <i><b>T</b>itle</i>'],
               type: 'posted-content',
             }),
         }),
