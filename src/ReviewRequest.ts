@@ -25,6 +25,16 @@ const NotificationSchema = Schema.struct({
   notification: CoarNotify.RequestReviewSchema,
 })
 
+const ThreadSchema = Schema.struct({
+  posts: Schema.nonEmptyArray(
+    Schema.struct({
+      text: Schema.string,
+      fields: Schema.optional(Schema.nonEmptyArray(Schema.string)),
+      actions: Schema.optional(Schema.nonEmptyArray(Schema.literal('write-prereview'))),
+    }),
+  ),
+})
+
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
 
 export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
@@ -252,6 +262,7 @@ Here are 2 examples from previous requests:
         frequency_penalty: 0,
         presence_penalty: 0,
       }),
+      Effect.flatMap(Schema.decode(Schema.parseJson(ThreadSchema))),
     )
 
     yield* _(Redis.lpush('notifications', encoded))
