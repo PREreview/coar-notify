@@ -77,7 +77,7 @@ export const NotificationsQueueLive = BullMq.makeLayer<
   defaultJobOptions: { delay: '10 seconds', removeOnComplete: true, removeOnFail: false },
 })
 
-const HttpLive = Router.pipe(
+const Program = Router.pipe(
   Layer.merge(QueueWorkerLive),
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, ServerLive, RedisLive, Nodemailer.layer)),
@@ -85,7 +85,7 @@ const HttpLive = Router.pipe(
   Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
 )
 
-Layer.launch(HttpLive).pipe(
+Layer.launch(Program).pipe(
   Effect.tapErrorCause(Effect.logError),
   Logger.withMinimumLogLevel(LogLevel.Debug),
   NodeRuntime.runMain,
