@@ -15,6 +15,12 @@ export const SlackChannelId = Brand.nominal<SlackChannelId>()
 
 const ChannelIdSchema = Schema.fromBrand(SlackChannelId)(Schema.string)
 
+export type SlackTimestamp = string & Brand.Brand<'SlackTimestamp'>
+
+export const SlackTimestamp = Brand.nominal<SlackTimestamp>()
+
+const TimestampSchema = Schema.fromBrand(SlackTimestamp)(Schema.string)
+
 const PlainTextObjectSchema = Schema.struct({
   type: Schema.literal('plain_text'),
   text: Schema.string.pipe(Schema.nonEmpty()),
@@ -45,6 +51,7 @@ const BlockSchema = Schema.union(SectionBlockSchema)
 const ChatPostMessageSchema = Schema.struct({
   channel: ChannelIdSchema,
   blocks: Schema.nonEmptyArray(BlockSchema),
+  thread: Schema.optional(TimestampSchema).pipe(Schema.fromKey('thread_ts')),
   unfurlLinks: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_links')),
   unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
 })
@@ -57,7 +64,7 @@ const ErrorResponseSchema = Schema.struct({ ok: Schema.literal(false), error: Sc
 const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
   Schema.union(SuccessResponseSchema(schema), ErrorResponseSchema)
 
-const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({}))
+const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
 
 export class SlackError extends Data.TaggedError('SlackError')<{
   readonly cause?: Error | undefined
@@ -66,7 +73,11 @@ export class SlackError extends Data.TaggedError('SlackError')<{
 
 export const chatPostMessage = (
   message: Schema.Schema.Type<typeof ChatPostMessageSchema>,
-): Effect.Effect<void, SlackError, HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope> =>
+): Effect.Effect<
+  { readonly channelId: SlackChannelId; readonly timestamp: SlackTimestamp },
+  SlackError,
+  HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope
+> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
@@ -82,8 +93,10 @@ export const chatPostMessage = (
     )
 
     if (!response.ok) {
-      yield* _(Effect.fail(new SlackError({ message: response.error })))
+      return yield* _(Effect.fail(new SlackError({ message: response.error })))
     }
+
+    return { channelId: response.channel, timestamp: response.ts }
   }).pipe(
     Effect.catchTags({
       BodyError: toSlackError,
