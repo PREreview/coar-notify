@@ -165,8 +165,8 @@ ${ReadonlyArray.match(preprint.authors, {
             ],
           },
         ],
-        unfurl_links: false,
-        unfurl_media: false,
+        unfurlLinks: false,
+        unfurlMedia: false,
       }),
     )
 

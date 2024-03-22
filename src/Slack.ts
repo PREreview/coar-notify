@@ -45,8 +45,8 @@ const BlockSchema = Schema.union(SectionBlockSchema)
 const ChatPostMessageSchema = Schema.struct({
   channel: ChannelIdSchema,
   blocks: Schema.nonEmptyArray(BlockSchema),
-  unfurl_links: Schema.optional(Schema.boolean),
-  unfurl_media: Schema.optional(Schema.boolean),
+  unfurlLinks: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_links')),
+  unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
 })
 
 const SuccessResponseSchema = Schema.struct({ ok: Schema.literal(true) })
