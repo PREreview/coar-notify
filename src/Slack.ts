@@ -74,7 +74,7 @@ export class SlackError extends Data.TaggedError('SlackError')<{
 export const chatPostMessage = (
   message: Schema.Schema.Type<typeof ChatPostMessageSchema>,
 ): Effect.Effect<
-  { readonly channelId: SlackChannelId; readonly timestamp: SlackTimestamp },
+  { readonly channel: SlackChannelId; readonly timestamp: SlackTimestamp },
   SlackError,
   HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope
 > =>
@@ -96,7 +96,7 @@ export const chatPostMessage = (
       return yield* _(Effect.fail(new SlackError({ message: response.error })))
     }
 
-    return { channelId: response.channel, timestamp: response.ts }
+    return { channel: response.channel, timestamp: response.ts }
   }).pipe(
     Effect.catchTags({
       BodyError: toSlackError,
