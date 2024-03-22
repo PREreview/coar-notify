@@ -49,11 +49,15 @@ const ChatPostMessageSchema = Schema.struct({
   unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
 })
 
-const SuccessResponseSchema = Schema.struct({ ok: Schema.literal(true) })
+const SuccessResponseSchema = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
+  Schema.struct({ ...schema.fields, ok: Schema.literal(true) })
 
 const ErrorResponseSchema = Schema.struct({ ok: Schema.literal(false), error: Schema.string })
 
-const SlackResponse = Schema.union(SuccessResponseSchema, ErrorResponseSchema)
+const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
+  Schema.union(SuccessResponseSchema(schema), ErrorResponseSchema)
+
+const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({}))
 
 export class SlackError extends Data.TaggedError('SlackError')<{
   readonly cause?: Error | undefined
@@ -72,7 +76,10 @@ export const chatPostMessage = (
       HttpClient.request.schemaBody(ChatPostMessageSchema)(message),
     )
 
-    const response = yield* _(client(request), Effect.flatMap(HttpClient.response.schemaBodyJson(SlackResponse)))
+    const response = yield* _(
+      client(request),
+      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatPostMessageResponseSchema)),
+    )
 
     if (!response.ok) {
       yield* _(Effect.fail(new SlackError({ message: response.error })))
