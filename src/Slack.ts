@@ -49,6 +49,11 @@ const ActionsBlockSchema = Schema.struct({
   elements: Schema.nonEmptyArray(ButtonElementSchema),
 })
 
+const ContextBlockSchema = Schema.struct({
+  type: Schema.literal('context'),
+  elements: Schema.nonEmptyArray(TextObjectSchema),
+})
+
 const SectionBlockSchema = Schema.struct({
   type: Schema.literal('section'),
   text: TextObjectSchema,
@@ -56,7 +61,7 @@ const SectionBlockSchema = Schema.struct({
   fields: Schema.optional(Schema.array(TextObjectSchema)),
 })
 
-export const BlockSchema = Schema.union(ActionsBlockSchema, SectionBlockSchema)
+export const BlockSchema = Schema.union(ActionsBlockSchema, ContextBlockSchema, SectionBlockSchema)
 
 export type SlackBlock = Schema.Schema.Type<typeof BlockSchema>
 

@@ -378,7 +378,18 @@ ${ReadonlyArray.match(preprint.authors, {
     const parent = yield* _(
       Slack.chatPostMessage({
         channel: Slack.SlackChannelId('C05N0JHBC1Y'),
-        blocks: ReadonlyArray.headNonEmpty(posts),
+        blocks: pipe(
+          ReadonlyArray.headNonEmpty(posts),
+          ReadonlyArray.prepend({
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: 'This is an experimental threaded-version a review request.',
+              },
+            ],
+          } satisfies Slack.SlackBlock),
+        ),
         unfurlLinks: false,
         unfurlMedia: false,
       }),
