@@ -3,7 +3,7 @@ import { SmtpConfig } from './Nodemailer.js'
 import { OpenAiConfig } from './OpenAi.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
-import { SlackApiConfig } from './Slack.js'
+import { SlackApiConfig, SlackChannelId } from './Slack.js'
 
 const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
   Config.map(Config.string('ACCESS_TOKEN'), accessToken => ({ accessToken })),
@@ -11,7 +11,7 @@ const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
 )
 
 const slackChannelConfig: Config.Config<SlackChannelConfig> = Config.nested(
-  Config.map(Config.string('CHANNEL_ID'), id => ({ id })),
+  Config.map(Config.string('CHANNEL_ID'), id => ({ id: SlackChannelId(id) })),
   'SLACK',
 )
 

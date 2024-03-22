@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, type Scope } from 'effect'
+import { Brand, Context, Data, Effect, type Scope } from 'effect'
 import * as Url from './Url.js'
 
 export interface SlackApiConfig {
@@ -8,6 +8,12 @@ export interface SlackApiConfig {
 }
 
 export const SlackApiConfig = Context.GenericTag<SlackApiConfig>('SlackApiConfig')
+
+export type SlackChannelId = string & Brand.Brand<'SlackChannelId'>
+
+export const SlackChannelId = Brand.nominal<SlackChannelId>()
+
+const ChannelIdSchema = Schema.fromBrand(SlackChannelId)(Schema.string)
 
 const PlainTextObjectSchema = Schema.struct({
   type: Schema.literal('plain_text'),
@@ -37,7 +43,7 @@ const SectionBlockSchema = Schema.struct({
 const BlockSchema = Schema.union(SectionBlockSchema)
 
 const ChatPostMessageSchema = Schema.struct({
-  channel: Schema.string,
+  channel: ChannelIdSchema,
   blocks: Schema.nonEmptyArray(BlockSchema),
   unfurl_links: Schema.optional(Schema.boolean),
   unfurl_media: Schema.optional(Schema.boolean),

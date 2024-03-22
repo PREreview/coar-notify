@@ -15,7 +15,7 @@ import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
 
 export interface SlackChannelConfig {
-  readonly id: string
+  readonly id: Slack.SlackChannelId
 }
 
 export const SlackChannelConfig = Context.GenericTag<SlackChannelConfig>('SlackChannelConfig')
