@@ -7,9 +7,17 @@ export type Processor<R = never> = (data: JsonValue) => Effect.Effect<void, Erro
 
 export class DelayedJob extends Data.TaggedClass('DelayedJob')<{ delay: Duration.DurationInput }> {}
 
+export interface JobOptions {
+  readonly jobId?: string
+}
+
 export interface Queue<N extends string, Q extends QueueJobs> {
   readonly name: N
-  readonly add: <J extends Extract<keyof Q, string>>(jobName: J, payload: Q[J]) => Effect.Effect<string, BullMqError>
+  readonly add: <J extends Extract<keyof Q, string>>(
+    jobName: J,
+    payload: Q[J],
+    options?: JobOptions,
+  ) => Effect.Effect<string, BullMqError>
   readonly run: <R1 = never, R2 = never>(
     handler: Processor<R1>,
     schedule: Schedule.Schedule<unknown, void, R2>,
@@ -58,9 +66,11 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 
       yield* _(Effect.addFinalizer(() => Effect.promise(() => queue.close())))
 
-      const add: Queue<N, Q>['add'] = (jobName, payload) =>
+      const add: Queue<N, Q>['add'] = (jobName, payload, options) =>
         Effect.gen(function* (_) {
-          const job = yield* _(Effect.tryPromise({ try: () => queue.add(jobName, payload), catch: toBullMqError }))
+          const job = yield* _(
+            Effect.tryPromise({ try: () => queue.add(jobName, payload, options), catch: toBullMqError }),
+          )
 
           yield* _(
             Effect.logDebug('Job added to queue'),
@@ -162,11 +172,12 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
   queueName: N,
   jobName: J,
   payload: P,
+  options?: JobOptions,
 ): Effect.Effect<string, BullMqError, Queue<N, { [K in J]: P }>> =>
   Effect.gen(function* (_) {
     const queue = yield* _(QueueTag(queueName))
 
-    return yield* _(queue.add(jobName, payload))
+    return yield* _(queue.add(jobName, payload, options))
   })
 
 export const run = <N extends string, R1, R2>(

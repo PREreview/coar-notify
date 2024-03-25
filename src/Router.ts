@@ -2,6 +2,7 @@ import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
 import { Data, Effect } from 'effect'
 import { StatusCodes } from 'http-status-codes'
+import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Redis from './Redis.js'
@@ -40,7 +41,9 @@ export const Router = HttpServer.router.empty.pipe(
       const requestReview = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.RequestReviewSchema))
       const encoded = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
-      yield* _(BullMq.add('coar-notify', 'request-review', encoded))
+      yield* _(
+        BullMq.add('coar-notify', 'request-review', encoded, { jobId: md5(requestReview.object['ietf:cite-as']) }),
+      )
 
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
     }).pipe(
@@ -69,3 +72,5 @@ export const Router = HttpServer.router.empty.pipe(
   ),
   Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: StatusCodes.NOT_FOUND })),
 )
+
+const md5 = (content: string) => createHash('md5').update(content).digest('hex')
