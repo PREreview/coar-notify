@@ -1,6 +1,6 @@
 {
   "arrowParens": "avoid",
-  "importOrder": ["^[./]"],
+  "importOrder": ["^openai/shims/(.*)$", "<THIRD_PARTY_MODULES>", "^[./]"],
   "importOrderSortSpecifiers": true,
   "printWidth": 120,
   "semi": false,

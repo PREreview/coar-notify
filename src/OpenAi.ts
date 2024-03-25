@@ -1,7 +1,7 @@
+import 'openai/shims/web'
 import { HttpClient } from '@effect/platform'
 import { Config, Context, Data, Effect, Layer, Option, Secret, identity } from 'effect'
 import * as OAI from 'openai'
-import 'openai/shims/web'
 
 export class OpenAiError extends Data.TaggedError('OpenAiError')<{
   readonly cause?: Error
