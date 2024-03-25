@@ -1,6 +1,7 @@
 import { HttpClient } from '@effect/platform'
 import { Config, Context, Data, Effect, Layer, Option, Secret, identity } from 'effect'
 import * as OAI from 'openai'
+import 'openai/shims/web'
 
 export class OpenAiError extends Data.TaggedError('OpenAiError')<{
   readonly cause?: Error
@@ -20,7 +21,7 @@ const make = (params: { readonly apiKey: Secret.Secret }) =>
 
     const client = new OAI.OpenAI({
       apiKey: Secret.value(params.apiKey),
-      fetch: (input, init) => fetch(input as never, init as never) as never,
+      fetch,
     })
 
     const createChatCompletion: OpenAiService['createChatCompletion'] = body =>
