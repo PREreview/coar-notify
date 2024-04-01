@@ -6,8 +6,8 @@
   },
   "type": "module",
   "dependencies": {
-    "@effect/platform": "0.48.21",
-    "@effect/platform-node": "^0.45.23",
+    "@effect/platform": "0.48.22",
+    "@effect/platform-node": "^0.45.24",
     "@effect/schema": "^0.64.5",
     "@js-temporal/polyfill": "^0.4.4",
     "bullmq": "^5.4.6",
