@@ -29,8 +29,8 @@ const ThreadSchema = Schema.struct({
   posts: Schema.nonEmptyArray(
     Schema.struct({
       text: Schema.string,
-      fields: Schema.optional(Schema.nonEmptyArray(Schema.string)),
-      actions: Schema.optional(Schema.nonEmptyArray(Schema.literal('write-prereview'))),
+      fields: Schema.optional(Schema.array(Schema.string), { default: ReadonlyArray.empty }),
+      actions: Schema.optional(Schema.array(Schema.literal('write-prereview')), { default: ReadonlyArray.empty }),
     }),
   ),
 })
@@ -54,9 +54,9 @@ const threadToSlackBlocks = (
           String.trim,
         ),
       },
-      ...Match.value(post.fields).pipe(
-        Match.when(undefined, () => ({})),
-        Match.orElse(fields => ({
+      ...ReadonlyArray.match(post.fields, {
+        onEmpty: () => ({}),
+        onNonEmpty: fields => ({
           fields: ReadonlyArray.map(
             fields,
             field =>
@@ -65,12 +65,12 @@ const threadToSlackBlocks = (
                 text: pipe(field, slackifyMarkdown, String.trim),
               }) satisfies Slack.SlackTextObject,
           ),
-        })),
-      ),
+        }),
+      }),
     },
-    ...Match.value(post.actions).pipe(
-      Match.when(undefined, () => []),
-      Match.orElse(actions => [
+    ...ReadonlyArray.match(post.actions, {
+      onEmpty: ReadonlyArray.empty,
+      onNonEmpty: actions => [
         {
           type: 'actions',
           elements: ReadonlyArray.map(actions, action =>
@@ -92,8 +92,8 @@ const threadToSlackBlocks = (
             ),
           ),
         } satisfies Slack.SlackBlock,
-      ]),
-    ),
+      ],
+    }),
   ])
 
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
