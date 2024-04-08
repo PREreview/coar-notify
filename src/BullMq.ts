@@ -118,7 +118,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
             Effect.gen(function* (_) {
               const token = (yield* _(Random.nextInt)).toString()
               const job = yield* _(
-                Effect.promise(() => worker.getNextJob(token)),
+                Effect.promise(() => worker.getNextJob(token, { block: false })),
                 Effect.orElseSucceed(() => undefined),
               )
 
