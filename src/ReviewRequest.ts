@@ -187,7 +187,7 @@ Here are 3 examples from previous requests:
 {
   "posts": [
     {
-      "text": "🏛️ Chris Wilkinson needs your help with reviews of a preprint all about **museum documentation**, **cultural heritage**, and **museology practices**. I’ll reply to this post with more details."
+      "text": "🏛️ Chris Wilkinson needs your help with reviews of a preprint all about **museum documentation**, **cultural heritage**, and **museology practices**. I’ll reply to this post with more details. 💬"
     },
     {
       "text": "🙌 Thanks for taking a look. The preprint is:\\n\\n**[Teaching of Museological Documentation: A Study at the Federal University of Pará](https://doi.org/10.1101/2024.03.15.585231)**\\nby Jéssica Tarine Moitinho de Lima and Mariana Corrêa Velloso",
@@ -223,7 +223,7 @@ Here are 3 examples from previous requests:
       ]
     },
     {
-      "text": "Want to dive deeper? Check out the abstract:\\n\\n[ABSTRACT]"
+      "text": "Want to dive deeper? 🤿 Check out the abstract:\\n\\n[ABSTRACT]"
     },
     {
       "text": "Thanks for reading this far. 🌟\\n\\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.",
