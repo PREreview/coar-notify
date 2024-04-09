@@ -5,7 +5,6 @@ import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
 import striptags from 'striptags'
 import * as CoarNotify from './CoarNotify.js'
-import * as Doi from './Doi.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as OpenAi from './OpenAi.js'
 import * as Preprint from './Preprint.js'
@@ -115,84 +114,6 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
     }
 
     const preprint = yield* _(Preprint.getPreprint(requestReview.object['ietf:cite-as']))
-
-    const intro = yield* _(
-      OpenAi.createChatCompletion({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `
-Write in friendly, simple, natural language.
-Write in the active voice.
-Write in US English (en-US).
-You can include emojis.
-Do not include hashtags.
-Be positive, but ensure you don't discourage those who might feel marginalised or suffer from something like imposter syndrome from participating.
-Don't use hyperbole.
-Use objective vocabulary.
-Don't repeat terms.
-Use Markdown formatting.
-Our name for a peer review is 'PREreview'.
-        `,
-          },
-          {
-            role: 'user',
-            content: `
-Someone has requested a review of a scientific preprint. The requester is not reviewing the preprint themselves; they might be an author.
-
-Determine keywords, disciplines and topics from the abstract.
-
-Use and emphasize these in a sentence of about 16 words, saying that the requester is looking for people to review the preprint.
-
-Do not use keywords that appear in the title.
-
-Do not use the word 'expertise' or 'explore'.
-        `,
-          },
-          {
-            role: 'user',
-            content: `
-Requester: """${requestReview.actor.name}"""
-
-Title: """${preprint.title}"""
-
-${ReadonlyArray.match(preprint.authors, {
-  onEmpty: () => '',
-  onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
-})}
-
-Abstract: """
-${preprint.abstract}
-"""
-  `,
-          },
-          {
-            role: 'user',
-            content: `
-Here are some examples:
-
-🛟 Chris Wilkinson needs your help with reviews of this preprint all about **biochemistry**, **protein degradation**, and **oxindoles**.
-
-📣 Help Chris Wilkinson by reviewing this preprint focused on **biochemistry**, **protein degradation**, and **oxindoles**.
-
-🤝 Junyue Rose invites you to review this preprint about **prison conditions**, **institutional racism**, and the **industrial-prison complex**.
-
-🐔 If you’re excited by **habituation**, **gene silencing**, **chicken welfare**, and **blood parameters**, help Maya Garcia by reviewing this preprint.
-
-🐟 If **rivers**, **beavers**, and **fish habitats** interest you, help Li Na Chen by writing a PREreview of this preprint.
-
-🔎 Grace Abara is looking for help with reviews of this preprint about **peer review**, **preprint services**, and **scholarly communication**.
-          `,
-          },
-        ],
-        temperature: 0.25,
-        max_tokens: 256,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      }),
-    )
 
     const threaded = yield* _(
       OpenAi.createChatCompletion({
@@ -328,70 +249,12 @@ Here are 2 examples from previous requests:
 
     yield* _(Redis.lpush('notifications', encoded))
 
-    const original = yield* _(
-      Slack.chatPostMessage({
-        channel: (yield* _(SlackChannelConfig)).id,
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `${slackifyMarkdown(intro).trim()}
-
-*<${Doi.toUrl(preprint.doi).href}|${decode(striptags(preprint.title)).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}>*
-${ReadonlyArray.match(preprint.authors, {
-  onEmpty: () => '',
-  onNonEmpty: authors => `by ${formatList(authors)}`,
-})}`.trim(),
-            },
-            accessory: {
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: 'Write a PREreview',
-              },
-              url: Prereview.writeAPrereviewUrl(preprint.doi),
-            },
-            fields: [
-              {
-                type: 'mrkdwn',
-                text: `*Posted*\n${renderDate(preprint.posted)}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*Server*\n${Match.value(preprint.server).pipe(
-                  Match.when('biorxiv', () => 'bioRxiv'),
-                  Match.when('scielo', () => 'SciELO Preprints'),
-                  Match.exhaustive,
-                )}`,
-              },
-            ],
-          },
-        ],
-        unfurlLinks: false,
-        unfurlMedia: false,
-      }),
-    )
-
-    const originalLink = yield* _(Slack.chatGetPermalink(original))
-
     const posts = threadToSlackBlocks(threaded, preprint)
 
     const parent = yield* _(
       Slack.chatPostMessage({
-        channel: Slack.SlackChannelId('C05N0JHBC1Y'),
-        blocks: pipe(
-          ReadonlyArray.headNonEmpty(posts),
-          ReadonlyArray.prepend({
-            type: 'context',
-            elements: [
-              {
-                type: 'mrkdwn',
-                text: `This is an experimental threaded-version of <${originalLink.href}|this review request>.`,
-              },
-            ],
-          } satisfies Slack.SlackBlock),
-        ),
+        channel: (yield* _(SlackChannelConfig)).id,
+        blocks: ReadonlyArray.headNonEmpty(posts),
         unfurlLinks: false,
         unfurlMedia: false,
       }),
