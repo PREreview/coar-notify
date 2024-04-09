@@ -95,6 +95,57 @@ const threadToSlackBlocks = (
     }),
   ])
 
+const exampleThreads: ReadonlyArray.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof ThreadSchema>> = [
+  {
+    posts: [
+      {
+        text: '🏛️ Chris Wilkinson needs your help with reviews of a preprint all about **museum documentation**, **cultural heritage**, and **museology practices**. I’ll reply to this post with more details. 💬',
+      },
+      {
+        text: '🙌 Thanks for taking a look. The preprint is:\n\n**[Teaching of Museological Documentation: A Study at the Federal University of Pará](https://doi.org/10.1101/2024.03.15.585231)**\nby Jéssica Tarine Moitinho de Lima and Mariana Corrêa Velloso',
+        fields: ['**Posted**\nMarch 6, 2024', '**Server**\nSciELO Preprints'],
+      },
+      { text: 'Looks interesting? Have a look at the abstract: 🔍\n\n[ABSTRACT]' },
+      {
+        text: 'Still with me? Great stuff. 👏\n\nPlease do help Chris Wilkinson with a PREreview, or pass this on to someone who could.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+  {
+    posts: [
+      {
+        text: '🌿 Help Chris Wilkinson by writing a PREreview on the role of **LHCBM1** in **non-photochemical quenching** in **Chlamydomonas reinhardtii**. 🧵 Take a look in the thread for details.',
+      },
+      {
+        text: '👋 Thanks for dropping by! Here are the details of the preprint:\n\n**[The role of LHCBM1 in non-photochemical quenching in _Chlamydomonas reinhardtii_](https://doi.org/10.1101/2024.03.15.585231)**\nby Xin Liu, Wojciech Nawrocki, and Roberta Croce',
+        fields: ['**Posted**\nJanuary 14, 2022', '**Server**\nbioRxiv'],
+      },
+      { text: 'Want to dive deeper? 🤿 Check out the abstract:\n\n[ABSTRACT]' },
+      {
+        text: 'Thanks for reading this far. 🌟\n\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+  {
+    posts: [
+      {
+        text: 'SciELO Preprints is looking for PREreviews of a paper on **distributed leadership patterns** in 🇨🇱 **Chilean technical professional education**. See in the replies for more.',
+      },
+      {
+        text: '👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz',
+        fields: ['**Posted**\nApril 1, 2024', '**Server**\nSciELO Preprints'],
+      },
+      { text: 'Excited to learn more? Here’s the abstract:\n\n[ABSTRACT]' },
+      {
+        text: 'Thanks for taking a look. 🚀\n\nPlease help by writing a PREreview or share this request with others who may be interested.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+]
+
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
 
 export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
@@ -181,86 +232,20 @@ ${preprint.abstract}
           {
             role: 'user',
             content: `
-Here are 3 examples from previous requests:
+Here are ${ReadonlyArray.length(exampleThreads)} examples from previous requests:
 
+${pipe(
+  ReadonlyArray.map(
+    exampleThreads,
+    exampleThread => `
 \`\`\`json
-{
-  "posts": [
-    {
-      "text": "🏛️ Chris Wilkinson needs your help with reviews of a preprint all about **museum documentation**, **cultural heritage**, and **museology practices**. I’ll reply to this post with more details. 💬"
-    },
-    {
-      "text": "🙌 Thanks for taking a look. The preprint is:\\n\\n**[Teaching of Museological Documentation: A Study at the Federal University of Pará](https://doi.org/10.1101/2024.03.15.585231)**\\nby Jéssica Tarine Moitinho de Lima and Mariana Corrêa Velloso",
-      "fields": [
-        "**Posted**\\nMarch 6, 2024",
-        "**Server**\\nSciELO Preprints"
-      ]
-    },
-    {
-      "text": "Looks interesting? Have a look at the abstract: 🔍\\n\\n[ABSTRACT]"
-    },
-    {
-      "text": "Still with me? Great stuff. 👏\\n\\nPlease do help Chris Wilkinson with a PREreview, or pass this on to someone who could.",
-      "actions": [
-        "write-prereview"
-      ]
-    }
-  ]
-}
+${JSON.stringify(exampleThread)}
 \`\`\`
-
-\`\`\`json
-{
-  "posts": [
-    {
-      "text": "🌿 Help Chris Wilkinson by writing a PREreview on the role of **LHCBM1** in **non-photochemical quenching** in **Chlamydomonas reinhardtii**. 🧵 Take a look in the thread for details."
-    },
-    {
-      "text": "👋 Thanks for dropping by! Here are the details of the preprint:\\n\\n**[The role of LHCBM1 in non-photochemical quenching in _Chlamydomonas reinhardtii_](https://doi.org/10.1101/2024.03.15.585231)**\\nby Xin Liu, Wojciech Nawrocki, and Roberta Croce",
-      "fields": [
-        "**Posted**\\nJanuary 14, 2022",
-        "**Server**\\nbioRxiv"
-      ]
-    },
-    {
-      "text": "Want to dive deeper? 🤿 Check out the abstract:\\n\\n[ABSTRACT]"
-    },
-    {
-      "text": "Thanks for reading this far. 🌟\\n\\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.",
-      "actions": [
-        "write-prereview"
-      ]
-    }
-  ]
-}
-\`\`\`
-
-\`\`\`json
-{
-  "posts": [
-    {
-      "text": "SciELO Preprints is looking for PREreviews of a paper on **distributed leadership patterns** in 🇨🇱 **Chilean technical professional education**. See in the replies for more."
-    },
-    {
-      "text": "👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz",
-      "fields": [
-        "**Posted**\\nApril 1, 2024",
-        "**Server**\\nSciELO Preprints"
-      ]
-    },
-    {
-      "text": "Excited to learn more? Here’s the abstract:\\n\\n[ABSTRACT]"
-    },
-    {
-      "text": "Thanks for taking a look. 🚀\\n\\nPlease help by writing a PREreview or share this request with others who may be interested.",
-      "actions": [
-        "write-prereview"
-      ]
-    }
-  ]
-}
-\`\`\`
-          `,
+`,
+  ),
+  ReadonlyArray.join('\n'),
+)}
+    `,
           },
         ],
         response_format: { type: 'json_object' },
