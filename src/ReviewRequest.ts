@@ -181,7 +181,7 @@ ${preprint.abstract}
           {
             role: 'user',
             content: `
-Here are 2 examples from previous requests:
+Here are 3 examples from previous requests:
 
 \`\`\`json
 {
@@ -227,6 +227,32 @@ Here are 2 examples from previous requests:
     },
     {
       "text": "Thanks for reading this far. 🌟\\n\\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.",
+      "actions": [
+        "write-prereview"
+      ]
+    }
+  ]
+}
+\`\`\`
+
+\`\`\`json
+{
+  "posts": [
+    {
+      "text": "SciELO Preprints is looking for PREreviews of a paper on **distributed leadership patterns** in 🇨🇱 **Chilean technical professional education**. See in the replies for more."
+    },
+    {
+      "text": "👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz",
+      "fields": [
+        "**Posted**\\nApril 1, 2024",
+        "**Server**\\nSciELO Preprints"
+      ]
+    },
+    {
+      "text": "Excited to learn more? Here’s the abstract:\\n\\n[ABSTRACT]"
+    },
+    {
+      "text": "Thanks for taking a look. 🚀\\n\\nPlease help by writing a PREreview or share this request with others who may be interested.",
       "actions": [
         "write-prereview"
       ]
