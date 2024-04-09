@@ -134,7 +134,7 @@ const exampleThreads: ReadonlyArray.NonEmptyReadonlyArray<Schema.Schema.Encoded<
         text: 'SciELO Preprints is looking for PREreviews of a paper on **distributed leadership patterns** in 🇨🇱 **Chilean technical professional education**. See in the replies for more.',
       },
       {
-        text: '👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz',
+        text: '👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz.',
         fields: ['**Posted**\nApril 1, 2024', '**Server**\nSciELO Preprints'],
       },
       { text: 'Excited to learn more? Here’s the abstract:\n\n[ABSTRACT]' },
