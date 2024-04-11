@@ -2,7 +2,7 @@ app = "prereview-coar-notify"
 primary_region = "iad"
 
 [env]
-BULLMQ_WORKER_POLL = "30"
+BULLMQ_WORKER_POLL = "30 seconds"
 SLACK_CHANNEL_ID = "C05B95LEN5C"
 REDIS_IP_VERSION = "6"
 

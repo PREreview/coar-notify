@@ -34,7 +34,7 @@ const HttpClientLive = Layer.succeed(
 const RedisLive = Redis.layer
 
 const QueueWorkerLive = Layer.effectDiscard(
-  Config.withDefault(Config.integer('BULLMQ_WORKER_POLL'), 10).pipe(
+  Config.withDefault(Config.duration('BULLMQ_WORKER_POLL'), '10 seconds').pipe(
     Effect.flatMap(schedule =>
       Effect.fork(
         BullMq.run(
@@ -47,7 +47,7 @@ const QueueWorkerLive = Layer.effectDiscard(
             }).pipe(
               Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
             ),
-          Schedule.spaced(`${schedule} seconds`),
+          Schedule.spaced(schedule),
         ),
       ),
     ),
