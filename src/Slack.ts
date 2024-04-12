@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { Schema } from '@effect/schema'
-import { Brand, Context, Data, Effect, type Scope } from 'effect'
+import { Brand, Context, Data, Effect } from 'effect'
 import * as Url from './Url.js'
 
 export interface SlackApiConfig {
@@ -100,7 +100,7 @@ export const chatPostMessage = (
 ): Effect.Effect<
   { readonly channel: SlackChannelId; readonly timestamp: SlackTimestamp },
   SlackError,
-  HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope
+  HttpClient.client.Client.Default | SlackApiConfig
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
@@ -114,6 +114,7 @@ export const chatPostMessage = (
     const response = yield* _(
       client(request),
       Effect.flatMap(HttpClient.response.schemaBodyJson(ChatPostMessageResponseSchema)),
+      Effect.scoped,
     )
 
     if (!response.ok) {
@@ -132,7 +133,7 @@ export const chatPostMessage = (
 
 export const chatGetPermalink = (
   message: Schema.Schema.Type<typeof ChatGetPermalinkSchema>,
-): Effect.Effect<URL, SlackError, HttpClient.client.Client.Default | SlackApiConfig | Scope.Scope> =>
+): Effect.Effect<URL, SlackError, HttpClient.client.Client.Default | SlackApiConfig> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
@@ -143,6 +144,7 @@ export const chatGetPermalink = (
     const response = yield* _(
       client(request),
       Effect.flatMap(HttpClient.response.schemaBodyJson(ChatGetPermalinkResponseSchema)),
+      Effect.scoped,
     )
 
     if (!response.ok) {
