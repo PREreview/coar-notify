@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Match, ReadonlyArray, String, pipe } from 'effect'
+import { Context, Data, Effect, Exit, Match, ReadonlyArray, String, flow, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -263,7 +263,7 @@ ${JSON.stringify(exampleThread)}
     const posts = threadToSlackBlocks(threaded, preprint)
 
     const parent = yield* _(
-      Slack.chatPostMessage({
+      postMessageOnSlack({
         channel: (yield* _(SlackChannelConfig)).id,
         blocks: ReadonlyArray.headNonEmpty(posts),
         unfurlLinks: false,
@@ -276,7 +276,7 @@ ${JSON.stringify(exampleThread)}
         pipe(
           ReadonlyArray.tailNonEmpty(posts),
           ReadonlyArray.map(blocks =>
-            Slack.chatPostMessage({
+            postMessageOnSlack({
               channel: parent.channel,
               thread: parent.timestamp,
               blocks,
@@ -391,3 +391,16 @@ function formatList(list: ReadonlyArray<string>) {
 function renderDate(date: Temporal.PlainDate) {
   return date.toLocaleString('en', { dateStyle: 'long' })
 }
+
+const postMessageOnSlack = flow(
+  Slack.chatPostMessage,
+  Effect.acquireRelease((id, exit) =>
+    Exit.matchEffect(exit, {
+      onFailure: () =>
+        Effect.catchAll(Slack.chatDelete(id), error =>
+          Effect.annotateLogs(Effect.logError('Unable to delete Slack message'), { id, message: error.message }),
+        ),
+      onSuccess: () => Effect.unit,
+    }),
+  ),
+)

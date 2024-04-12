@@ -73,6 +73,11 @@ const ChatPostMessageSchema = Schema.struct({
   unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
 })
 
+const ChatDeleteSchema = Schema.struct({
+  channel: ChannelIdSchema,
+  timestamp: Schema.propertySignature(TimestampSchema).pipe(Schema.fromKey('ts')),
+})
+
 const ChatGetPermalinkSchema = Schema.struct({
   channel: ChannelIdSchema,
   timestamp: Schema.propertySignature(TimestampSchema).pipe(Schema.fromKey('message_ts')),
@@ -87,6 +92,8 @@ const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.struc
   Schema.union(SuccessResponseSchema(schema), ErrorResponseSchema)
 
 const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
+
+const ChatDeleteResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
 
 const ChatGetPermalinkResponseSchema = SlackResponse(Schema.struct({ permalink: Url.UrlSchema }))
 
@@ -114,6 +121,38 @@ export const chatPostMessage = (
     const response = yield* _(
       client(request),
       Effect.flatMap(HttpClient.response.schemaBodyJson(ChatPostMessageResponseSchema)),
+      Effect.scoped,
+    )
+
+    if (!response.ok) {
+      return yield* _(Effect.fail(new SlackError({ message: response.error })))
+    }
+
+    return { channel: response.channel, timestamp: response.ts }
+  }).pipe(
+    Effect.catchTags({
+      BodyError: toSlackError,
+      ParseError: toSlackError,
+      RequestError: httpToSlackError,
+      ResponseError: httpToSlackError,
+    }),
+  )
+
+export const chatDelete = (
+  message: Schema.Schema.Type<typeof ChatDeleteSchema>,
+): Effect.Effect<void, SlackError, HttpClient.client.Client.Default | SlackApiConfig> =>
+  Effect.gen(function* (_) {
+    const client = yield* _(slackClient)
+
+    const request = yield* _(
+      HttpClient.request.post('chat.delete'),
+      HttpClient.request.setHeader('Content-Type', 'application/json'),
+      HttpClient.request.schemaBody(ChatDeleteSchema)(message),
+    )
+
+    const response = yield* _(
+      client(request),
+      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatDeleteResponseSchema)),
       Effect.scoped,
     )
 
