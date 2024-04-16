@@ -207,24 +207,28 @@ jobs:
         run: docker push ${{ steps.image.outputs.image }}
 
   deploy:
-    name: 'Deploy'
+    name: 'Deploy (${{ matrix.instance }})'
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     if: github.ref == 'refs/heads/main'
     needs:
       - push
+    strategy:
+      fail-fast: false
+      matrix:
+        instance: ['prod']
 
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4.1.1
         with:
-          sparse-checkout: fly.toml
+          sparse-checkout: fly.${{ matrix.instance }}.toml
           sparse-checkout-cone-mode: false
 
       - name: 'Set up flyctl'
         uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: 'Deploy app'
-        run: flyctl deploy --image ${{ needs.push.outputs.image }}
+        run: flyctl deploy --config fly.${{ matrix.instance }}.toml --image ${{ needs.push.outputs.image }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
