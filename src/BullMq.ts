@@ -187,9 +187,29 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                     yield* _(Effect.logDebug('Job failed'), Effect.annotateLogs('reason', job.failedReason))
                   }),
                 ),
+                Effect.onInterrupt(() =>
+                  Effect.catchAll(
+                    Effect.gen(function* (_) {
+                      const state = yield* _(Effect.tryPromise(() => job.getState()))
+
+                      if (state !== 'active') {
+                        return
+                      }
+
+                      yield* _(Effect.tryPromise(() => job.moveToFailed(new Error('Job interrupted'), token)))
+                      yield* _(Effect.logDebug('Job interrupted'))
+                    }),
+                    error =>
+                      Effect.annotateLogs(
+                        Effect.logError('Failed to handle interrupted job'),
+                        'message',
+                        error.message,
+                      ),
+                  ),
+                ),
                 Effect.annotateLogs({ job: job.id, jobName: job.name, attempt: job.attemptsStarted }),
               )
-            }).pipe(Effect.fork, Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
+            }).pipe(Effect.forkScoped, Effect.repeat(schedule), Effect.annotateLogs('worker', worker.id)),
           worker => Effect.promise(() => worker.close()),
         ).pipe(Effect.annotateLogs('queue', layerOptions.name), Effect.scoped)
 
