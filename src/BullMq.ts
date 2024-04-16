@@ -189,7 +189,7 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
   jobName: J,
   payload: P,
   options?: JobOptions,
-): Effect.Effect<string, BullMqError, Queue<N, { [K in J]: P }>> =>
+): Effect.Effect<JobId, BullMqError, Queue<N, { [K in J]: P }>> =>
   Effect.gen(function* (_) {
     const queue = yield* _(QueueTag(queueName))
 
