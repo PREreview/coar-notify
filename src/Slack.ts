@@ -13,89 +13,89 @@ export type SlackChannelId = string & Brand.Brand<'SlackChannelId'>
 
 export const SlackChannelId = Brand.nominal<SlackChannelId>()
 
-const ChannelIdSchema = Schema.fromBrand(SlackChannelId)(Schema.string)
+const ChannelIdSchema = Schema.fromBrand(SlackChannelId)(Schema.String)
 
 export type SlackTimestamp = string & Brand.Brand<'SlackTimestamp'>
 
 export const SlackTimestamp = Brand.nominal<SlackTimestamp>()
 
-const TimestampSchema = Schema.fromBrand(SlackTimestamp)(Schema.string)
+const TimestampSchema = Schema.fromBrand(SlackTimestamp)(Schema.String)
 
-const PlainTextObjectSchema = Schema.struct({
-  type: Schema.literal('plain_text'),
-  text: Schema.string.pipe(Schema.nonEmpty()),
+const PlainTextObjectSchema = Schema.Struct({
+  type: Schema.Literal('plain_text'),
+  text: Schema.String.pipe(Schema.nonEmpty()),
 })
 
-const MrkdwnTextObjectSchema = Schema.struct({
-  type: Schema.literal('mrkdwn'),
-  text: Schema.string.pipe(Schema.nonEmpty()),
+const MrkdwnTextObjectSchema = Schema.Struct({
+  type: Schema.Literal('mrkdwn'),
+  text: Schema.String.pipe(Schema.nonEmpty()),
 })
 
-const TextObjectSchema = Schema.union(PlainTextObjectSchema, MrkdwnTextObjectSchema)
+const TextObjectSchema = Schema.Union(PlainTextObjectSchema, MrkdwnTextObjectSchema)
 
 export type SlackTextObject = Schema.Schema.Type<typeof TextObjectSchema>
 
-const ButtonElementSchema = Schema.struct({
-  type: Schema.literal('button'),
+const ButtonElementSchema = Schema.Struct({
+  type: Schema.Literal('button'),
   text: PlainTextObjectSchema,
-  style: Schema.optional(Schema.literal('primary', 'danger')),
+  style: Schema.optional(Schema.Literal('primary', 'danger')),
   url: Url.UrlSchema,
 })
 
 export type SlackButtonElement = Schema.Schema.Type<typeof ButtonElementSchema>
 
-const ActionsBlockSchema = Schema.struct({
-  type: Schema.literal('actions'),
-  elements: Schema.nonEmptyArray(ButtonElementSchema),
+const ActionsBlockSchema = Schema.Struct({
+  type: Schema.Literal('actions'),
+  elements: Schema.NonEmptyArray(ButtonElementSchema),
 })
 
-const ContextBlockSchema = Schema.struct({
-  type: Schema.literal('context'),
-  elements: Schema.nonEmptyArray(TextObjectSchema),
+const ContextBlockSchema = Schema.Struct({
+  type: Schema.Literal('context'),
+  elements: Schema.NonEmptyArray(TextObjectSchema),
 })
 
-const SectionBlockSchema = Schema.struct({
-  type: Schema.literal('section'),
+const SectionBlockSchema = Schema.Struct({
+  type: Schema.Literal('section'),
   text: TextObjectSchema,
-  accessory: Schema.optional(Schema.union(ButtonElementSchema)),
-  fields: Schema.optional(Schema.array(TextObjectSchema)),
+  accessory: Schema.optional(Schema.Union(ButtonElementSchema)),
+  fields: Schema.optional(Schema.Array(TextObjectSchema)),
 })
 
-export const BlockSchema = Schema.union(ActionsBlockSchema, ContextBlockSchema, SectionBlockSchema)
+export const BlockSchema = Schema.Union(ActionsBlockSchema, ContextBlockSchema, SectionBlockSchema)
 
 export type SlackBlock = Schema.Schema.Type<typeof BlockSchema>
 
-const ChatPostMessageSchema = Schema.struct({
+const ChatPostMessageSchema = Schema.Struct({
   channel: ChannelIdSchema,
-  blocks: Schema.nonEmptyArray(BlockSchema),
+  blocks: Schema.NonEmptyArray(BlockSchema),
   thread: Schema.optional(TimestampSchema).pipe(Schema.fromKey('thread_ts')),
-  unfurlLinks: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_links')),
-  unfurlMedia: Schema.optional(Schema.boolean).pipe(Schema.fromKey('unfurl_media')),
+  unfurlLinks: Schema.optional(Schema.Boolean).pipe(Schema.fromKey('unfurl_links')),
+  unfurlMedia: Schema.optional(Schema.Boolean).pipe(Schema.fromKey('unfurl_media')),
 })
 
-const ChatDeleteSchema = Schema.struct({
+const ChatDeleteSchema = Schema.Struct({
   channel: ChannelIdSchema,
   timestamp: Schema.propertySignature(TimestampSchema).pipe(Schema.fromKey('ts')),
 })
 
-const ChatGetPermalinkSchema = Schema.struct({
+const ChatGetPermalinkSchema = Schema.Struct({
   channel: ChannelIdSchema,
   timestamp: Schema.propertySignature(TimestampSchema).pipe(Schema.fromKey('message_ts')),
 })
 
-const SuccessResponseSchema = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
-  Schema.struct({ ...schema.fields, ok: Schema.literal(true) })
+const SuccessResponseSchema = <Fields extends Schema.Struct.Fields>(schema: Schema.Struct<Fields>) =>
+  Schema.Struct({ ...schema.fields, ok: Schema.Literal(true) })
 
-const ErrorResponseSchema = Schema.struct({ ok: Schema.literal(false), error: Schema.string })
+const ErrorResponseSchema = Schema.Struct({ ok: Schema.Literal(false), error: Schema.String })
 
-const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.struct<Fields>) =>
-  Schema.union(SuccessResponseSchema(schema), ErrorResponseSchema)
+const SlackResponse = <Fields extends Schema.Struct.Fields>(schema: Schema.Struct<Fields>) =>
+  Schema.Union(SuccessResponseSchema(schema), ErrorResponseSchema)
 
-const ChatPostMessageResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
+const ChatPostMessageResponseSchema = SlackResponse(Schema.Struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
 
-const ChatDeleteResponseSchema = SlackResponse(Schema.struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
+const ChatDeleteResponseSchema = SlackResponse(Schema.Struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
 
-const ChatGetPermalinkResponseSchema = SlackResponse(Schema.struct({ permalink: Url.UrlSchema }))
+const ChatGetPermalinkResponseSchema = SlackResponse(Schema.Struct({ permalink: Url.UrlSchema }))
 
 export class SlackError extends Data.TaggedError('SlackError')<{
   readonly cause?: Error | undefined

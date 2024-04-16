@@ -60,7 +60,7 @@ export const Router = HttpServer.router.empty.pipe(
           Effect.gen(function* (_) {
             yield* _(
               Effect.logInfo('Invalid request').pipe(
-                Effect.annotateLogs({ message: TreeFormatter.formatError(error) }),
+                Effect.annotateLogs({ message: TreeFormatter.formatErrorSync(error) }),
               ),
             )
 

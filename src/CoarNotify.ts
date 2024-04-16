@@ -4,30 +4,30 @@ import * as Url from './Url.js'
 
 export type RequestReview = Schema.Schema.Type<typeof RequestReviewSchema>
 
-export const RequestReviewSchema = Schema.struct({
-  '@context': Schema.tuple(
-    [Schema.literal('https://www.w3.org/ns/activitystreams'), Schema.literal('https://purl.org/coar/notify')],
-    Schema.string,
+export const RequestReviewSchema = Schema.Struct({
+  '@context': Schema.Tuple(
+    [Schema.Literal('https://www.w3.org/ns/activitystreams'), Schema.Literal('https://purl.org/coar/notify')],
+    Schema.String,
   ),
-  id: Schema.string,
-  type: Schema.tuple(Schema.literal('Offer'), Schema.literal('coar-notify:ReviewAction')),
-  origin: Schema.struct({
+  id: Schema.String,
+  type: Schema.Tuple(Schema.Literal('Offer'), Schema.Literal('coar-notify:ReviewAction')),
+  origin: Schema.Struct({
     id: Url.UrlSchema,
     inbox: Url.UrlSchema,
-    type: Schema.literal('Organization', 'Service'),
+    type: Schema.Literal('Organization', 'Service'),
   }),
-  target: Schema.struct({
+  target: Schema.Struct({
     id: Url.UrlSchema,
     inbox: Url.UrlSchema,
-    type: Schema.literal('Organization', 'Service'),
+    type: Schema.Literal('Organization', 'Service'),
   }),
-  object: Schema.struct({
-    id: Schema.string,
+  object: Schema.Struct({
+    id: Schema.String,
     'ietf:cite-as': Doi.DoiUrlSchema,
   }),
-  actor: Schema.struct({
+  actor: Schema.Struct({
     id: Url.UrlSchema,
-    type: Schema.literal('Application', 'Group', 'Organization', 'Person', 'Service'),
-    name: Schema.string.pipe(Schema.trimmed(), Schema.nonEmpty()),
+    type: Schema.Literal('Application', 'Group', 'Organization', 'Person', 'Service'),
+    name: Schema.String.pipe(Schema.trimmed(), Schema.nonEmpty()),
   }),
 })

@@ -19,17 +19,17 @@ export interface SlackChannelConfig {
 
 export const SlackChannelConfig = Context.GenericTag<SlackChannelConfig>('SlackChannelConfig')
 
-const NotificationSchema = Schema.struct({
+const NotificationSchema = Schema.Struct({
   timestamp: Temporal.InstantInMillisecondsSchema,
   notification: CoarNotify.RequestReviewSchema,
 })
 
-const ThreadSchema = Schema.struct({
-  posts: Schema.nonEmptyArray(
-    Schema.struct({
-      text: Schema.string,
-      fields: Schema.optional(Schema.array(Schema.string), { default: ReadonlyArray.empty }),
-      actions: Schema.optional(Schema.array(Schema.literal('write-prereview')), { default: ReadonlyArray.empty }),
+const ThreadSchema = Schema.Struct({
+  posts: Schema.NonEmptyArray(
+    Schema.Struct({
+      text: Schema.String,
+      fields: Schema.optional(Schema.Array(Schema.String), { default: ReadonlyArray.empty }),
+      actions: Schema.optional(Schema.Array(Schema.Literal('write-prereview')), { default: ReadonlyArray.empty }),
     }),
   ),
 })
@@ -79,10 +79,12 @@ const threadToSlackBlocks = (
                 () =>
                   ({
                     type: 'button',
+
                     text: {
                       type: 'plain_text',
                       text: 'Write a PREreview',
                     },
+
                     style: 'primary',
                     url: Prereview.writeAPrereviewUrl(preprint.doi),
                   }) as Slack.SlackButtonElement,
