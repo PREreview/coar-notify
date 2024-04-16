@@ -59,41 +59,43 @@ export const CrossrefApiLive = Layer.effect(
   }),
 )
 
-const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.struct({ message: messageSchema })
+const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.Struct({ message: messageSchema })
 
-const PartialDateSchema = Schema.union(
+const PartialDateSchema = Schema.Union(
   Temporal.PlainYearInTupleSchema,
   Temporal.PlainYearMonthInTupleSchema,
   Temporal.PlainDateInTupleSchema,
 )
 
 const DateFromPartsSchema = Schema.transform(
-  Schema.struct({ 'date-parts': Schema.tuple(Schema.encodedSchema(PartialDateSchema)) }),
+  Schema.Struct({ 'date-parts': Schema.Tuple(Schema.encodedSchema(PartialDateSchema)) }),
   Schema.encodedSchema(PartialDateSchema),
-  input => input['date-parts'][0],
-  parts => ({ 'date-parts': [parts] }),
-  { strict: false },
+  {
+    decode: input => input['date-parts'][0],
+    encode: parts => ({ 'date-parts': [parts] }),
+    strict: false,
+  },
 ).pipe(Schema.compose(PartialDateSchema))
 
-export const WorkSchema = Schema.struct({
-  abstract: Schema.optional(Schema.string),
-  author: Schema.array(
-    Schema.union(
-      Schema.struct({
-        family: Schema.string,
-        given: Schema.optional(Schema.string),
-        prefix: Schema.optional(Schema.string),
-        suffix: Schema.optional(Schema.string),
+export const WorkSchema = Schema.Struct({
+  abstract: Schema.optional(Schema.String),
+  author: Schema.Array(
+    Schema.Union(
+      Schema.Struct({
+        family: Schema.String,
+        given: Schema.optional(Schema.String),
+        prefix: Schema.optional(Schema.String),
+        suffix: Schema.optional(Schema.String),
       }),
-      Schema.struct({
-        name: Schema.string,
+      Schema.Struct({
+        name: Schema.String,
       }),
     ),
   ),
   DOI: Doi.DoiSchema,
-  institution: Schema.optional(Schema.array(Schema.struct({ name: Schema.string }))),
-  subtype: Schema.optional(Schema.string),
+  institution: Schema.optional(Schema.Array(Schema.Struct({ name: Schema.String }))),
+  subtype: Schema.optional(Schema.String),
   published: Schema.optional(DateFromPartsSchema),
-  title: Schema.array(Schema.string),
-  type: Schema.string,
+  title: Schema.Array(Schema.String),
+  type: Schema.String,
 })

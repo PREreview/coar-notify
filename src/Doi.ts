@@ -29,11 +29,13 @@ const parse: (s: string) => Option.Option<Doi> = flow(
   s => Doi.option(s),
 )
 
-export const DoiSchema = Schema.string.pipe(Schema.fromBrand(Doi))
+export const DoiSchema = Schema.String.pipe(Schema.fromBrand(Doi))
 
 export const DoiUrlSchema: Schema.Schema<Doi, string> = Schema.transformOrFail(
-  Schema.string,
+  Schema.String,
   Schema.typeSchema(DoiSchema),
-  s => Either.fromOption(parse(s), () => new ParseResult.Type(DoiSchema.ast, s)),
-  doi => ParseResult.succeed(toUrl(doi).href),
+  {
+    decode: s => Either.fromOption(parse(s), () => new ParseResult.Type(DoiSchema.ast, s)),
+    encode: doi => ParseResult.succeed(toUrl(doi).href),
+  },
 )

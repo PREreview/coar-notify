@@ -35,54 +35,50 @@ export const Timestamp = Clock.currentTimeMillis.pipe(Effect.map(n => Temporal.I
 export const InstantFromMillisecondsSchema = <A extends number, I, R>(
   self: Schema.Schema<A, I, R>,
 ): Schema.Schema<Temporal.Instant, I, R> =>
-  Schema.transformOrFail(
-    self,
-    InstantFromSelfSchema,
-    (number, _, ast) =>
+  Schema.transformOrFail(self, InstantFromSelfSchema, {
+    decode: (number, _, ast) =>
       ParseResult.try({
         try: () => Temporal.Instant.fromEpochMilliseconds(number),
         catch: () => new ParseResult.Type(ast, number),
       }),
-    instant => ParseResult.succeed(instant.epochMilliseconds),
-    { strict: false },
-  )
+    encode: instant => ParseResult.succeed(instant.epochMilliseconds),
+    strict: false,
+  })
 
-export const InstantInMillisecondsSchema = InstantFromMillisecondsSchema(Schema.number)
+export const InstantInMillisecondsSchema = InstantFromMillisecondsSchema(Schema.Number)
 
 export const PlainYearInTupleSchema: Schema.Schema<PlainYear, readonly [number]> = Schema.transformOrFail(
-  Schema.tuple(Schema.number),
+  Schema.Tuple(Schema.Number),
   PlainYearFromSelfSchema,
-  ([year], _, ast) =>
-    ParseResult.try({
-      try: () => PlainYear.from({ year }, { overflow: 'reject' }),
-      catch: () => new ParseResult.Type(ast, [year]),
-    }),
-  plainYear => ParseResult.succeed([plainYear.year]),
-  { strict: false },
+  {
+    decode: ([year], _, ast) =>
+      ParseResult.try({
+        try: () => PlainYear.from({ year }, { overflow: 'reject' }),
+        catch: () => new ParseResult.Type(ast, [year]),
+      }),
+    encode: plainYear => ParseResult.succeed([plainYear.year]),
+    strict: false,
+  },
 )
 
 export const PlainYearMonthInTupleSchema: Schema.Schema<Temporal.PlainYearMonth, readonly [number, number]> =
-  Schema.transformOrFail(
-    Schema.tuple(Schema.number, Schema.number),
-    PlainYearMonthFromSelfSchema,
-    ([year, month], _, ast) =>
+  Schema.transformOrFail(Schema.Tuple(Schema.Number, Schema.Number), PlainYearMonthFromSelfSchema, {
+    decode: ([year, month], _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainYearMonth.from({ year, month }, { overflow: 'reject' }),
         catch: () => new ParseResult.Type(ast, [year, month]),
       }),
-    plainYearMonth => ParseResult.succeed([plainYearMonth.year, plainYearMonth.month]),
-    { strict: false },
-  )
+    encode: plainYearMonth => ParseResult.succeed([plainYearMonth.year, plainYearMonth.month]),
+    strict: false,
+  })
 
 export const PlainDateInTupleSchema: Schema.Schema<Temporal.PlainDate, readonly [number, number, number]> =
-  Schema.transformOrFail(
-    Schema.tuple(Schema.number, Schema.number, Schema.number),
-    PlainDateFromSelfSchema,
-    ([year, month, day], _, ast) =>
+  Schema.transformOrFail(Schema.Tuple(Schema.Number, Schema.Number, Schema.Number), PlainDateFromSelfSchema, {
+    decode: ([year, month, day], _, ast) =>
       ParseResult.try({
         try: () => Temporal.PlainDate.from({ year, month, day }, { overflow: 'reject' }),
         catch: () => new ParseResult.Type(ast, [year, month, day]),
       }),
-    plainDate => ParseResult.succeed([plainDate.year, plainDate.month, plainDate.day]),
-    { strict: false },
-  )
+    encode: plainDate => ParseResult.succeed([plainDate.year, plainDate.month, plainDate.day]),
+    strict: false,
+  })
