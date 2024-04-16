@@ -36,19 +36,17 @@ const RedisLive = Redis.layer
 const QueueWorkerLive = Layer.effectDiscard(
   Config.withDefault(Config.duration('BULLMQ_WORKER_POLL'), '10 seconds').pipe(
     Effect.flatMap(schedule =>
-      Effect.fork(
-        BullMq.run(
-          'coar-notify',
-          data =>
-            Effect.gen(function* (_) {
-              const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
+      BullMq.run(
+        'coar-notify',
+        data =>
+          Effect.gen(function* (_) {
+            const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
 
-              yield* _(ReviewRequest.handleReviewRequest(requestReview))
-            }).pipe(
-              Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
-            ),
-          Schedule.spaced(schedule),
-        ),
+            yield* _(ReviewRequest.handleReviewRequest(requestReview))
+          }).pipe(
+            Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
+          ),
+        Schedule.spaced(schedule),
       ),
     ),
   ),
