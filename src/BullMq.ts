@@ -1,5 +1,17 @@
 import * as BullMq from 'bullmq'
-import { Clock, Context, Data, Duration, Effect, Layer, Random, type ReadonlyRecord, Runtime, Schedule } from 'effect'
+import {
+  Brand,
+  Clock,
+  Context,
+  Data,
+  Duration,
+  Effect,
+  Layer,
+  Random,
+  type ReadonlyRecord,
+  Runtime,
+  Schedule,
+} from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
 
@@ -7,8 +19,12 @@ export type Processor<R = never> = (data: JsonValue) => Effect.Effect<void, Erro
 
 export class DelayedJob extends Data.TaggedClass('DelayedJob')<{ delay: Duration.DurationInput }> {}
 
+export type JobId = string & Brand.Brand<'JobId'>
+
+export const JobId = Brand.nominal<JobId>()
+
 export interface JobOptions {
-  readonly jobId?: string
+  readonly jobId?: JobId
 }
 
 export interface Queue<N extends string, Q extends QueueJobs> {
@@ -17,7 +33,7 @@ export interface Queue<N extends string, Q extends QueueJobs> {
     jobName: J,
     payload: Q[J],
     options?: JobOptions,
-  ) => Effect.Effect<string, BullMqError>
+  ) => Effect.Effect<JobId, BullMqError>
   readonly run: <R1 = never, R2 = never>(
     handler: Processor<R1>,
     schedule: Schedule.Schedule<unknown, void, R2>,
@@ -80,7 +96,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
             }),
           )
 
-          return job.asJSON().id
+          return JobId(job.asJSON().id)
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobName: jobName }))
 
       const run: Queue<N, Q>['run'] = (handler, schedule) =>

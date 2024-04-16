@@ -42,7 +42,9 @@ export const Router = HttpServer.router.empty.pipe(
       const encoded = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
       yield* _(
-        BullMq.add('coar-notify', 'request-review', encoded, { jobId: md5(requestReview.object['ietf:cite-as']) }),
+        BullMq.add('coar-notify', 'request-review', encoded, {
+          jobId: BullMq.JobId(md5(requestReview.object['ietf:cite-as'])),
+        }),
       )
 
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
