@@ -132,8 +132,8 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                     Effect.promise(() => job.extendLock(token, Duration.toMillis(lockDuration))),
                     Effect.tap(() => Effect.logInfo('Job lock extended')),
                     Effect.annotateLogs('duration', Duration.format(lockDuration)),
-                    Effect.repeat(Schedule.fixed(Duration.toMillis(lockDuration) / 2)),
-                    Effect.delay(Duration.toMillis(lockDuration) / 2),
+                    Effect.repeat(Schedule.fixed(Duration.unsafeDivide(lockDuration, 2))),
+                    Effect.delay(Duration.unsafeDivide(lockDuration, 2)),
                     Effect.fork,
                   )
 
