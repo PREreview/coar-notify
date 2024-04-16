@@ -1,0 +1,22 @@
+app = "prereview-coar-notify-sandbox"
+primary_region = "iad"
+
+[env]
+BULLMQ_WORKER_POLL = "30 seconds"
+SLACK_CHANNEL_ID = "C05N0JHBC1Y"
+REDIS_IP_VERSION = "6"
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 1
+
+[[http_service.checks]]
+grace_period = "15s"
+interval = "5s"
+method = "GET"
+timeout = "1s"
+path = "/health"
+protocol = "http"
