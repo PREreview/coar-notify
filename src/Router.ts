@@ -1,6 +1,6 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Data, Effect } from 'effect'
+import { Data, Effect, Exit } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
@@ -45,6 +45,19 @@ export const Router = HttpServer.router.empty.pipe(
         BullMq.add('coar-notify', 'request-review', encoded, {
           jobId: BullMq.JobId(md5(requestReview.object['ietf:cite-as'])),
         }),
+        Effect.acquireRelease((jobId, exit) =>
+          Exit.matchEffect(exit, {
+            onFailure: () =>
+              Effect.catchAll(BullMq.remove('coar-notify', jobId), error =>
+                Effect.annotateLogs(Effect.logError('Unable to remove job'), {
+                  queue: 'coar-notify',
+                  jobId,
+                  message: error.message,
+                }),
+              ),
+            onSuccess: () => Effect.unit,
+          }),
+        ),
       )
 
       return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))

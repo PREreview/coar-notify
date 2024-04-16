@@ -1,6 +1,7 @@
 import * as BullMq from 'bullmq'
 import {
   Brand,
+  type Cause,
   Clock,
   Context,
   Data,
@@ -34,6 +35,7 @@ export interface Queue<N extends string, Q extends QueueJobs> {
     payload: Q[J],
     options?: JobOptions,
   ) => Effect.Effect<JobId, BullMqError>
+  readonly remove: (jobId: JobId) => Effect.Effect<void, BullMqError | Cause.NoSuchElementException>
   readonly run: <R1 = never, R2 = never>(
     handler: Processor<R1>,
     schedule: Schedule.Schedule<unknown, void, R2>,
@@ -98,6 +100,18 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 
           return JobId(job.asJSON().id)
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobName: jobName }))
+
+      const remove: Queue<N, Q>['remove'] = jobId =>
+        Effect.gen(function* (_) {
+          const job = yield* _(
+            Effect.tryPromise({ try: () => queue.getJob(jobId), catch: toBullMqError }),
+            Effect.flatMap(Effect.fromNullable),
+          )
+
+          yield* _(Effect.tryPromise({ try: () => job.remove(), catch: toBullMqError }))
+
+          yield* _(Effect.logDebug('Job removed from queue'))
+        }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobId: jobId }))
 
       const run: Queue<N, Q>['run'] = (handler, schedule) =>
         Effect.acquireUseRelease(
@@ -179,7 +193,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
           worker => Effect.promise(() => worker.close()),
         ).pipe(Effect.annotateLogs('queue', layerOptions.name), Effect.scoped)
 
-      return { name: layerOptions.name, add, run }
+      return { name: layerOptions.name, add, remove, run }
     }),
   )
 }
@@ -194,6 +208,16 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
     const queue = yield* _(QueueTag(queueName))
 
     return yield* _(queue.add(jobName, payload, options))
+  })
+
+export const remove = <N extends string, J extends string, P extends JsonValue>(
+  queueName: N,
+  jobId: JobId,
+): Effect.Effect<void, BullMqError | Cause.NoSuchElementException, Queue<N, { [K in J]: P }>> =>
+  Effect.gen(function* (_) {
+    const queue = yield* _(QueueTag(queueName))
+
+    return yield* _(queue.remove(jobId))
   })
 
 export const run = <N extends string, R1, R2>(
