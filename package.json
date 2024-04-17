@@ -15,7 +15,7 @@
     "effect": "2.4.19",
     "html-entities": "^2.5.2",
     "http-status-codes": "^2.3.0",
-    "ioredis": "^5.3.2",
+    "ioredis": "^5.4.0",
     "mjml": "^4.15.3",
     "nodemailer": "^6.9.13",
     "openai": "^4.35.0",
