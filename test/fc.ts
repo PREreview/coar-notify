@@ -1,5 +1,5 @@
 import doiRegex from 'doi-regex'
-import { ReadonlyArray, String } from 'effect'
+import { Array, String } from 'effect'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
 import type * as Crossref from '../src/Crossref.js'
@@ -17,8 +17,7 @@ export const untrimmedString = (constraints?: fc.StringSharedConstraints): fc.Ar
 export const nonEmptyArray = <T>(
   arb: fc.Arbitrary<T>,
   constraints?: fc.ArrayConstraints,
-): fc.Arbitrary<ReadonlyArray.NonEmptyArray<T>> =>
-  fc.array(arb, { minLength: 1, ...constraints }).filter(ReadonlyArray.isNonEmptyArray)
+): fc.Arbitrary<Array.NonEmptyArray<T>> => fc.array(arb, { minLength: 1, ...constraints }).filter(Array.isNonEmptyArray)
 
 export const error = (): fc.Arbitrary<Error> => fc.string().map(error => new Error(error))
 

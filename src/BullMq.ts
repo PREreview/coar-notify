@@ -9,7 +9,7 @@ import {
   Effect,
   Layer,
   Random,
-  type ReadonlyRecord,
+  type Record,
   Runtime,
   Schedule,
 } from 'effect'
@@ -42,7 +42,7 @@ export interface Queue<N extends string, Q extends QueueJobs> {
   ) => Effect.Effect<void, never, R1 | R2>
 }
 
-export type QueueJobs = ReadonlyRecord.ReadonlyRecord<string, JsonValue>
+export type QueueJobs = Record.ReadonlyRecord<string, JsonValue>
 
 export interface QueueOptions<N extends string> {
   readonly name: N
@@ -244,7 +244,7 @@ export const run = <N extends string, R1, R2>(
   queueName: N,
   handler: Processor<R1>,
   schedule: Schedule.Schedule<unknown, void, R2>,
-): Effect.Effect<void, never, Queue<N, ReadonlyRecord.ReadonlyRecord<never, never>> | R1 | R2> =>
+): Effect.Effect<void, never, Queue<N, Record.ReadonlyRecord<never, never>> | R1 | R2> =>
   Effect.gen(function* (_) {
     const queue = yield* _(QueueTag(queueName))
 
