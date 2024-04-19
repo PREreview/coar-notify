@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Context, Data, Effect, Exit, Match, ReadonlyArray, String, flow, pipe } from 'effect'
+import { Array, Context, Data, Effect, Exit, Match, String, flow, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -28,8 +28,8 @@ const ThreadSchema = Schema.Struct({
   posts: Schema.NonEmptyArray(
     Schema.Struct({
       text: Schema.String,
-      fields: Schema.optional(Schema.Array(Schema.String), { default: ReadonlyArray.empty }),
-      actions: Schema.optional(Schema.Array(Schema.Literal('write-prereview')), { default: ReadonlyArray.empty }),
+      fields: Schema.optional(Schema.Array(Schema.String), { default: Array.empty }),
+      actions: Schema.optional(Schema.Array(Schema.Literal('write-prereview')), { default: Array.empty }),
     }),
   ),
 })
@@ -37,8 +37,8 @@ const ThreadSchema = Schema.Struct({
 const threadToSlackBlocks = (
   thread: Schema.Schema.Type<typeof ThreadSchema>,
   preprint: Preprint.Preprint,
-): ReadonlyArray.NonEmptyReadonlyArray<ReadonlyArray.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
-  ReadonlyArray.map(thread.posts, post => [
+): Array.NonEmptyReadonlyArray<Array.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
+  Array.map(thread.posts, post => [
     {
       type: 'section',
       text: {
@@ -53,10 +53,10 @@ const threadToSlackBlocks = (
           String.trim,
         ),
       },
-      ...ReadonlyArray.match(post.fields, {
+      ...Array.match(post.fields, {
         onEmpty: () => ({}),
         onNonEmpty: fields => ({
-          fields: ReadonlyArray.map(
+          fields: Array.map(
             fields,
             field =>
               ({
@@ -67,12 +67,12 @@ const threadToSlackBlocks = (
         }),
       }),
     },
-    ...ReadonlyArray.match(post.actions, {
-      onEmpty: ReadonlyArray.empty,
+    ...Array.match(post.actions, {
+      onEmpty: Array.empty,
       onNonEmpty: actions => [
         {
           type: 'actions',
-          elements: ReadonlyArray.map(actions, action =>
+          elements: Array.map(actions, action =>
             Match.value(action).pipe(
               Match.when(
                 'write-prereview',
@@ -97,7 +97,7 @@ const threadToSlackBlocks = (
     }),
   ])
 
-const exampleThreads: ReadonlyArray.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof ThreadSchema>> = [
+const exampleThreads: Array.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof ThreadSchema>> = [
   {
     posts: [
       {
@@ -211,7 +211,7 @@ Requester: """${requestReview.actor.name}"""
 
 Title: """${preprint.title}"""
 
-${ReadonlyArray.match(preprint.authors, {
+${Array.match(preprint.authors, {
   onEmpty: () => '',
   onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
 })}
@@ -234,10 +234,10 @@ ${preprint.abstract}
           {
             role: 'user',
             content: `
-Here are ${ReadonlyArray.length(exampleThreads)} examples from previous requests:
+Here are ${Array.length(exampleThreads)} examples from previous requests:
 
 ${pipe(
-  ReadonlyArray.map(
+  Array.map(
     exampleThreads,
     exampleThread => `
 \`\`\`json
@@ -245,7 +245,7 @@ ${JSON.stringify(exampleThread)}
 \`\`\`
 `,
   ),
-  ReadonlyArray.join('\n'),
+  Array.join('\n'),
 )}
     `,
           },
@@ -267,7 +267,7 @@ ${JSON.stringify(exampleThread)}
     const parent = yield* _(
       postMessageOnSlack({
         channel: (yield* _(SlackChannelConfig)).id,
-        blocks: ReadonlyArray.headNonEmpty(posts),
+        blocks: Array.headNonEmpty(posts),
         unfurlLinks: false,
         unfurlMedia: false,
       }),
@@ -276,8 +276,8 @@ ${JSON.stringify(exampleThread)}
     yield* _(
       Effect.all(
         pipe(
-          ReadonlyArray.tailNonEmpty(posts),
-          ReadonlyArray.map(blocks =>
+          Array.tailNonEmpty(posts),
+          Array.map(blocks =>
             postMessageOnSlack({
               channel: parent.channel,
               thread: parent.timestamp,
@@ -286,7 +286,7 @@ ${JSON.stringify(exampleThread)}
               unfurlMedia: false,
             }),
           ),
-          ReadonlyArray.intersperse(Effect.sleep('100 millis')),
+          Array.intersperse(Effect.sleep('100 millis')),
         ),
       ),
     )
@@ -402,7 +402,7 @@ const postMessageOnSlack = flow(
         Effect.catchAll(Slack.chatDelete(id), error =>
           Effect.annotateLogs(Effect.logError('Unable to delete Slack message'), { id, message: error.message }),
         ),
-      onSuccess: () => Effect.unit,
+      onSuccess: () => Effect.void,
     }),
   ),
 )

@@ -1,4 +1,4 @@
-import { Data, Effect, Either, Match, ReadonlyArray, String, pipe } from 'effect'
+import { Array, Data, Effect, Either, Match, String, pipe } from 'effect'
 import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -46,7 +46,7 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
     )
 
     const title = yield* _(
-      ReadonlyArray.head(work.title),
+      Array.head(work.title),
       Effect.mapError(() => new GetPreprintError({ message: 'No title found' })),
     )
 
@@ -68,13 +68,13 @@ export const getPreprint = (doi: Doi.Doi): Effect.Effect<Preprint, GetPreprintEr
       Match.exhaustive,
     )
 
-    const authors = ReadonlyArray.map(work.author, author =>
+    const authors = Array.map(work.author, author =>
       Match.value(author).pipe(
         Match.when({ name: Match.string }, author => author.name),
         Match.when({ family: Match.string }, author =>
           pipe(
-            ReadonlyArray.filter([author.prefix, author.given, author.family, author.suffix], String.isString),
-            ReadonlyArray.join(' '),
+            Array.filter([author.prefix, author.given, author.family, author.suffix], String.isString),
+            Array.join(' '),
           ),
         ),
         Match.exhaustive,

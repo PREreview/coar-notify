@@ -55,7 +55,7 @@ export const Router = HttpServer.router.empty.pipe(
                   message: error.message,
                 }),
               ),
-            onSuccess: () => Effect.unit,
+            onSuccess: () => Effect.void,
           }),
         ),
       )

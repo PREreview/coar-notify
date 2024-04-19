@@ -32,7 +32,7 @@ export const LoggingHttpClient = HttpClient.client.makeDefault(request =>
         Effect.annotateLogs({ headers: HttpClient.headers.redact(request.headers, 'authorization') }),
       ),
     ),
-    Effect.zipRight(HttpClient.client.fetch()(request)),
+    Effect.zipRight(HttpClient.client.fetch(request)),
     Effect.tap(response =>
       Effect.logDebug('Received HTTP response').pipe(
         Effect.annotateLogs({ status: response.status, headers: response.headers }),
