@@ -7,7 +7,7 @@ import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import { ConfigLive } from './Config.js'
 import * as Crossref from './Crossref.js'
-import { JsonLogger, LoggingHttpClient } from './Logger.js'
+import { LoggingHttpClient } from './Logger.js'
 import * as Nodemailer from './Nodemailer.js'
 import { OpenAi } from './OpenAi.js'
 import * as Redis from './Redis.js'
@@ -64,7 +64,7 @@ const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
   Layer.provide(Layer.mergeAll(NotificationsQueueLive, Crossref.CrossrefApiLive)),
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
-  Layer.provide(Logger.replace(Logger.defaultLogger, JsonLogger)),
+  Layer.provide(Logger.json),
 )
 
 Layer.launch(Program).pipe(
