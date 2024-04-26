@@ -35,6 +35,32 @@ export const Router = HttpServer.router.empty.pipe(
       }),
     ),
   ),
+  HttpServer.router.get(
+    '/requests',
+
+    HttpServer.response.json([
+      {
+        timestamp: '2024-04-26T00:35:51.520Z',
+        preprint: 'https://doi.org/10.1590/SciELOPreprints.8264',
+      },
+      {
+        timestamp: '2024-04-26T00:34:21.520Z',
+        preprint: 'https://doi.org/10.1590/SciELOPreprints.8266',
+      },
+      {
+        timestamp: '2024-04-25T00:32:57.880Z',
+        preprint: 'https://doi.org/10.1590/SciELOPreprints.8800',
+      },
+      {
+        timestamp: '2024-04-24T00:47:03.240Z',
+        preprint: 'https://doi.org/10.1590/SciELOPreprints.8406',
+      },
+      {
+        timestamp: '2024-04-24T00:45:03.231Z',
+        preprint: 'https://doi.org/10.1590/SciELOPreprints.8470',
+      },
+    ]),
+  ),
   HttpServer.router.post(
     '/inbox',
     Effect.gen(function* (_) {
