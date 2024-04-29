@@ -1,11 +1,12 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Data, Effect, Exit } from 'effect'
+import { Array, Data, Effect, Exit } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Redis from './Redis.js'
+import { getNotifications } from './ReviewRequest.js'
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
@@ -37,29 +38,18 @@ export const Router = HttpServer.router.empty.pipe(
   ),
   HttpServer.router.get(
     '/requests',
+    Effect.gen(function* (_) {
+      const notifications = yield* _(getNotifications)
 
-    HttpServer.response.json([
-      {
-        timestamp: '2024-04-26T00:35:51.520Z',
-        preprint: 'https://doi.org/10.1590/SciELOPreprints.8264',
-      },
-      {
-        timestamp: '2024-04-26T00:34:21.520Z',
-        preprint: 'https://doi.org/10.1590/SciELOPreprints.8266',
-      },
-      {
-        timestamp: '2024-04-25T00:32:57.880Z',
-        preprint: 'https://doi.org/10.1590/SciELOPreprints.8800',
-      },
-      {
-        timestamp: '2024-04-24T00:47:03.240Z',
-        preprint: 'https://doi.org/10.1590/SciELOPreprints.8406',
-      },
-      {
-        timestamp: '2024-04-24T00:45:03.231Z',
-        preprint: 'https://doi.org/10.1590/SciELOPreprints.8470',
-      },
-    ]),
+      return yield* _(
+        HttpServer.response.json(
+          Array.map(notifications, ({ notification, timestamp }) => ({
+            timestamp: timestamp.toString(),
+            preprint: notification.object['ietf:cite-as'],
+          })),
+        ),
+      )
+    }),
   ),
   HttpServer.router.post(
     '/inbox',

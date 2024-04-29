@@ -78,6 +78,17 @@ export const ping = (): Effect.Effect<'PONG', RedisError, Redis> =>
     return yield* _(Effect.tryPromise({ try: () => redis.ping(), catch: toRedisError }))
   })
 
+export const lrange = (
+  key: IoRedis.RedisKey,
+  start: number,
+  stop: number,
+): Effect.Effect<Array<unknown>, RedisError, Redis> =>
+  Effect.gen(function* (_) {
+    const redis = yield* _(Redis)
+
+    return yield* _(Effect.tryPromise({ try: () => redis.lrange(key, start, stop), catch: toRedisError }))
+  })
+
 export const lpush = (
   ...args: [key: IoRedis.RedisKey, ...elements: ReadonlyArray<IoRedis.RedisValue>]
 ): Effect.Effect<void, RedisError, Redis> =>
