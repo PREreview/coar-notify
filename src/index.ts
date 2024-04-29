@@ -16,7 +16,9 @@ import { Router } from './Router.js'
 
 const ServerLive = Router.pipe(
   HttpServer.server.serve(HttpServer.middleware.logger),
-  Layer.provide(NodeHttpServer.server.layer(() => createServer(), { port: 3000 })),
+  Layer.provide(
+    NodeHttpServer.server.layerConfig(() => createServer(), { port: Config.withDefault(Config.integer('PORT'), 3000) }),
+  ),
 )
 
 const HttpClientLive = Layer.succeed(
