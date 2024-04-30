@@ -1,6 +1,6 @@
 import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
-import { Effect, Either, TestClock, TestContext } from 'effect'
+import { Effect, Either, Number as Number_, Option, TestClock, TestContext } from 'effect'
 import { describe, expect } from 'vitest'
 import * as _ from '../src/Temporal.js'
 import * as fc from './fc.js'
@@ -17,15 +17,48 @@ describe('PlainYear', () => {
   })
 
   describe('from', () => {
-    test.prop([fc.integer({ min: -271820, max: 275760 })])('with a year', year => {
-      const actual = _.PlainYear.from({ year })
+    describe('with a string', () => {
+      test.prop([fc.integer({ min: -271820, max: 275760 })])('with a year', year => {
+        const actual = _.PlainYear.from(
+          year < 0 || year > 9999
+            ? (year < 0 ? '-' : '+') + `000000${Math.abs(year)}`.slice(-6)
+            : `0000${year}`.slice(-4),
+        )
 
-      expect(actual.year).toStrictEqual(year)
+        expect(actual.year).toStrictEqual(year)
+      })
+
+      test.prop([
+        fc
+          .oneof(
+            fc.fullUnicodeString().filter(s => Option.isNone(Number_.parse(s))),
+            fc.double({ max: -271821 }),
+            fc.double({ min: 275761 }),
+            fc.double({ min: -1000, max: 1000, minExcluded: true, maxExcluded: true }),
+          )
+          .map(String),
+      ])('with a non-year', value => {
+        expect(() => _.PlainYear.from(value, { overflow: 'reject' })).toThrow()
+      })
     })
 
-    test.prop([fc.oneof(fc.double({ max: -271821 }), fc.double({ min: 275761 }))])('with a non-year', value => {
-      expect(() => _.PlainYear.from({ year: value }, { overflow: 'reject' })).toThrow()
+    describe('with an object', () => {
+      test.prop([fc.integer({ min: -271820, max: 275760 })])('with a year', year => {
+        const actual = _.PlainYear.from({ year })
+
+        expect(actual.year).toStrictEqual(year)
+      })
+
+      test.prop([fc.oneof(fc.double({ max: -271821 }), fc.double({ min: 275761 }))])('with a non-year', value => {
+        expect(() => _.PlainYear.from({ year: value }, { overflow: 'reject' })).toThrow()
+      })
     })
+  })
+
+  test.prop([fc.plainYear()])('toString', plainYear => {
+    const actual = plainYear.toString()
+
+    expect(_.PlainYear.from(actual)).toStrictEqual(plainYear)
   })
 })
 

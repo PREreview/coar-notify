@@ -17,8 +17,26 @@ export class PlainYear {
     this.year = this.internal.year
   }
 
-  static from(item: { year: number }, options?: Temporal.AssignmentOptions) {
+  static from(item: string | { year: number }, options?: Temporal.AssignmentOptions) {
+    if (typeof item === 'string') {
+      if (!/^[+\u2212-]\d{6}|\d{4}$/.test(item)) {
+        throw new TypeError(`invalid year ${item}`)
+      }
+
+      return new PlainYear(Temporal.PlainYearMonth.from(`${item}-01`, options).getISOFields().isoYear)
+    }
+
     return new PlainYear(Temporal.PlainYearMonth.from({ ...item, month: 1 }, options).getISOFields().isoYear)
+  }
+
+  toString(): string {
+    if (this.year < 0 || this.year > 9999) {
+      const sign = this.year < 0 ? '-' : '+'
+      const yearNumber = Math.abs(this.year)
+      return sign + `000000${yearNumber}`.slice(-6)
+    }
+
+    return `0000${this.year}`.slice(-4)
   }
 }
 
