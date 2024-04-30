@@ -13,26 +13,23 @@ describe('Doi', () => {
       ['10.0001.112/journal.pone.0011021'],
       ['10.0001/issn.10001'],
       ['10.10.123/456'],
-      ['10.1002/(SICI)1096-8644(199808)106:4<483::AID-AJPA4>3.0.CO;2-K'],
+      ['10.1000/456#789'],
+      ['10.1000/456%23%23789'],
+      ['10.1002/(SICI)1521-3951(199911)216:1<135::AID-PSSB135>3.0.CO;2-#'],
       ['10.0000/.a'],
       ['10.0000/..a'],
       ['10.0000/./'],
       ['10.0000/../'],
+      ['10.0000/...'],
+      ['10.0000/.../'],
+      ['10.0000/\\'],
     ],
   })('with a DOI', value => {
     expect(_.Doi.is(value)).toBeTruthy()
   })
 
-  test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.startsWith('10.'))], {
-    examples: [
-      ['10..1000/journal.pone.0011111'],
-      ['1.1/1.1'],
-      ['10/134980'],
-      ['10.001/001#00'],
-      ['10.1000/456%23789'],
-      ['10.0000/.'],
-      ['10.0000/..'],
-    ],
+  test.prop([fc.fullUnicodeString().filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))], {
+    examples: [['10..1000/journal.pone.0011111'], ['1.1/1.1'], ['10/134980'], ['10.0000/.'], ['10.0000/..']],
   })('with a non-DOI', value => {
     expect(_.Doi.is(value)).toBeFalsy()
   })
@@ -73,14 +70,18 @@ test.prop(
   {
     examples: [
       [[_.Doi('10.0001/journal/pone.0011111'), 'https://doi.org/10.0001/journal/pone.0011111']],
+      [[_.Doi('10.1000/456#789'), 'https://doi.org/10.1000/456%23789']],
+      [[_.Doi('10.1000/456%23%23789'), 'https://doi.org/10.1000/456%2523%2523789']],
       [
         [
-          _.Doi('10.1002/(SICI)1096-8644(199808)106:4<483::AID-AJPA4>3.0.CO;2-K'),
-          'https://doi.org/10.1002/(SICI)1096-8644(199808)106:4%3C483::AID-AJPA4%3E3.0.CO;2-K',
+          _.Doi('10.1002/(SICI)1521-3951(199911)216:1<135::AID-PSSB135>3.0.CO;2-#'),
+          'https://doi.org/10.1002/(SICI)1521-3951(199911)216:1%3C135::AID-PSSB135%3E3.0.CO;2-%23',
         ],
       ],
       [[_.Doi('10.1000/./'), 'https://doi.org/10.1000/.%2F']],
       [[_.Doi('10.1000/../'), 'https://doi.org/10.1000/..%2F']],
+      [[_.Doi('10.1000/...'), 'https://doi.org/10.1000/...']],
+      [[_.Doi('10.1000/.../'), 'https://doi.org/10.1000/.../']],
       [[_.Doi('10.1000/\\'), 'https://doi.org/10.1000/%5C']],
       [[_.Doi('10.1000/\u0000'), 'https://doi.org/10.1000/%00']],
     ],
@@ -97,7 +98,7 @@ describe('DoiSchema', () => {
       expect(actual).toBe(doi)
     })
 
-    test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.startsWith('10.'))])(
+    test.prop([fc.fullUnicodeString().filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))])(
       'with a non-DOI',
       value => {
         const actual = Schema.decodeUnknownEither(_.DoiSchema)(value)
@@ -116,27 +117,51 @@ describe('DoiSchema', () => {
 
 describe('DoiUrlSchema', () => {
   describe('decoding', () => {
-    test.prop([
-      fc
-        .tuple(
-          fc.constantFrom('doi:', 'https://doi.org/', 'http://doi.org/', 'https://dx.doi.org/', 'http://dx.doi.org/'),
-          fc.doi(),
-        )
-        .map(([prefix, doi]) => [doi, `${prefix}${doi}`] satisfies [_.Doi, string]),
-    ])('with a DOI', ([expected, value]) => {
+    test.prop(
+      [
+        fc.oneof(
+          fc.doi().map(doi => [doi, `doi:${doi}`] satisfies [_.Doi, string]),
+          fc
+            .tuple(fc.doi(), fc.constantFrom('https', 'http'), fc.constantFrom('doi.org', 'dx.doi.org'))
+            .map(
+              ([doi, scheme, host]) =>
+                [doi, new URL(`${scheme}://${host}/${encodeURI(doi)}`).href] satisfies [_.Doi, string],
+            ),
+        ),
+      ],
+      {
+        examples: [
+          [[_.Doi('10.0001/journal/pone.0011111'), 'https://doi.org/10.0001/journal/pone.0011111']],
+          [[_.Doi('10.1000/456#789'), 'https://doi.org/10.1000/456%23789']],
+          [[_.Doi('10.1000/456%23%23789'), 'https://doi.org/10.1000/456%2523%2523789']],
+          [
+            [
+              _.Doi('10.1002/(SICI)1521-3951(199911)216:1<135::AID-PSSB135>3.0.CO;2-#'),
+              'https://doi.org/10.1002/(SICI)1521-3951(199911)216:1%3C135::AID-PSSB135%3E3.0.CO;2-%23',
+            ],
+          ],
+          [[_.Doi('10.1000/./'), 'https://doi.org/10.1000/.%2F']],
+          [[_.Doi('10.1000/../'), 'https://doi.org/10.1000/..%2F']],
+          [[_.Doi('10.1000/...'), 'https://doi.org/10.1000/...']],
+          [[_.Doi('10.1000/.../'), 'https://doi.org/10.1000/.../']],
+          [[_.Doi('10.1000/\\'), 'https://doi.org/10.1000/%5C']],
+        ],
+      },
+    )('with a DOI', ([expected, value]) => {
       const actual = Schema.decodeUnknownSync(_.DoiUrlSchema)(value)
 
       expect(actual).toBe(expected)
     })
 
-    test.prop([fc.fullUnicodeString().filter(s => !s.includes('/') || !s.includes('10.') || !s.includes('doi.org'))])(
-      'with a non-DOI',
-      value => {
-        const actual = Schema.decodeUnknownEither(_.DoiUrlSchema)(value)
+    test.prop([
+      fc
+        .fullUnicodeString()
+        .filter(s => /\s/.test(s) || !s.includes('/') || !s.includes('10.') || !s.includes('doi.org')),
+    ])('with a non-DOI', value => {
+      const actual = Schema.decodeUnknownEither(_.DoiUrlSchema)(value)
 
-        expect(actual).toStrictEqual(Either.left(expect.anything()))
-      },
-    )
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
   })
 
   test.prop([fc.doi()])('encoding', doi => {
