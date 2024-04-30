@@ -2,11 +2,11 @@ import { test } from '@fast-check/vitest'
 import { Effect, Layer } from 'effect'
 import { describe, expect } from 'vitest'
 import * as Crossref from '../src/Crossref.js'
-import * as _ from '../src/Preprint.js'
+import * as _ from '../src/CrossrefPreprint.js'
 import * as TestContext from './TestContext.js'
 import * as fc from './fc.js'
 
-describe('getPreprint', () => {
+describe('getPreprintFromCrossref', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
@@ -22,7 +22,7 @@ describe('getPreprint', () => {
     fc.plainDate(),
   ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, abstract, posted) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi))
+      const actual = yield* $(_.getPreprintFromCrossref(doi))
 
       expect(actual).toStrictEqual({
         abstract,
@@ -76,9 +76,9 @@ describe('getPreprint', () => {
     ),
   ])("when a work doesn't have a title", (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('No title found')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -108,9 +108,9 @@ describe('getPreprint', () => {
     ),
   ])("when a work doesn't have an abstract", (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('No abstract found')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -142,9 +142,9 @@ describe('getPreprint', () => {
     ),
   ])('when a work has an incomplete published date', (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('Published date incomplete')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -176,9 +176,9 @@ describe('getPreprint', () => {
     ),
   ])("when a work doesn't have a published date", (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('No published date found')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -200,9 +200,9 @@ describe('getPreprint', () => {
     ),
   ])("when a work isn't a preprint", (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('Not a preprint')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -229,9 +229,9 @@ describe('getPreprint', () => {
     ),
   ])("when the preprint server isn't supported", (doi, work) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual('Not from a supported server')
     }).pipe(
       Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
@@ -242,9 +242,9 @@ describe('getPreprint', () => {
 
   test.prop([fc.doi(), fc.string()])("when a work can't be found", (doi, message) =>
     Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprint(doi), Effect.flip)
+      const actual = yield* $(_.getPreprintFromCrossref(doi), Effect.flip)
 
-      expect(actual).toBeInstanceOf(_.GetPreprintError)
+      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
       expect(actual.message).toStrictEqual(message)
     }).pipe(
       Effect.provide(
