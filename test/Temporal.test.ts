@@ -119,6 +119,31 @@ describe('InstantInMillisecondsSchema', () => {
   })
 })
 
+describe('InstantSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.instant()])('with an instant', instant => {
+      const actual = Schema.decodeUnknownSync(_.InstantSchema)(instant.toString())
+
+      expect(actual).toStrictEqual(instant)
+    })
+
+    test.prop([fc.anything().filter(value => typeof value !== 'string' || Number.isNaN(Date.parse(value)))])(
+      'with a non-instant',
+      value => {
+        const actual = Schema.decodeUnknownEither(_.InstantSchema)(value)
+
+        expect(actual).toStrictEqual(Either.left(expect.anything()))
+      },
+    )
+  })
+
+  test.prop([fc.instant()])('encoding', instant => {
+    const actual = Schema.encodeSync(_.InstantSchema)(instant)
+
+    expect(actual).toStrictEqual(instant.toString())
+  })
+})
+
 describe('PlainYearInTupleSchema', () => {
   describe('decoding', () => {
     test.prop([fc.plainYear()])('with date parts', plainYear => {
@@ -144,6 +169,32 @@ describe('PlainYearInTupleSchema', () => {
     const actual = Schema.encodeSync(_.PlainYearInTupleSchema)(plainYear)
 
     expect(actual).toStrictEqual([plainYear.year])
+  })
+})
+
+describe('PlainYearSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainYear()])('with a year', plainYear => {
+      const actual = Schema.decodeUnknownSync(_.PlainYearSchema)(plainYear.toString())
+
+      expect(actual).toStrictEqual(plainYear)
+    })
+
+    test.prop([
+      fc
+        .anything()
+        .filter(value => typeof value !== 'string' || Either.isLeft(Either.try(() => _.PlainYear.from(value)))),
+    ])('with a non-year', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainYearSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainYear()])('encoding', plainYear => {
+    const actual = Schema.encodeSync(_.PlainYearSchema)(plainYear)
+
+    expect(actual).toStrictEqual(plainYear.toString())
   })
 })
 
@@ -177,6 +228,32 @@ describe('PlainYearMonthInTupleSchema', () => {
     const actual = Schema.encodeSync(_.PlainYearMonthInTupleSchema)(plainYearMonth)
 
     expect(actual).toStrictEqual([plainYearMonth.year, plainYearMonth.month])
+  })
+})
+
+describe('PlainYearMonthSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainYearMonth()])('with a year-month', plainYearMonth => {
+      const actual = Schema.decodeUnknownSync(_.PlainYearMonthSchema)(plainYearMonth.toString())
+
+      expect(actual).toStrictEqual(plainYearMonth)
+    })
+
+    test.prop([
+      fc
+        .anything()
+        .filter(value => typeof value !== 'string' || Either.isLeft(Either.try(() => _.PlainYearMonth.from(value)))),
+    ])('with non-date parts', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainYearMonthSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainYearMonth()])('encoding', plainYearMonth => {
+    const actual = Schema.encodeSync(_.PlainYearMonthSchema)(plainYearMonth)
+
+    expect(actual).toStrictEqual(plainYearMonth.toString())
   })
 })
 
@@ -220,5 +297,31 @@ describe('PlainDateInTupleSchema', () => {
     const actual = Schema.encodeSync(_.PlainDateInTupleSchema)(plainDate)
 
     expect(actual).toStrictEqual([plainDate.year, plainDate.month, plainDate.day])
+  })
+})
+
+describe('PlainDateSchema', () => {
+  describe('decoding', () => {
+    test.prop([fc.plainDate()])('with a plain date', plainDate => {
+      const actual = Schema.decodeUnknownSync(_.PlainDateSchema)(plainDate.toString())
+
+      expect(actual).toStrictEqual(plainDate)
+    })
+
+    test.prop([
+      fc
+        .anything()
+        .filter(value => typeof value !== 'string' || Either.isLeft(Either.try(() => _.PlainYearMonth.from(value)))),
+    ])('with a non-date', value => {
+      const actual = Schema.decodeUnknownEither(_.PlainDateSchema)(value)
+
+      expect(actual).toStrictEqual(Either.left(expect.anything()))
+    })
+  })
+
+  test.prop([fc.plainDate()])('encoding', plainDate => {
+    const actual = Schema.encodeSync(_.PlainDateSchema)(plainDate)
+
+    expect(actual).toStrictEqual(plainDate.toString())
   })
 })
