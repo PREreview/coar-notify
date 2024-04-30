@@ -13,7 +13,8 @@ describe('getPreprintFromDatacite', () => {
     fc.string(),
     fc.string(),
     fc.plainDate(),
-  ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted) =>
+    fc.constantFrom('Submitted', 'Created', 'Issued'),
+  ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted, dateType) =>
     Effect.gen(function* ($) {
       const actual = yield* $(_.getPreprintFromDatacite(doi))
 
@@ -37,7 +38,7 @@ describe('getPreprintFromDatacite', () => {
               ],
               descriptions: [{ description: abstract, descriptionType: 'Abstract' }],
               doi: expectedDoi,
-              dates: Array.of({ date: posted, dateType: 'Submitted' }),
+              dates: Array.of({ date: posted, dateType }),
               titles: [{ title: expectedTitle }],
               types: { resourceType: 'Preprint' },
             }),
@@ -107,7 +108,7 @@ describe('getPreprintFromDatacite', () => {
       dates: fc.nonEmptyArray(
         fc.record({
           date: fc.oneof(fc.instant(), fc.plainYear(), fc.plainYearMonth(), fc.plainDate()),
-          dateType: fc.string().filter(string => string !== 'Submitted'),
+          dateType: fc.string().filter(string => !['Submitted', 'Created', 'Issued'].includes(string.toLowerCase())),
         }),
       ),
       doi: fc.doi({ registrant: fc.constant('48550') }),

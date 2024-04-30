@@ -69,6 +69,8 @@ export const getPreprintFromDatacite = (
 
     const posted = yield* _(
       Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'submitted'),
+      Effect.orElse(() => Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'created')),
+      Effect.orElse(() => Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'issued')),
       Effect.mapError(() => new GetPreprintFromDataciteError({ message: 'No published date found' })),
       Effect.flatMap(({ date }) =>
         Match.value(date).pipe(
