@@ -3,6 +3,7 @@ import { Array, String } from 'effect'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
 import type * as Crossref from '../src/Crossref.js'
+import type * as Datacite from '../src/Datacite.js'
 import type * as Doi from '../src/Doi.js'
 import * as Temporal from '../src/Temporal.js'
 
@@ -114,3 +115,32 @@ export const crossrefWork = (
         ),
       ) as never
     })
+
+export const dataciteWork = (
+  props: { [K in keyof Datacite.Work]?: fc.Arbitrary<Datacite.Work[K]> } = {},
+): fc.Arbitrary<Datacite.Work> =>
+  fc.record({
+    creators: fc.array(
+      fc.oneof(
+        fc.record(
+          {
+            familyName: fc.string(),
+            givenName: fc.string(),
+          },
+          { requiredKeys: ['familyName'] },
+        ),
+        fc.record({ name: fc.string() }),
+      ),
+    ),
+    descriptions: fc.array(fc.record({ description: fc.string(), descriptionType: fc.string() })),
+    doi: doi(),
+    dates: nonEmptyArray(
+      fc.record({
+        date: fc.oneof(instant(), plainYear(), plainYearMonth(), plainDate()),
+        dateType: fc.string(),
+      }),
+    ),
+    titles: nonEmptyArray(fc.record({ title: fc.string() })),
+    types: fc.record({ resourceType: fc.string(), resourceTypeGeneral: fc.string() }, { withDeletedKeys: true }),
+    ...props,
+  })
