@@ -17,6 +17,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('biorxiv'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('1101') }),
+        fc.constant([{ name: 'medRxiv' }]),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('medrxiv'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('1590') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
         fc.option(fc.string(), { nil: undefined }),
@@ -77,7 +83,7 @@ describe('getPreprintFromCrossref', () => {
     fc.oneof(
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.constant([{ name: 'bioRxiv' }]),
+        institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -115,7 +121,7 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.constant(undefined),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.constant([{ name: 'bioRxiv' }]),
+        institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -155,7 +161,7 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.constant([{ name: 'bioRxiv' }]),
+        institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -198,7 +204,7 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.constant([{ name: 'bioRxiv' }]),
+        institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -269,7 +275,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'bioRxiv') })),
+        institution: fc.array(fc.record({ name: fc.string().filter(name => !['bioRxiv', 'medRxiv'].includes(name)) })),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),

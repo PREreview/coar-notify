@@ -220,6 +220,7 @@ Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('arxiv', () => 'arXiv'),
               Match.when('biorxiv', () => 'bioRxiv'),
               Match.when('edarxiv', () => 'EdArXiv'),
+              Match.when('medrxiv', () => 'medRxiv'),
               Match.when('scielo', () => 'SciELO Preprints'),
               Match.exhaustive,
             )}"""
