@@ -8,7 +8,7 @@ export interface CrossrefPreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate
-  readonly server: 'biorxiv' | 'scielo'
+  readonly server: 'biorxiv' | 'edarxiv' | 'scielo'
   readonly title: string
 }
 
@@ -43,6 +43,7 @@ export const getPreprintFromCrossref = (
       Match.value([Doi.getRegistrant(work.DOI), work]),
       Match.when(['1101', { institution: [{ name: 'bioRxiv' }] }], () => 'biorxiv' as const),
       Match.when(['1590'], () => 'scielo' as const),
+      Match.when(['35542', { 'group-title': 'EdArXiv' }], () => 'edarxiv' as const),
       Match.either,
       Either.mapLeft(() => new GetPreprintFromCrossrefError({ message: 'Not from a supported server' })),
     )

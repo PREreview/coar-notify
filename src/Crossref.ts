@@ -93,6 +93,7 @@ export const WorkSchema = Schema.Struct({
     ),
   ),
   DOI: Doi.DoiSchema,
+  'group-title': Schema.optional(Schema.String),
   institution: Schema.optional(Schema.Array(Schema.Struct({ name: Schema.String }))),
   subtype: Schema.optional(Schema.String),
   published: Schema.optional(DateFromPartsSchema),

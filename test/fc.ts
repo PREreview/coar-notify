@@ -101,6 +101,7 @@ export const crossrefWork = (
         ),
       ),
       DOI: doi(),
+      'group-title': fc.option(fc.string(), { nil: undefined }),
       institution: fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
       published: fc.option(fc.oneof(plainYear(), plainYearMonth(), plainDate()), { nil: undefined }),
       subtype: fc.option(fc.string(), { nil: undefined }),
@@ -111,7 +112,8 @@ export const crossrefWork = (
     .map(work => {
       return Object.fromEntries(
         Object.entries(work).filter(
-          ([key, value]) => !['abstract', 'institution', 'published', 'subtype'].includes(key) || value !== undefined,
+          ([key, value]) =>
+            !['abstract', 'group-title', 'institution', 'published', 'subtype'].includes(key) || value !== undefined,
         ),
       ) as never
     })

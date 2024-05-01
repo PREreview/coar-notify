@@ -10,51 +10,66 @@ describe('getPreprintFromCrossref', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('1101') }), fc.constant([{ name: 'bioRxiv' }]), fc.constant('biorxiv')),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('1101') }),
+        fc.constant([{ name: 'bioRxiv' }]),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('biorxiv'),
+      ),
       fc.tuple(
         fc.doi({ registrant: fc.constant('1590') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.option(fc.string(), { nil: undefined }),
         fc.constant('scielo'),
+      ),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('35542') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.constant('EdArXiv'),
+        fc.constant('edarxiv'),
       ),
     ),
     fc.string(),
     fc.string(),
     fc.plainDate(),
-  ])('when a work is found', (doi, [expectedDoi, institution, expectedServer], expectedTitle, abstract, posted) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromCrossref(doi))
+  ])(
+    'when a work is found',
+    (doi, [expectedDoi, institution, groupTitle, expectedServer], expectedTitle, abstract, posted) =>
+      Effect.gen(function* ($) {
+        const actual = yield* $(_.getPreprintFromCrossref(doi))
 
-      expect(actual).toStrictEqual({
-        abstract,
-        authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
-        doi: expectedDoi,
-        posted,
-        server: expectedServer,
-        title: expectedTitle,
-      })
-    }).pipe(
-      Effect.provide(
-        Layer.succeed(Crossref.CrossrefApi, {
-          getWork: () =>
-            Effect.succeed({
-              abstract,
-              author: [
-                { name: 'Author 1' },
-                { family: 'Author 2' },
-                { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
-              ],
-              DOI: expectedDoi,
-              institution,
-              published: posted,
-              subtype: 'preprint',
-              title: [expectedTitle],
-              type: 'posted-content',
-            }),
-        }),
+        expect(actual).toStrictEqual({
+          abstract,
+          authors: ['Author 1', 'Author 2', 'Prefix Given Author 3 Suffix'],
+          doi: expectedDoi,
+          posted,
+          server: expectedServer,
+          title: expectedTitle,
+        })
+      }).pipe(
+        Effect.provide(
+          Layer.succeed(Crossref.CrossrefApi, {
+            getWork: () =>
+              Effect.succeed({
+                abstract,
+                author: [
+                  { name: 'Author 1' },
+                  { family: 'Author 2' },
+                  { family: 'Author 3', given: 'Given', prefix: 'Prefix', suffix: 'Suffix' },
+                ],
+                DOI: expectedDoi,
+                'group-title': groupTitle,
+                institution,
+                published: posted,
+                subtype: 'preprint',
+                title: [expectedTitle],
+                type: 'posted-content',
+              }),
+          }),
+        ),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
       ),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
   )
 
   test.prop([
@@ -69,6 +84,13 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1590') }),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('35542') }),
+        'group-title': fc.constant('EdArXiv'),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -101,6 +123,14 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.constant(undefined),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.constant(undefined),
+        DOI: fc.doi({ registrant: fc.constant('35542') }),
+        'group-title': fc.constant('EdArXiv'),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -139,6 +169,15 @@ describe('getPreprintFromCrossref', () => {
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
+      fc.crossrefWork({
+        abstract: fc.string(),
+        DOI: fc.doi({ registrant: fc.constant('35542') }),
+        'group-title': fc.constant('EdArXiv'),
+        published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
     ),
   ])('when a work has an incomplete published date', (doi, work) =>
     Effect.gen(function* ($) {
@@ -168,6 +207,15 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
+        published: fc.constant(undefined),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.string(),
+        DOI: fc.doi({ registrant: fc.constant('35542') }),
+        'group-title': fc.constant('EdArXiv'),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -222,6 +270,12 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'bioRxiv') })),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('35542') }),
+        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'EdArXiv') })),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
