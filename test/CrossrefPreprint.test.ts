@@ -215,14 +215,13 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1101', '1590'].includes(registrant)) }),
+        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1590'].includes(registrant)) }),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'bioRxiv') })),
-        title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
