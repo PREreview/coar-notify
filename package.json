@@ -17,7 +17,7 @@
     "ioredis": "^5.4.1",
     "mjml": "^4.15.3",
     "nodemailer": "^6.9.13",
-    "openai": "^4.38.5",
+    "openai": "^4.39.1",
     "slackify-markdown": "^4.4.0",
     "striptags": "^3.2.0"
   },
