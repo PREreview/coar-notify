@@ -50,20 +50,14 @@ export const PlainDateFromSelfSchema = Schema.instanceOf(Temporal.PlainDate)
 
 export const Timestamp = Clock.currentTimeMillis.pipe(Effect.map(n => Temporal.Instant.fromEpochMilliseconds(n)))
 
-export const InstantFromMillisecondsSchema = <A extends number, I, R>(
-  self: Schema.Schema<A, I, R>,
-): Schema.Schema<Temporal.Instant, I, R> =>
-  Schema.transformOrFail(self, InstantFromSelfSchema, {
-    decode: (number, _, ast) =>
-      ParseResult.try({
-        try: () => Temporal.Instant.fromEpochMilliseconds(number),
-        catch: () => new ParseResult.Type(ast, number),
-      }),
-    encode: instant => ParseResult.succeed(instant.epochMilliseconds),
-    strict: false,
-  })
-
-export const InstantInMillisecondsSchema = InstantFromMillisecondsSchema(Schema.Number)
+export const InstantInMillisecondsSchema = Schema.transformOrFail(Schema.Number, InstantFromSelfSchema, {
+  decode: (number, _, ast) =>
+    ParseResult.try({
+      try: () => Temporal.Instant.fromEpochMilliseconds(number),
+      catch: () => new ParseResult.Type(ast, number),
+    }),
+  encode: instant => ParseResult.succeed(instant.epochMilliseconds),
+})
 
 export const InstantSchema: Schema.Schema<Instant, string> = Schema.transformOrFail(
   Schema.String,
