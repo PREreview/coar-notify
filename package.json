@@ -38,7 +38,7 @@
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-no-comments": "^1.1.10",
-    "fast-check": "^3.17.2",
+    "fast-check": "^3.18.0",
     "fetch-mock": "^9.11.0",
     "open-cli": "^8.0.0",
     "prettier": "^3.2.5",
