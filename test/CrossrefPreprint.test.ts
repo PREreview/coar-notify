@@ -29,6 +29,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('scielo'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('31219') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.constant('Open Science Framework'),
+        fc.constant('osf-preprints'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('31234') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
         fc.constant('PsyArXiv'),
@@ -101,6 +107,13 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('31219') }),
+        'group-title': fc.constant('Open Science Framework'),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('31234') }),
         'group-title': fc.constant('PsyArXiv'),
         title: fc.constant([]),
@@ -142,6 +155,14 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.constant(undefined),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.constant(undefined),
+        DOI: fc.doi({ registrant: fc.constant('31219') }),
+        'group-title': fc.constant('Open Science Framework'),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -198,6 +219,15 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.string(),
+        DOI: fc.doi({ registrant: fc.constant('31219') }),
+        'group-title': fc.constant('Open Science Framework'),
+        published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('31234') }),
         'group-title': fc.constant('PsyArXiv'),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -243,6 +273,15 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.string(),
         DOI: fc.doi({ registrant: fc.constant('1590') }),
+        published: fc.constant(undefined),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.string(),
+        DOI: fc.doi({ registrant: fc.constant('31219') }),
+        'group-title': fc.constant('Open Science Framework'),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -315,6 +354,12 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.array(fc.record({ name: fc.string().filter(name => !['bioRxiv', 'medRxiv'].includes(name)) })),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('31219') }),
+        'group-title': fc.string().filter(name => name !== 'Open Science Framework'),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
