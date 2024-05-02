@@ -8,7 +8,15 @@ export interface CrossrefPreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate
-  readonly server: 'biorxiv' | 'ecoevorxiv' | 'edarxiv' | 'medrxiv' | 'osf-preprints' | 'psyarxiv' | 'scielo'
+  readonly server:
+    | 'biorxiv'
+    | 'ecoevorxiv'
+    | 'edarxiv'
+    | 'medrxiv'
+    | 'osf-preprints'
+    | 'psyarxiv'
+    | 'scielo'
+    | 'socarxiv'
   readonly title: string
 }
 
@@ -46,6 +54,7 @@ export const getPreprintFromCrossref = (
       Match.when(['1590'], () => 'scielo' as const),
       Match.when(['31219', { 'group-title': 'Open Science Framework' }], () => 'osf-preprints' as const),
       Match.when(['31234', { 'group-title': 'PsyArXiv' }], () => 'psyarxiv' as const),
+      Match.when(['31235', { 'group-title': 'SocArXiv' }], () => 'socarxiv' as const),
       Match.when(['32942'], () => 'ecoevorxiv' as const),
       Match.when(['35542', { 'group-title': 'EdArXiv' }], () => 'edarxiv' as const),
       Match.either,

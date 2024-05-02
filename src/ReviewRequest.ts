@@ -225,6 +225,7 @@ Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('osf-preprints', () => 'OSF Preprints'),
               Match.when('psyarxiv', () => 'PsyArXiv'),
               Match.when('scielo', () => 'SciELO Preprints'),
+              Match.when('socarxiv', () => 'SocArXiv'),
               Match.exhaustive,
             )}"""
 
@@ -316,32 +317,32 @@ ${JSON.stringify(exampleThread)}
                       </mj-text>
                       <mj-text>
                         You can join our Slack Community and add further details to your review request by signing up
-                        at <a href="https://bit.ly/PREreview-Slack">bit.ly/PREreview-Slack</a>.
+                        at <a href='https://bit.ly/PREreview-Slack'>bit.ly/PREreview-Slack</a>.
                       </mj-text>
                       <mj-text>
                         If you have any questions, please let us know at
-                        <a href="mailto:help@prereview.org">help@prereview.org</a>.
+                        <a href='mailto:help@prereview.org'>help@prereview.org</a>.
                       </mj-text>
                       <mj-text>All the best,<br />PREreview</mj-text>
                     </mj-column>
                   </mj-section>
-                  <mj-section padding-bottom="0" border-top="1px solid lightgrey">
-                    <mj-column width="25%" vertical-align="middle">
+                  <mj-section padding-bottom='0' border-top='1px solid lightgrey'>
+                    <mj-column width='25%' vertical-align='middle'>
                       <mj-image
-                        href="https://prereview.org"
-                        src="https://res.cloudinary.com/prereview/image/upload/f_auto,q_auto,w_300/emails/logo_tbhi5b"
-                        padding="0"
+                        href='https://prereview.org'
+                        src='https://res.cloudinary.com/prereview/image/upload/f_auto,q_auto,w_300/emails/logo_tbhi5b'
+                        padding='0'
                       />
                     </mj-column>
-                    <mj-column width="75%" vertical-align="middle">
-                      <mj-text font-size="11px">PREreview is a platform, resource center, and convener.</mj-text>
-                      <mj-text font-size="11px">
+                    <mj-column width='75%' vertical-align='middle'>
+                      <mj-text font-size='11px'>PREreview is a platform, resource center, and convener.</mj-text>
+                      <mj-text font-size='11px'>
                         We provide ways for feedback to preprints to be done openly, rapidly, constructively, and by a
                         global community of peers.
                       </mj-text>
-                      <mj-text font-size="11px">
-                        Join us at <a href="https://prereview.org">prereview.org</a> and
-                        <a href="https://bit.ly/PREreview-Slack">sign up to our vibrant Slack community</a>.
+                      <mj-text font-size='11px'>
+                        Join us at <a href='https://prereview.org'>prereview.org</a> and
+                        <a href='https://bit.ly/PREreview-Slack'>sign up to our vibrant Slack community</a>.
                       </mj-text>
                     </mj-column>
                   </mj-section>
