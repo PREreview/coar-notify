@@ -320,13 +320,13 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('31234') }),
-        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'PsyArXiv') })),
+        'group-title': fc.string().filter(name => name !== 'PsyArXiv'),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('35542') }),
-        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'EdArXiv') })),
+        'group-title': fc.string().filter(name => name !== 'EdArXiv'),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),
