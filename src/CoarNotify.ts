@@ -12,21 +12,21 @@ export const RequestReviewSchema = Schema.Struct({
   id: Schema.String,
   type: Schema.Tuple(Schema.Literal('Offer'), Schema.Literal('coar-notify:ReviewAction')),
   origin: Schema.Struct({
-    id: Url.UrlSchema,
-    inbox: Url.UrlSchema,
+    id: Url.UrlFromStringSchema,
+    inbox: Url.UrlFromStringSchema,
     type: Schema.Literal('Organization', 'Service'),
   }),
   target: Schema.Struct({
-    id: Url.UrlSchema,
-    inbox: Url.UrlSchema,
+    id: Url.UrlFromStringSchema,
+    inbox: Url.UrlFromStringSchema,
     type: Schema.Literal('Organization', 'Service'),
   }),
   object: Schema.Struct({
     id: Schema.String,
-    'ietf:cite-as': Doi.DoiUrlSchema,
+    'ietf:cite-as': Doi.DoiFromUrlSchema,
   }),
   actor: Schema.Struct({
-    id: Url.UrlSchema,
+    id: Url.UrlFromStringSchema,
     type: Schema.Literal('Application', 'Group', 'Organization', 'Person', 'Service'),
     name: Schema.String.pipe(Schema.trimmed(), Schema.nonEmpty()),
   }),

@@ -50,7 +50,7 @@ export const PlainDateFromSelfSchema = Schema.instanceOf(Temporal.PlainDate)
 
 export const Timestamp = Clock.currentTimeMillis.pipe(Effect.map(n => Temporal.Instant.fromEpochMilliseconds(n)))
 
-export const InstantInMillisecondsSchema = Schema.transformOrFail(Schema.Number, InstantFromSelfSchema, {
+export const InstantFromMillisecondsSchema = Schema.transformOrFail(Schema.Number, InstantFromSelfSchema, {
   decode: (number, _, ast) =>
     ParseResult.try({
       try: () => Temporal.Instant.fromEpochMilliseconds(number),
@@ -59,7 +59,7 @@ export const InstantInMillisecondsSchema = Schema.transformOrFail(Schema.Number,
   encode: instant => ParseResult.succeed(instant.epochMilliseconds),
 })
 
-export const InstantSchema: Schema.Schema<Instant, string> = Schema.transformOrFail(
+export const InstantFromStringSchema: Schema.Schema<Instant, string> = Schema.transformOrFail(
   Schema.String,
   InstantFromSelfSchema,
   {
@@ -72,7 +72,7 @@ export const InstantSchema: Schema.Schema<Instant, string> = Schema.transformOrF
   },
 )
 
-export const PlainYearInTupleSchema: Schema.Schema<PlainYear, readonly [number]> = Schema.transformOrFail(
+export const PlainYearFromTupleSchema: Schema.Schema<PlainYear, readonly [number]> = Schema.transformOrFail(
   Schema.Tuple(Schema.Number),
   PlainYearFromSelfSchema,
   {
@@ -85,7 +85,7 @@ export const PlainYearInTupleSchema: Schema.Schema<PlainYear, readonly [number]>
   },
 )
 
-export const PlainYearSchema: Schema.Schema<PlainYear, string> = Schema.transformOrFail(
+export const PlainYearFromStringSchema: Schema.Schema<PlainYear, string> = Schema.transformOrFail(
   Schema.String,
   PlainYearFromSelfSchema,
   {
@@ -98,7 +98,7 @@ export const PlainYearSchema: Schema.Schema<PlainYear, string> = Schema.transfor
   },
 )
 
-export const PlainYearMonthInTupleSchema: Schema.Schema<Temporal.PlainYearMonth, readonly [number, number]> =
+export const PlainYearMonthFromTupleSchema: Schema.Schema<Temporal.PlainYearMonth, readonly [number, number]> =
   Schema.transformOrFail(Schema.Tuple(Schema.Number, Schema.Number), PlainYearMonthFromSelfSchema, {
     decode: ([year, month], _, ast) =>
       ParseResult.try({
@@ -108,7 +108,7 @@ export const PlainYearMonthInTupleSchema: Schema.Schema<Temporal.PlainYearMonth,
     encode: plainYearMonth => ParseResult.succeed(Tuple.make(plainYearMonth.year, plainYearMonth.month)),
   })
 
-export const PlainYearMonthSchema: Schema.Schema<Temporal.PlainYearMonth, string> = Schema.transformOrFail(
+export const PlainYearMonthFromStringSchema: Schema.Schema<Temporal.PlainYearMonth, string> = Schema.transformOrFail(
   Schema.String,
   PlainYearMonthFromSelfSchema,
   {
@@ -121,7 +121,7 @@ export const PlainYearMonthSchema: Schema.Schema<Temporal.PlainYearMonth, string
   },
 )
 
-export const PlainDateInTupleSchema: Schema.Schema<Temporal.PlainDate, readonly [number, number, number]> =
+export const PlainDateFromTupleSchema: Schema.Schema<Temporal.PlainDate, readonly [number, number, number]> =
   Schema.transformOrFail(Schema.Tuple(Schema.Number, Schema.Number, Schema.Number), PlainDateFromSelfSchema, {
     decode: ([year, month, day], _, ast) =>
       ParseResult.try({
@@ -131,7 +131,7 @@ export const PlainDateInTupleSchema: Schema.Schema<Temporal.PlainDate, readonly 
     encode: plainDate => ParseResult.succeed(Tuple.make(plainDate.year, plainDate.month, plainDate.day)),
   })
 
-export const PlainDateSchema: Schema.Schema<Temporal.PlainDate, string> = Schema.transformOrFail(
+export const PlainDateFromStringSchema: Schema.Schema<Temporal.PlainDate, string> = Schema.transformOrFail(
   Schema.String,
   PlainDateFromSelfSchema,
   {

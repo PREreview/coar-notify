@@ -49,7 +49,7 @@ const parse: (s: string) => Option.Option<Doi> = flow(String.trim, s => {
 
 export const DoiSchema = Schema.String.pipe(Schema.fromBrand(Doi))
 
-export const DoiUrlSchema: Schema.Schema<Doi, string> = Schema.transformOrFail(
+export const DoiFromUrlSchema: Schema.Schema<Doi, string> = Schema.transformOrFail(
   Schema.String,
   Schema.typeSchema(DoiSchema),
   {

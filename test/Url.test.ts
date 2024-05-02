@@ -27,10 +27,10 @@ describe('UrlFromSelfSchema', () => {
   })
 })
 
-describe('UrlSchema', () => {
+describe('UrlFromStringSchema', () => {
   describe('decoding', () => {
     test.prop([fc.url()])('with a URL', url => {
-      const actual = Schema.decodeUnknownSync(_.UrlSchema)(url.href)
+      const actual = Schema.decodeUnknownSync(_.UrlFromStringSchema)(url.href)
 
       expect(actual).toStrictEqual(url)
     })
@@ -38,7 +38,7 @@ describe('UrlSchema', () => {
     test.prop([fc.anything().filter(value => typeof value !== 'string' || !URL.canParse(value))])(
       'with a non-URL',
       value => {
-        const actual = Schema.decodeUnknownEither(_.UrlSchema)(value)
+        const actual = Schema.decodeUnknownEither(_.UrlFromStringSchema)(value)
 
         expect(actual).toStrictEqual(Either.left(expect.anything()))
       },
@@ -46,7 +46,7 @@ describe('UrlSchema', () => {
   })
 
   test.prop([fc.url()])('encoding', url => {
-    const actual = Schema.encodeSync(_.UrlSchema)(url)
+    const actual = Schema.encodeSync(_.UrlFromStringSchema)(url)
 
     expect(actual).toStrictEqual(url.href)
   })

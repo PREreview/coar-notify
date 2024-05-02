@@ -39,7 +39,7 @@ const ButtonElementSchema = Schema.Struct({
   type: Schema.Literal('button'),
   text: PlainTextObjectSchema,
   style: Schema.optional(Schema.Literal('primary', 'danger')),
-  url: Url.UrlSchema,
+  url: Url.UrlFromStringSchema,
 })
 
 export type SlackButtonElement = Schema.Schema.Type<typeof ButtonElementSchema>
@@ -95,7 +95,7 @@ const ChatPostMessageResponseSchema = SlackResponse(Schema.Struct({ channel: Cha
 
 const ChatDeleteResponseSchema = SlackResponse(Schema.Struct({ channel: ChannelIdSchema, ts: TimestampSchema }))
 
-const ChatGetPermalinkResponseSchema = SlackResponse(Schema.Struct({ permalink: Url.UrlSchema }))
+const ChatGetPermalinkResponseSchema = SlackResponse(Schema.Struct({ permalink: Url.UrlFromStringSchema }))
 
 export class SlackError extends Data.TaggedError('SlackError')<{
   readonly cause?: Error | undefined

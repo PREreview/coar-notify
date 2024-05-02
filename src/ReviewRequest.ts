@@ -20,7 +20,7 @@ export interface SlackChannelConfig {
 export const SlackChannelConfig = Context.GenericTag<SlackChannelConfig>('SlackChannelConfig')
 
 const NotificationSchema = Schema.Struct({
-  timestamp: Temporal.InstantInMillisecondsSchema,
+  timestamp: Temporal.InstantFromMillisecondsSchema,
   notification: CoarNotify.RequestReviewSchema,
 })
 

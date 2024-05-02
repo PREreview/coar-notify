@@ -68,10 +68,10 @@ const DataSchema = <T extends string, A, I, R>(type: T, attributesSchema: Schema
   })
 
 const PartialDateSchema = Schema.Union(
-  Temporal.InstantSchema,
-  Temporal.PlainDateSchema,
-  Temporal.PlainYearMonthSchema,
-  Temporal.PlainYearSchema,
+  Temporal.InstantFromStringSchema,
+  Temporal.PlainDateFromStringSchema,
+  Temporal.PlainYearMonthFromStringSchema,
+  Temporal.PlainYearFromStringSchema,
 )
 
 export const WorkSchema = Schema.Struct({

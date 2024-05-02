@@ -62,9 +62,9 @@ export const CrossrefApiLive = Layer.effect(
 const MessageSchema = <A, I, R>(messageSchema: Schema.Schema<A, I, R>) => Schema.Struct({ message: messageSchema })
 
 const PartialDateSchema = Schema.Union(
-  Temporal.PlainYearInTupleSchema,
-  Temporal.PlainYearMonthInTupleSchema,
-  Temporal.PlainDateInTupleSchema,
+  Temporal.PlainYearFromTupleSchema,
+  Temporal.PlainYearMonthFromTupleSchema,
+  Temporal.PlainDateFromTupleSchema,
 )
 
 const DateFromPartsSchema = Schema.transform(

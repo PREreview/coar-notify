@@ -115,7 +115,7 @@ describe('DoiSchema', () => {
   })
 })
 
-describe('DoiUrlSchema', () => {
+describe('DoiFromUrlSchema', () => {
   describe('decoding', () => {
     test.prop(
       [
@@ -148,7 +148,7 @@ describe('DoiUrlSchema', () => {
         ],
       },
     )('with a DOI', ([expected, value]) => {
-      const actual = Schema.decodeUnknownSync(_.DoiUrlSchema)(value)
+      const actual = Schema.decodeUnknownSync(_.DoiFromUrlSchema)(value)
 
       expect(actual).toBe(expected)
     })
@@ -158,14 +158,14 @@ describe('DoiUrlSchema', () => {
         .fullUnicodeString()
         .filter(s => /\s/.test(s) || !s.includes('/') || !s.includes('10.') || !s.includes('doi.org')),
     ])('with a non-DOI', value => {
-      const actual = Schema.decodeUnknownEither(_.DoiUrlSchema)(value)
+      const actual = Schema.decodeUnknownEither(_.DoiFromUrlSchema)(value)
 
       expect(actual).toStrictEqual(Either.left(expect.anything()))
     })
   })
 
   test.prop([fc.doi()])('encoding', doi => {
-    const actual = Schema.encodeSync(_.DoiUrlSchema)(doi)
+    const actual = Schema.encodeSync(_.DoiFromUrlSchema)(doi)
 
     expect(actual).toStrictEqual(_.toUrl(doi).href)
   })
