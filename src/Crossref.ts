@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Data, Effect, Equal, Layer, Match } from 'effect'
+import { Context, Data, Effect, Equal, Layer, Match, Tuple } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -72,8 +72,7 @@ const DateFromPartsSchema = Schema.transform(
   Schema.encodedSchema(PartialDateSchema),
   {
     decode: input => input['date-parts'][0],
-    encode: parts => ({ 'date-parts': [parts] }),
-    strict: false,
+    encode: parts => ({ 'date-parts': Tuple.make(parts) }),
   },
 ).pipe(Schema.compose(PartialDateSchema))
 

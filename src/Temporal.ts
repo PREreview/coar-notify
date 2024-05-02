@@ -1,6 +1,6 @@
 import { ParseResult, Schema } from '@effect/schema'
 import { Temporal } from '@js-temporal/polyfill'
-import { Clock, Effect } from 'effect'
+import { Clock, Effect, Tuple } from 'effect'
 
 export const { Instant, PlainDate, PlainYearMonth } = Temporal
 
@@ -87,8 +87,7 @@ export const PlainYearInTupleSchema: Schema.Schema<PlainYear, readonly [number]>
         try: () => PlainYear.from({ year }, { overflow: 'reject' }),
         catch: () => new ParseResult.Type(ast, [year]),
       }),
-    encode: plainYear => ParseResult.succeed([plainYear.year]),
-    strict: false,
+    encode: plainYear => ParseResult.succeed(Tuple.make(plainYear.year)),
   },
 )
 
@@ -112,8 +111,7 @@ export const PlainYearMonthInTupleSchema: Schema.Schema<Temporal.PlainYearMonth,
         try: () => Temporal.PlainYearMonth.from({ year, month }, { overflow: 'reject' }),
         catch: () => new ParseResult.Type(ast, [year, month]),
       }),
-    encode: plainYearMonth => ParseResult.succeed([plainYearMonth.year, plainYearMonth.month]),
-    strict: false,
+    encode: plainYearMonth => ParseResult.succeed(Tuple.make(plainYearMonth.year, plainYearMonth.month)),
   })
 
 export const PlainYearMonthSchema: Schema.Schema<Temporal.PlainYearMonth, string> = Schema.transformOrFail(
@@ -136,8 +134,7 @@ export const PlainDateInTupleSchema: Schema.Schema<Temporal.PlainDate, readonly 
         try: () => Temporal.PlainDate.from({ year, month, day }, { overflow: 'reject' }),
         catch: () => new ParseResult.Type(ast, [year, month, day]),
       }),
-    encode: plainDate => ParseResult.succeed([plainDate.year, plainDate.month, plainDate.day]),
-    strict: false,
+    encode: plainDate => ParseResult.succeed(Tuple.make(plainDate.year, plainDate.month, plainDate.day)),
   })
 
 export const PlainDateSchema: Schema.Schema<Temporal.PlainDate, string> = Schema.transformOrFail(
