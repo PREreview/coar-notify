@@ -41,6 +41,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('psyarxiv'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('32942') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('ecoevorxiv'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('35542') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
         fc.constant('EdArXiv'),
@@ -101,7 +107,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -154,7 +160,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -211,7 +217,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.string(),
-        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -272,7 +278,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.string(),
-        DOI: fc.doi({ registrant: fc.constant('1590') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -347,7 +353,7 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1590'].includes(registrant)) }),
+        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1590', '32942'].includes(registrant)) }),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),

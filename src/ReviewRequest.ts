@@ -219,6 +219,7 @@ ${Array.match(preprint.authors, {
 Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('arxiv', () => 'arXiv'),
               Match.when('biorxiv', () => 'bioRxiv'),
+              Match.when('ecoevorxiv', () => 'EcoEvoRxiv'),
               Match.when('edarxiv', () => 'EdArXiv'),
               Match.when('medrxiv', () => 'medRxiv'),
               Match.when('osf-preprints', () => 'OSF Preprints'),

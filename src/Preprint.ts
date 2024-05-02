@@ -16,7 +16,10 @@ export const getPreprint: (
   doi: Doi.Doi,
 ) => Effect.Effect<Preprint, GetPreprintError, Crossref.CrossrefApi | Datacite.DataciteApi> = flow(
   Match.value,
-  Match.when(Doi.hasRegistrant('1101', '1590', '31219', '31234', '35542'), CrossrefPreprint.getPreprintFromCrossref),
+  Match.when(
+    Doi.hasRegistrant('1101', '1590', '31219', '31234', '32942', '35542'),
+    CrossrefPreprint.getPreprintFromCrossref,
+  ),
   Match.when(Doi.hasRegistrant('48550'), DatacitePreprint.getPreprintFromDatacite),
   Match.orElse(() => Effect.fail('Not from a supported server')),
   Effect.mapError(toGetPreprintError),
