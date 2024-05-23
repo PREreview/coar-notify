@@ -1,7 +1,7 @@
 import { HttpClient, HttpServer } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
-import { Config, Effect, Layer, LogLevel, Logger, Schedule } from 'effect'
+import { Config, Effect, Layer, LogLevel, Logger, Request, Schedule } from 'effect'
 import { createServer } from 'node:http'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
@@ -76,6 +76,7 @@ const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.json),
+  Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 1_000, timeToLive: '60 minutes' }))),
 )
 
 Layer.launch(Program).pipe(
