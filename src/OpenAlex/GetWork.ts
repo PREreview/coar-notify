@@ -19,7 +19,7 @@ export const getWork = (
 
 export const GetWorkResolver: Effect.Effect<
   RequestResolver.RequestResolver<GetWork>,
-  OpenAlexApi.GetWorkError,
+  never,
   OpenAlexApi.OpenAlexApi
 > = RequestResolver.fromEffect((request: GetWork) =>
   Effect.flatMap(OpenAlexApi.OpenAlexApi, openAlexApi => openAlexApi.getWork(request.doi)).pipe(
