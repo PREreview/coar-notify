@@ -25,8 +25,8 @@ describe('getWork', () => {
     fc.openAlexGetWorkError({
       cause: fc.httpClientStatusCodeResponseError({ status: fc.constant(StatusCodes.NOT_FOUND) }),
     }),
-  ])("when the work isn't found", async (doi, error) => {
-    await Effect.gen(function* ($) {
+  ])("when the work isn't found", (doi, error) =>
+    Effect.gen(function* ($) {
       const actual = yield* $(_.getWork(doi))
 
       expect(actual).toStrictEqual(Option.none())
@@ -34,11 +34,11 @@ describe('getWork', () => {
       Effect.provideService(OpenAlexApi, { getWork: () => Effect.fail(error) }),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
-    )
-  })
+    ),
+  )
 
-  test.prop([fc.doi(), fc.openAlexGetWorkError()])("when the work can't be loaded", async (doi, error) => {
-    await Effect.gen(function* ($) {
+  test.prop([fc.doi(), fc.openAlexGetWorkError()])("when the work can't be loaded", (doi, error) =>
+    Effect.gen(function* ($) {
       const actual = yield* $(_.getWork(doi), Effect.flip)
 
       expect(actual).toStrictEqual(error)
@@ -46,6 +46,6 @@ describe('getWork', () => {
       Effect.provideService(OpenAlexApi, { getWork: () => Effect.fail(error) }),
       Effect.provide(TestContext.TestContext),
       Effect.runPromise,
-    )
-  })
+    ),
+  )
 })
