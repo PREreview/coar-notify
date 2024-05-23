@@ -1,6 +1,6 @@
 import { HttpClient } from '@effect/platform'
 import { ParseResult, Schema } from '@effect/schema'
-import { Brand, Context, Data, Effect, Either, Equal, Layer, pipe } from 'effect'
+import { Brand, Context, Data, Effect, Either, Equal, Layer, RateLimiter, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from '../Doi.js'
 import * as Url from '../Url.js'
@@ -27,10 +27,11 @@ export class OpenAlexApi extends Context.Tag('OpenAlexApi')<
   }
 >() {}
 
-export const OpenAlexApiLive = Layer.effect(
+export const OpenAlexApiLive = Layer.scoped(
   OpenAlexApi,
   Effect.gen(function* (_) {
     const httpClient = yield* _(HttpClient.client.Client)
+    const rateLimit = yield* _(RateLimiter.make({ limit: 10, interval: '1.5 seconds', algorithm: 'fixed-window' }))
 
     const getWork = (id: Doi.Doi) =>
       pipe(
@@ -40,6 +41,7 @@ export const OpenAlexApiLive = Layer.effect(
         Effect.flatMap(HttpClient.response.schemaBodyJson(WorkSchema)),
         Effect.scoped,
         Effect.catchAll(GetWorkError.fromError),
+        rateLimit,
       )
 
     return { getWork }

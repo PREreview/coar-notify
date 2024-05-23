@@ -43,16 +43,18 @@ export const Router = HttpServer.router.empty.pipe(
       const notifications = yield* _(
         getNotifications,
         Effect.flatMap(
-          Effect.forEach(({ notification, timestamp }) =>
-            Effect.gen(function* (_) {
-              const work = yield* _(OpenAlex.getWork(notification.object['ietf:cite-as']))
+          Effect.forEach(
+            ({ notification, timestamp }) =>
+              Effect.gen(function* (_) {
+                const work = yield* _(OpenAlex.getWork(notification.object['ietf:cite-as']))
 
-              return {
-                timestamp: timestamp.toString(),
-                preprint: notification.object['ietf:cite-as'],
-                fields: Array.dedupe(Array.map(work.topics, topic => topic.field.id)),
-              }
-            }),
+                return {
+                  timestamp: timestamp.toString(),
+                  preprint: notification.object['ietf:cite-as'],
+                  fields: Array.dedupe(Array.map(work.topics, topic => topic.field.id)),
+                }
+              }),
+            { concurrency: 'inherit' },
           ),
         ),
       )
