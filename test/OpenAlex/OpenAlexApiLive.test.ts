@@ -105,4 +105,104 @@ describe('OpenAlexApiLive', () => {
       ),
     )
   })
+
+  describe('listWorks', () => {
+    test.prop([
+      fc.urlSearchParams(),
+      fc.openAlexListOfWorks().chain(works =>
+        fc.tuple(
+          fc.constant(works),
+          fc.fetchResponse({
+            status: fc.constant(StatusCodes.OK),
+            body: fc.constant(Schema.encodeSync(_.ListOfWorksSchema)(works)),
+          }),
+        ),
+      ),
+    ])('when the response can be decoded', (query, [works, response]) =>
+      Effect.gen(function* ($) {
+        const fetchMock = yield* $(TestContext.FetchMock)
+        const openAlexApi = yield* $(_.OpenAlexApi)
+
+        fetchMock.getOnce(
+          { url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query: Object.fromEntries(query.entries()) },
+          response,
+        )
+
+        const actual = yield* $(openAlexApi.listWorks(query))
+
+        expect(actual).toStrictEqual(works)
+        expect(fetchMock.done()).toBeTruthy()
+      }).pipe(
+        Effect.provide(_.OpenAlexApiLive),
+        Effect.provide(TestContext.TestHttpClient),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
+      ),
+    )
+
+    test.prop([fc.urlSearchParams(), fc.fetchResponse({ status: fc.constant(StatusCodes.OK) })])(
+      "when the response can't be decoded",
+      (query, response) =>
+        Effect.gen(function* ($) {
+          const fetchMock = yield* $(TestContext.FetchMock)
+          const OpenAlexApi = yield* $(_.OpenAlexApi)
+
+          fetchMock.getOnce({ url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query }, response)
+
+          const actual = yield* $(OpenAlexApi.listWorks(query), Effect.flip)
+
+          expect(actual).toBeInstanceOf(_.ListWorksError)
+          expect(actual.message).toMatch(/^(?:Decode error|Expected )/)
+          expect(fetchMock.done()).toBeTruthy()
+        }).pipe(
+          Effect.provide(_.OpenAlexApiLive),
+          Effect.provide(TestContext.TestHttpClient),
+          Effect.provide(TestContext.TestContext),
+          Effect.runPromise,
+        ),
+    )
+
+    test.prop([
+      fc.urlSearchParams(),
+      fc.fetchResponse({ status: fc.statusCode().filter(status => !Equal.equals(status, StatusCodes.OK)) }),
+    ])('when the response has a non-200 status code', (query, response) =>
+      Effect.gen(function* ($) {
+        const fetchMock = yield* $(TestContext.FetchMock)
+        const OpenAlexApi = yield* $(_.OpenAlexApi)
+
+        fetchMock.getOnce({ url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query }, response)
+
+        const actual = yield* $(OpenAlexApi.listWorks(query), Effect.flip)
+
+        expect(actual).toBeInstanceOf(_.ListWorksError)
+        expect(actual.message).toContain('StatusCode error')
+        expect(fetchMock.done()).toBeTruthy()
+      }).pipe(
+        Effect.provide(_.OpenAlexApiLive),
+        Effect.provide(TestContext.TestHttpClient),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
+      ),
+    )
+
+    test.prop([fc.urlSearchParams(), fc.error()])('when fetch throws an error', (query, error) =>
+      Effect.gen(function* ($) {
+        const fetchMock = yield* $(TestContext.FetchMock)
+        const OpenAlexApi = yield* $(_.OpenAlexApi)
+
+        fetchMock.getOnce({ url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query }, { throws: error })
+
+        const actual = yield* $(OpenAlexApi.listWorks(query), Effect.flip)
+
+        expect(actual).toBeInstanceOf(_.ListWorksError)
+        expect(actual.message).toContain('Transport error')
+        expect(fetchMock.done()).toBeTruthy()
+      }).pipe(
+        Effect.provide(_.OpenAlexApiLive),
+        Effect.provide(TestContext.TestHttpClient),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
+      ),
+    )
+  })
 })

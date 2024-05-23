@@ -40,6 +40,9 @@ export const fetchResponse = ({
     status: status ?? fc.option(statusCode(), { nil: undefined }),
   }) as never
 
+export const urlSearchParams = (): fc.Arbitrary<URLSearchParams> =>
+  fc.webQueryParameters().map(query => new URLSearchParams(query))
+
 export const url = (): fc.Arbitrary<URL> => fc.webUrl().map(url => new URL(url))
 
 export const instant = (): fc.Arbitrary<Temporal.Instant> =>
@@ -195,4 +198,11 @@ export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({
     doi: doi(),
     topics: fc.array(fc.record({ field: fc.record({ id: openAlexFieldId() }) })),
+  })
+
+export const openAlexListOfWorks = ({
+  results,
+}: { results?: fc.Arbitrary<OpenAlex.ListOfWorks['results']> } = {}): fc.Arbitrary<OpenAlex.ListOfWorks> =>
+  fc.record({
+    results: results ?? fc.array(openAlexWork()),
   })

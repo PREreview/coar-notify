@@ -7,6 +7,8 @@ import * as Url from '../Url.js'
 
 export type Work = Schema.Schema.Type<typeof WorkSchema>
 
+export type ListOfWorks = Schema.Schema.Type<typeof ListOfWorksSchema>
+
 export class GetWorkError extends Data.TaggedError('GetWorkError')<{
   readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError | undefined
   readonly message: string
@@ -18,12 +20,22 @@ export class GetWorkError extends Data.TaggedError('GetWorkError')<{
     })
 }
 
-export const getWork = (id: Doi.Doi) => Effect.flatMap(OpenAlexApi, openAlexApi => openAlexApi.getWork(id))
+export class ListWorksError extends Data.TaggedError('ListWorksError')<{
+  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError | undefined
+  readonly message: string
+}> {
+  static fromError = (error: HttpClient.error.HttpClientError | ParseResult.ParseError) =>
+    new ListWorksError({
+      cause: error,
+      message: error.message,
+    })
+}
 
 export class OpenAlexApi extends Context.Tag('OpenAlexApi')<
   OpenAlexApi,
   {
     readonly getWork: (id: Doi.Doi) => Effect.Effect<Work, GetWorkError>
+    readonly listWorks: (params: HttpClient.urlParams.Input) => Effect.Effect<ListOfWorks, ListWorksError>
   }
 >() {}
 
@@ -44,7 +56,19 @@ export const OpenAlexApiLive = Layer.scoped(
         rateLimit,
       )
 
-    return { getWork }
+    const listWorks = (params: HttpClient.urlParams.Input) =>
+      pipe(
+        HttpClient.request.get('https://api.openalex.org/works'),
+        HttpClient.request.setUrlParams(params),
+        HttpClient.request.acceptJson,
+        HttpClient.client.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
+        Effect.flatMap(HttpClient.response.schemaBodyJson(ListOfWorksSchema)),
+        Effect.scoped,
+        Effect.catchAll(ListWorksError.fromError),
+        rateLimit,
+      )
+
+    return { getWork, listWorks }
   }),
 )
 
@@ -71,4 +95,8 @@ export const WorkSchema = Schema.Struct({
       }),
     }),
   ),
+})
+
+export const ListOfWorksSchema = Schema.Struct({
+  results: Schema.Array(WorkSchema),
 })

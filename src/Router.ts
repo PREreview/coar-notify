@@ -57,7 +57,7 @@ export const Router = HttpServer.router.empty.pipe(
                   }),
                 }
               }),
-            { concurrency: 'inherit' },
+            { batching: true, concurrency: 'inherit' },
           ),
         ),
       )
