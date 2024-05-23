@@ -13,7 +13,7 @@ export { GetWorkError } from './OpenAlexApi.js'
 export const getWork = (
   doi: Doi.Doi,
 ): Effect.Effect<OpenAlexApi.Work, OpenAlexApi.GetWorkError, OpenAlexApi.OpenAlexApi> =>
-  Effect.request(new GetWork({ doi }), GetWorkResolver)
+  Effect.request(new GetWork({ doi }), GetWorkResolver).pipe(Effect.withRequestCaching(true))
 
 export const GetWorkResolver: Effect.Effect<
   RequestResolver.RequestResolver<GetWork>,
