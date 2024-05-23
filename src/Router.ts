@@ -1,10 +1,11 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Data, Effect, Exit } from 'effect'
+import { Array, Data, Effect, Exit } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
+import * as OpenAlex from './OpenAlex/index.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
 
@@ -43,9 +44,14 @@ export const Router = HttpServer.router.empty.pipe(
         getNotifications,
         Effect.flatMap(
           Effect.forEach(({ notification, timestamp }) =>
-            Effect.succeed({
-              timestamp: timestamp.toString(),
-              preprint: notification.object['ietf:cite-as'],
+            Effect.gen(function* (_) {
+              const work = yield* _(OpenAlex.getWork(notification.object['ietf:cite-as']))
+
+              return {
+                timestamp: timestamp.toString(),
+                preprint: notification.object['ietf:cite-as'],
+                fields: Array.dedupe(Array.map(work.topics, topic => topic.field.id)),
+              }
             }),
           ),
         ),

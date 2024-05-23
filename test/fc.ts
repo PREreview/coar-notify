@@ -5,9 +5,12 @@ import type { MockResponseObject } from 'fetch-mock'
 import type * as Crossref from '../src/Crossref.js'
 import type * as Datacite from '../src/Datacite.js'
 import type * as Doi from '../src/Doi.js'
+import * as OpenAlex from '../src/OpenAlex/index.js'
 import * as Temporal from '../src/Temporal.js'
 
 export * from 'fast-check'
+
+export const alphanumeric = (): fc.Arbitrary<string> => fc.stringMatching(/^[A-z0-9]$/)
 
 export const trimmedString = (constraints?: fc.StringSharedConstraints): fc.Arbitrary<string> =>
   fc.string(constraints).map(String.trim).filter(String.isNonEmpty)
@@ -145,4 +148,13 @@ export const dataciteWork = (
     titles: nonEmptyArray(fc.record({ title: fc.string() })),
     types: fc.record({ resourceType: fc.string(), resourceTypeGeneral: fc.string() }, { withDeletedKeys: true }),
     ...props,
+  })
+
+export const openAlexFieldId = (): fc.Arbitrary<OpenAlex.FieldId> =>
+  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.FieldId)
+
+export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
+  fc.record({
+    doi: doi(),
+    topics: fc.array(fc.record({ field: fc.record({ id: openAlexFieldId() }) })),
   })
