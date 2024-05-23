@@ -1,6 +1,6 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Data, Effect, Exit } from 'effect'
+import { Data, Effect, Exit } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
@@ -39,16 +39,19 @@ export const Router = HttpServer.router.empty.pipe(
   HttpServer.router.get(
     '/requests',
     Effect.gen(function* (_) {
-      const notifications = yield* _(getNotifications)
-
-      return yield* _(
-        HttpServer.response.json(
-          Array.map(notifications, ({ notification, timestamp }) => ({
-            timestamp: timestamp.toString(),
-            preprint: notification.object['ietf:cite-as'],
-          })),
+      const notifications = yield* _(
+        getNotifications,
+        Effect.flatMap(
+          Effect.forEach(({ notification, timestamp }) =>
+            Effect.succeed({
+              timestamp: timestamp.toString(),
+              preprint: notification.object['ietf:cite-as'],
+            }),
+          ),
         ),
       )
+
+      return yield* _(HttpServer.response.json(notifications))
     }),
   ),
   HttpServer.router.post(
