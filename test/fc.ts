@@ -191,13 +191,29 @@ export const dataciteWork = (
     ...props,
   })
 
+export const openAlexTopicId = (): fc.Arbitrary<OpenAlex.TopicId> =>
+  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.TopicId)
+
+export const openAlexSubfieldId = (): fc.Arbitrary<OpenAlex.SubfieldId> =>
+  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.SubfieldId)
+
 export const openAlexFieldId = (): fc.Arbitrary<OpenAlex.FieldId> =>
   fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.FieldId)
+
+export const openAlexDomainId = (): fc.Arbitrary<OpenAlex.DomainId> =>
+  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.DomainId)
 
 export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({
     doi: doi(),
-    topics: fc.array(fc.record({ field: fc.record({ id: openAlexFieldId() }) })),
+    topics: fc.array(
+      fc.record({
+        id: openAlexTopicId(),
+        subfield: fc.record({ id: openAlexSubfieldId() }),
+        field: fc.record({ id: openAlexFieldId() }),
+        domain: fc.record({ id: openAlexDomainId() }),
+      }),
+    ),
   })
 
 export const openAlexListOfWorks = ({

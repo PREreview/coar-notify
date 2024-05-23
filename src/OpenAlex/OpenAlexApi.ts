@@ -72,6 +72,34 @@ export const OpenAlexApiLive = Layer.scoped(
   }),
 )
 
+export type TopicId = string & Brand.Brand<'OpenAlexTopicId'>
+
+export const TopicId = Brand.nominal<TopicId>()
+
+const TopicIdSchema = Schema.String.pipe(Schema.fromBrand(TopicId))
+
+const TopicIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, TopicIdSchema, {
+  decode: (url, _, ast) =>
+    url.origin === 'https://openalex.org' && url.pathname.startsWith('/T')
+      ? Either.right(decodeURIComponent(url.pathname.substring(2)))
+      : Either.left(new ParseResult.Type(ast, url)),
+  encode: topicId => ParseResult.succeed(new URL(`https://openalex.org/T${encodeURIComponent(topicId)}`)),
+})
+
+export type SubfieldId = string & Brand.Brand<'OpenAlexSubfieldId'>
+
+export const SubfieldId = Brand.nominal<SubfieldId>()
+
+const SubfieldIdSchema = Schema.String.pipe(Schema.fromBrand(SubfieldId))
+
+const SubfieldIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, SubfieldIdSchema, {
+  decode: (url, _, ast) =>
+    url.origin === 'https://openalex.org' && url.pathname.startsWith('/subfields/')
+      ? Either.right(decodeURIComponent(url.pathname.substring(11)))
+      : Either.left(new ParseResult.Type(ast, url)),
+  encode: topicId => ParseResult.succeed(new URL(`https://openalex.org/subfields/${encodeURIComponent(topicId)}`)),
+})
+
 export type FieldId = string & Brand.Brand<'OpenAlexFieldId'>
 
 export const FieldId = Brand.nominal<FieldId>()
@@ -86,12 +114,33 @@ const FieldIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, Field
   encode: topicId => ParseResult.succeed(new URL(`https://openalex.org/fields/${encodeURIComponent(topicId)}`)),
 })
 
+export type DomainId = string & Brand.Brand<'OpenAlexDomainId'>
+
+export const DomainId = Brand.nominal<DomainId>()
+
+const DomainIdSchema = Schema.String.pipe(Schema.fromBrand(DomainId))
+
+const DomainIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, DomainIdSchema, {
+  decode: (url, _, ast) =>
+    url.origin === 'https://openalex.org' && url.pathname.startsWith('/domains/')
+      ? Either.right(decodeURIComponent(url.pathname.substring(9)))
+      : Either.left(new ParseResult.Type(ast, url)),
+  encode: topicId => ParseResult.succeed(new URL(`https://openalex.org/domains/${encodeURIComponent(topicId)}`)),
+})
+
 export const WorkSchema = Schema.Struct({
   doi: Doi.DoiFromUrlSchema,
   topics: Schema.Array(
     Schema.Struct({
+      id: Schema.compose(Url.UrlFromStringSchema, TopicIdFromUrlSchema),
+      subfield: Schema.Struct({
+        id: Schema.compose(Url.UrlFromStringSchema, SubfieldIdFromUrlSchema),
+      }),
       field: Schema.Struct({
         id: Schema.compose(Url.UrlFromStringSchema, FieldIdFromUrlSchema),
+      }),
+      domain: Schema.Struct({
+        id: Schema.compose(Url.UrlFromStringSchema, DomainIdFromUrlSchema),
       }),
     }),
   ),
