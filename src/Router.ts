@@ -1,6 +1,6 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Data, Effect, Exit } from 'effect'
+import { Array, Data, Effect, Exit, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
@@ -51,7 +51,10 @@ export const Router = HttpServer.router.empty.pipe(
                 return {
                   timestamp: timestamp.toString(),
                   preprint: notification.object['ietf:cite-as'],
-                  fields: Array.dedupe(Array.map(work.topics, topic => topic.field.id)),
+                  fields: Option.match(work, {
+                    onNone: () => [],
+                    onSome: work => Array.dedupe(Array.map(work.topics, topic => topic.field.id)),
+                  }),
                 }
               }),
             { concurrency: 'inherit' },

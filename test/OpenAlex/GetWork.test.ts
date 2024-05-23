@@ -1,5 +1,6 @@
 import { test } from '@fast-check/vitest'
-import { Effect } from 'effect'
+import { Effect, Option } from 'effect'
+import { StatusCodes } from 'http-status-codes'
 import { describe, expect, vi } from 'vitest'
 import * as _ from '../../src/OpenAlex/GetWork.js'
 import { OpenAlexApi } from '../../src/OpenAlex/index.js'
@@ -13,10 +14,27 @@ describe('getWork', () => {
     await Effect.gen(function* ($) {
       const actual = yield* $(_.getWork(work.doi))
 
-      expect(actual).toStrictEqual(work)
+      expect(actual).toStrictEqual(Option.some(work))
     }).pipe(Effect.provideService(OpenAlexApi, { getWork }), Effect.provide(TestContext.TestContext), Effect.runPromise)
 
     expect(getWork).toHaveBeenNthCalledWith(1, work.doi)
+  })
+
+  test.prop([
+    fc.doi(),
+    fc.openAlexGetWorkError({
+      cause: fc.httpClientStatusCodeResponseError({ status: fc.constant(StatusCodes.NOT_FOUND) }),
+    }),
+  ])("when the work isn't found", async (doi, error) => {
+    await Effect.gen(function* ($) {
+      const actual = yield* $(_.getWork(doi))
+
+      expect(actual).toStrictEqual(Option.none())
+    }).pipe(
+      Effect.provideService(OpenAlexApi, { getWork: () => Effect.fail(error) }),
+      Effect.provide(TestContext.TestContext),
+      Effect.runPromise,
+    )
   })
 
   test.prop([fc.doi(), fc.openAlexGetWorkError()])("when the work can't be loaded", async (doi, error) => {

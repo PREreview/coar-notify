@@ -8,7 +8,7 @@ import * as Url from '../Url.js'
 export type Work = Schema.Schema.Type<typeof WorkSchema>
 
 export class GetWorkError extends Data.TaggedError('GetWorkError')<{
-  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError
+  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError | undefined
   readonly message: string
 }> {
   static fromError = (error: HttpClient.error.HttpClientError | ParseResult.ParseError) =>

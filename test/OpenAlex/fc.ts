@@ -1,7 +1,22 @@
+import type { HttpClient } from '@effect/platform'
+import type { ParseResult } from '@effect/schema'
 import { GetWorkError } from '../../src/OpenAlex/OpenAlexApi.js'
 import * as fc from '../fc.js'
 
 export * from '../fc.js'
 
-export const openAlexGetWorkError = (): fc.Arbitrary<GetWorkError> =>
-  fc.string().map(message => new GetWorkError({ message }))
+export const openAlexGetWorkError = ({
+  cause,
+}: {
+  cause?: fc.Arbitrary<HttpClient.error.HttpClientError | ParseResult.ParseError>
+} = {}): fc.Arbitrary<GetWorkError> =>
+  fc
+    .record({
+      cause: cause ?? fc.constant(undefined),
+      message: fc.string(),
+    })
+    .map(args =>
+      Object.defineProperties(new GetWorkError(args), {
+        [fc.toStringMethod]: { value: () => fc.stringify(args) },
+      }),
+    )

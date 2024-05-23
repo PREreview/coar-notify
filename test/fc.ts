@@ -1,3 +1,4 @@
+import { HttpClient } from '@effect/platform'
 import doiRegex from 'doi-regex'
 import { Array, String } from 'effect'
 import * as fc from 'fast-check'
@@ -65,6 +66,43 @@ export const plainDate = (): fc.Arbitrary<Temporal.PlainDate> =>
     .map(args => Temporal.PlainDate.from(args))
 
 export const epochMilliseconds = (): fc.Arbitrary<number> => instant().map(instant => instant.epochMilliseconds)
+
+export const httpMethod = (): fc.Arbitrary<NonNullable<HttpClient.request.Options['method']>> =>
+  fc.constantFrom('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS')
+
+export const httpClientRequest = (): fc.Arbitrary<HttpClient.request.ClientRequest> =>
+  fc
+    .record({
+      method: httpMethod(),
+      url: url(),
+    })
+    .map(({ method, url, ...options }) => HttpClient.request.make(method)(url, options))
+
+export const httpClientResponse = ({
+  status,
+}: { status?: fc.Arbitrary<number> | undefined } = {}): fc.Arbitrary<HttpClient.response.ClientResponse> =>
+  fc
+    .record({
+      request: httpClientRequest(),
+      response: fc.record({ body: fc.option(fc.string()), status: status ?? statusCode() }),
+    })
+    .map(({ request, response }) => HttpClient.response.fromWeb(request, new Response(response.body, response)))
+
+export const httpClientStatusCodeResponseError = ({
+  status,
+}: { status?: fc.Arbitrary<number> } = {}): fc.Arbitrary<HttpClient.error.ResponseError> =>
+  fc
+    .record({
+      request: httpClientRequest(),
+      response: httpClientResponse({ status }),
+      reason: fc.constant('StatusCode' as const),
+      error: fc.anything(),
+    })
+    .map(args =>
+      Object.defineProperties(new HttpClient.error.ResponseError(args), {
+        [fc.toStringMethod]: { value: () => fc.stringify(args) },
+      }),
+    )
 
 export const doi = ({
   registrant,
