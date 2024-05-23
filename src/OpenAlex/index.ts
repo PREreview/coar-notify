@@ -1,1 +1,2 @@
-export { OpenAlexApi, OpenAlexApiLive, getWork, type Work, FieldId } from './OpenAlexApi.js'
+export { getWork } from './GetWork.js'
+export { OpenAlexApi, OpenAlexApiLive, type Work, FieldId } from './OpenAlexApi.js'
