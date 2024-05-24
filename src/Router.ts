@@ -51,6 +51,10 @@ export const Router = HttpServer.router.empty.pipe(
                 return {
                   timestamp: timestamp.toString(),
                   preprint: notification.object['ietf:cite-as'],
+                  language: Option.match(work, {
+                    onNone: () => null,
+                    onSome: work => work.language,
+                  }),
                   topics: Option.match(work, {
                     onNone: () => [],
                     onSome: work => Array.map(work.topics, topic => topic.id),

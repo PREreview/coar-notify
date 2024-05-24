@@ -3,6 +3,7 @@ import { ParseResult, Schema } from '@effect/schema'
 import { Brand, Context, Data, Effect, Either, Equal, Layer, RateLimiter, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from '../Doi.js'
+import * as LanguageCode from '../LanguageCode.js'
 import * as Url from '../Url.js'
 
 export type Work = Schema.Schema.Type<typeof WorkSchema>
@@ -130,6 +131,7 @@ const DomainIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, Doma
 
 export const WorkSchema = Schema.Struct({
   doi: Doi.DoiFromUrlSchema,
+  language: LanguageCode.LanguageCodeSchema,
   topics: Schema.Array(
     Schema.Struct({
       id: Schema.compose(Url.UrlFromStringSchema, TopicIdFromUrlSchema),

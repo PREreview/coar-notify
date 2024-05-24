@@ -3,9 +3,11 @@ import doiRegex from 'doi-regex'
 import { Array, String } from 'effect'
 import * as fc from 'fast-check'
 import type { MockResponseObject } from 'fetch-mock'
+import iso6391 from 'iso-639-1'
 import type * as Crossref from '../src/Crossref.js'
 import type * as Datacite from '../src/Datacite.js'
 import type * as Doi from '../src/Doi.js'
+import type { LanguageCode } from '../src/LanguageCode.js'
 import * as OpenAlex from '../src/OpenAlex/index.js'
 import * as Temporal from '../src/Temporal.js'
 
@@ -107,6 +109,8 @@ export const httpClientStatusCodeResponseError = ({
       }),
     )
 
+export const languageCode = (): fc.Arbitrary<LanguageCode> => fc.constantFrom(...iso6391.getAllCodes())
+
 export const doi = ({
   registrant,
   suffix,
@@ -206,6 +210,7 @@ export const openAlexDomainId = (): fc.Arbitrary<OpenAlex.DomainId> =>
 export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({
     doi: doi(),
+    language: languageCode(),
     topics: fc.array(
       fc.record({
         id: openAlexTopicId(),
