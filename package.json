@@ -46,7 +46,7 @@
     "prettier-plugin-sh": "^0.14.0",
     "prettier-plugin-toml": "^2.0.1",
     "tsx": "^4.11.2",
-    "type-fest": "^4.19.0",
+    "type-fest": "^4.20.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.12",
     "vitest": "^1.6.0"
