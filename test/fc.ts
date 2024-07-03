@@ -195,6 +195,9 @@ export const dataciteWork = (
     ...props,
   })
 
+export const openAlexSourceId = (): fc.Arbitrary<OpenAlex.SourceId> =>
+  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.SourceId)
+
 export const openAlexTopicId = (): fc.Arbitrary<OpenAlex.TopicId> =>
   fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.TopicId)
 
@@ -211,6 +214,7 @@ export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({
     doi: doi(),
     language: languageCode(),
+    primary_location: fc.record({ source: fc.record({ id: openAlexSourceId() }) }, { withDeletedKeys: true }),
     topics: fc.array(
       fc.record({
         id: openAlexTopicId(),

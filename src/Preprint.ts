@@ -1,3 +1,4 @@
+import { Schema } from '@effect/schema'
 import { Data, Effect, Match, flow } from 'effect'
 import type * as Crossref from './Crossref.js'
 import * as CrossrefPreprint from './CrossrefPreprint.js'
@@ -6,6 +7,11 @@ import * as DatacitePreprint from './DatacitePreprint.js'
 import * as Doi from './Doi.js'
 
 export type Preprint = CrossrefPreprint.CrossrefPreprint | DatacitePreprint.DatacitePreprint
+
+export const PreprintServerSchema = Schema.Union(
+  CrossrefPreprint.CrossrefPreprintServerSchema,
+  DatacitePreprint.DatacitePreprintServerSchema,
+)
 
 export class GetPreprintError extends Data.TaggedError('GetPreprintError')<{
   readonly cause?: Error

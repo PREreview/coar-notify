@@ -73,6 +73,20 @@ export const OpenAlexApiLive = Layer.scoped(
   }),
 )
 
+export type SourceId = string & Brand.Brand<'OpenAlexSourceId'>
+
+export const SourceId = Brand.nominal<SourceId>()
+
+const SourceIdSchema = Schema.String.pipe(Schema.fromBrand(SourceId))
+
+const SourceIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, SourceIdSchema, {
+  decode: (url, _, ast) =>
+    url.origin === 'https://openalex.org' && url.pathname.startsWith('/S')
+      ? Either.right(decodeURIComponent(url.pathname.substring(2)))
+      : Either.left(new ParseResult.Type(ast, url)),
+  encode: sourceId => ParseResult.succeed(new URL(`https://openalex.org/S${encodeURIComponent(sourceId)}`)),
+})
+
 export type TopicId = string & Brand.Brand<'OpenAlexTopicId'>
 
 export const TopicId = Brand.nominal<TopicId>()
@@ -132,6 +146,11 @@ const DomainIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, Doma
 export const WorkSchema = Schema.Struct({
   doi: Doi.DoiFromUrlSchema,
   language: LanguageCode.LanguageCodeSchema,
+  primary_location: Schema.Struct({
+    source: Schema.optional(Schema.Struct({ id: Schema.compose(Url.UrlFromStringSchema, SourceIdFromUrlSchema) }), {
+      nullable: true,
+    }),
+  }),
   topics: Schema.Array(
     Schema.Struct({
       id: Schema.compose(Url.UrlFromStringSchema, TopicIdFromUrlSchema),

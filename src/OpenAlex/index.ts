@@ -3,6 +3,7 @@ export {
   OpenAlexApi,
   OpenAlexApiLive,
   type Work,
+  SourceId,
   TopicId,
   TopicIdSchema,
   SubfieldId,

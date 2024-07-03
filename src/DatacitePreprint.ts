@@ -1,3 +1,4 @@
+import { Schema } from '@effect/schema'
 import { Array, Data, Effect, Either, Match, Predicate, String, pipe } from 'effect'
 import * as Datacite from './Datacite.js'
 import * as Doi from './Doi.js'
@@ -13,6 +14,8 @@ export interface DatacitePreprint {
 }
 
 export const DatacitePreprint = Data.case<DatacitePreprint>()
+
+export const DatacitePreprintServerSchema = Schema.Literal('arxiv')
 
 export class GetPreprintFromDataciteError extends Data.TaggedError('GetPreprintFromDataciteError')<{
   readonly cause?: Error

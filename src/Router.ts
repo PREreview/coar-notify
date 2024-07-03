@@ -1,6 +1,6 @@
 import { HttpServer } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Data, Effect, Exit, Option } from 'effect'
+import { Array, Data, Effect, Exit, Match, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
@@ -8,6 +8,7 @@ import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as LanguageCode from './LanguageCode.js'
 import * as OpenAlex from './OpenAlex/index.js'
+import * as Preprint from './Preprint.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
 import * as Temporal from './Temporal.js'
@@ -54,6 +55,20 @@ export const Router = HttpServer.router.empty.pipe(
                 return {
                   timestamp,
                   preprint: notification.object['ietf:cite-as'],
+                  server: Option.flatMapNullable(work, work =>
+                    Match.value(work.primary_location.source?.id).pipe(
+                      Match.when('4306400194', () => 'arxiv' as const),
+                      Match.when('4306402567', () => 'biorxiv' as const),
+                      Match.when('4306402488', () => 'ecoevorxiv' as const),
+                      Match.when('4306402530', () => 'edarxiv' as const),
+                      Match.when('4306400573', () => 'medrxiv' as const),
+                      Match.when('4306401127', () => 'osf-preprints' as const),
+                      Match.when('4306401687', () => 'psyarxiv' as const),
+                      Match.when('4306401597', () => 'scielo' as const),
+                      Match.when('4306401238', () => 'socarxiv' as const),
+                      Match.orElse(() => null),
+                    ),
+                  ),
                   language: Option.map(work, work => work.language),
                   topics: Option.match(work, {
                     onNone: () => [],
@@ -138,6 +153,7 @@ const RequestsSchema = Schema.Array(
   Schema.Struct({
     timestamp: Temporal.InstantFromStringSchema,
     preprint: Doi.DoiSchema,
+    server: Schema.optional(Preprint.PreprintServerSchema, { nullable: true, as: 'Option' }),
     language: Schema.optional(LanguageCode.LanguageCodeSchema, { nullable: true, as: 'Option' }),
     topics: Schema.Array(OpenAlex.TopicIdSchema),
     subfields: Schema.Array(OpenAlex.SubfieldIdSchema),

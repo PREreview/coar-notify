@@ -1,3 +1,4 @@
+import { Schema } from '@effect/schema'
 import { Array, Data, Effect, Either, Match, String, pipe } from 'effect'
 import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
@@ -21,6 +22,17 @@ export interface CrossrefPreprint {
 }
 
 export const CrossrefPreprint = Data.case<CrossrefPreprint>()
+
+export const CrossrefPreprintServerSchema = Schema.Literal(
+  'biorxiv',
+  'ecoevorxiv',
+  'edarxiv',
+  'medrxiv',
+  'osf-preprints',
+  'psyarxiv',
+  'scielo',
+  'socarxiv',
+)
 
 export class GetPreprintFromCrossrefError extends Data.TaggedError('GetPreprintFromCrossrefError')<{
   readonly cause?: Error
