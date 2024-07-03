@@ -4,8 +4,12 @@ export {
   OpenAlexApiLive,
   type Work,
   TopicId,
+  TopicIdSchema,
   SubfieldId,
+  SubfieldIdSchema,
   FieldId,
+  FieldIdSchema,
   DomainId,
+  DomainIdSchema,
   type ListOfWorks,
 } from './OpenAlexApi.js'

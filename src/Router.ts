@@ -5,9 +5,12 @@ import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
+import * as Doi from './Doi.js'
+import * as LanguageCode from './LanguageCode.js'
 import * as OpenAlex from './OpenAlex/index.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
+import * as Temporal from './Temporal.js'
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
@@ -49,12 +52,9 @@ export const Router = HttpServer.router.empty.pipe(
                 const work = yield* _(OpenAlex.getWork(notification.object['ietf:cite-as']))
 
                 return {
-                  timestamp: timestamp.toString(),
+                  timestamp,
                   preprint: notification.object['ietf:cite-as'],
-                  language: Option.match(work, {
-                    onNone: () => null,
-                    onSome: work => work.language,
-                  }),
+                  language: Option.map(work, work => work.language),
                   topics: Option.match(work, {
                     onNone: () => [],
                     onSome: work => Array.map(work.topics, topic => topic.id),
@@ -78,7 +78,7 @@ export const Router = HttpServer.router.empty.pipe(
         ),
       )
 
-      return yield* _(HttpServer.response.json(notifications))
+      return yield* _(HttpServer.response.schemaJson(RequestsSchema)(notifications))
     }),
   ),
   HttpServer.router.post(
@@ -132,6 +132,18 @@ export const Router = HttpServer.router.empty.pipe(
     ),
   ),
   Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: StatusCodes.NOT_FOUND })),
+)
+
+const RequestsSchema = Schema.Array(
+  Schema.Struct({
+    timestamp: Temporal.InstantFromStringSchema,
+    preprint: Doi.DoiSchema,
+    language: Schema.optional(LanguageCode.LanguageCodeSchema, { nullable: true, as: 'Option' }),
+    topics: Schema.Array(OpenAlex.TopicIdSchema),
+    subfields: Schema.Array(OpenAlex.SubfieldIdSchema),
+    fields: Schema.Array(OpenAlex.FieldIdSchema),
+    domains: Schema.Array(OpenAlex.DomainIdSchema),
+  }),
 )
 
 const md5 = (content: string) => createHash('md5').update(content).digest('hex')

@@ -77,7 +77,7 @@ export type TopicId = string & Brand.Brand<'OpenAlexTopicId'>
 
 export const TopicId = Brand.nominal<TopicId>()
 
-const TopicIdSchema = Schema.String.pipe(Schema.fromBrand(TopicId))
+export const TopicIdSchema = Schema.String.pipe(Schema.fromBrand(TopicId))
 
 const TopicIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, TopicIdSchema, {
   decode: (url, _, ast) =>
@@ -91,7 +91,7 @@ export type SubfieldId = string & Brand.Brand<'OpenAlexSubfieldId'>
 
 export const SubfieldId = Brand.nominal<SubfieldId>()
 
-const SubfieldIdSchema = Schema.String.pipe(Schema.fromBrand(SubfieldId))
+export const SubfieldIdSchema = Schema.String.pipe(Schema.fromBrand(SubfieldId))
 
 const SubfieldIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, SubfieldIdSchema, {
   decode: (url, _, ast) =>
@@ -105,7 +105,7 @@ export type FieldId = string & Brand.Brand<'OpenAlexFieldId'>
 
 export const FieldId = Brand.nominal<FieldId>()
 
-const FieldIdSchema = Schema.String.pipe(Schema.fromBrand(FieldId))
+export const FieldIdSchema = Schema.String.pipe(Schema.fromBrand(FieldId))
 
 const FieldIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, FieldIdSchema, {
   decode: (url, _, ast) =>
@@ -119,7 +119,7 @@ export type DomainId = string & Brand.Brand<'OpenAlexDomainId'>
 
 export const DomainId = Brand.nominal<DomainId>()
 
-const DomainIdSchema = Schema.String.pipe(Schema.fromBrand(DomainId))
+export const DomainIdSchema = Schema.String.pipe(Schema.fromBrand(DomainId))
 
 const DomainIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, DomainIdSchema, {
   decode: (url, _, ast) =>
