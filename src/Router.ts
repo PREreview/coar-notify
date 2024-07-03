@@ -55,18 +55,32 @@ export const Router = HttpServer.router.empty.pipe(
                 return {
                   timestamp,
                   preprint: notification.object['ietf:cite-as'],
-                  server: Option.flatMapNullable(work, work =>
-                    Match.value(work.primary_location.source?.id).pipe(
-                      Match.when('4306400194', () => 'arxiv' as const),
-                      Match.when('4306402567', () => 'biorxiv' as const),
-                      Match.when('4306402488', () => 'ecoevorxiv' as const),
-                      Match.when('4306402530', () => 'edarxiv' as const),
-                      Match.when('4306400573', () => 'medrxiv' as const),
-                      Match.when('4306401127', () => 'osf-preprints' as const),
-                      Match.when('4306401687', () => 'psyarxiv' as const),
-                      Match.when('4306401597', () => 'scielo' as const),
-                      Match.when('4306401238', () => 'socarxiv' as const),
-                      Match.orElse(() => null),
+                  server: Option.orElse(
+                    Option.flatMapNullable(work, work =>
+                      Match.value(work.primary_location.source?.id).pipe(
+                        Match.when('4306400194', () => 'arxiv' as const),
+                        Match.when('4306402567', () => 'biorxiv' as const),
+                        Match.when('4306402488', () => 'ecoevorxiv' as const),
+                        Match.when('4306402530', () => 'edarxiv' as const),
+                        Match.when('4306400573', () => 'medrxiv' as const),
+                        Match.when('4306401127', () => 'osf-preprints' as const),
+                        Match.when('4306401687', () => 'psyarxiv' as const),
+                        Match.when('4306401597', () => 'scielo' as const),
+                        Match.when('4306401238', () => 'socarxiv' as const),
+                        Match.orElse(() => null),
+                      ),
+                    ),
+                    Option.liftNullable(() =>
+                      Match.value(Doi.getRegistrant(notification.object['ietf:cite-as'])).pipe(
+                        Match.when('1590', () => 'scielo' as const),
+                        Match.when('31219', () => 'osf-preprints' as const),
+                        Match.when('31234', () => 'psyarxiv' as const),
+                        Match.when('31235', () => 'socarxiv' as const),
+                        Match.when('32942', () => 'ecoevorxiv' as const),
+                        Match.when('35542', () => 'edarxiv' as const),
+                        Match.when('48550', () => 'arxiv' as const),
+                        Match.orElse(() => null),
+                      ),
                     ),
                   ),
                   language: Option.map(work, work => work.language),
