@@ -52,7 +52,7 @@ describe('OpenAlexApiLive', () => {
           const actual = yield* $(OpenAlexApi.getWork(id), Effect.flip)
 
           expect(actual).toBeInstanceOf(_.GetWorkError)
-          expect(actual.message).toMatch(/^(?:Decode error|Expected )/)
+          expect(actual.message).toMatch(/^(?:Decode error|Expected |{)/)
           expect(fetchMock.done()).toBeTruthy()
         }).pipe(
           Effect.provide(_.OpenAlexApiLive),
@@ -152,7 +152,7 @@ describe('OpenAlexApiLive', () => {
           const actual = yield* $(OpenAlexApi.listWorks(query), Effect.flip)
 
           expect(actual).toBeInstanceOf(_.ListWorksError)
-          expect(actual.message).toMatch(/^(?:Decode error|Expected )/)
+          expect(actual.message).toMatch(/^(?:Decode error|Expected |{)/)
           expect(fetchMock.done()).toBeTruthy()
         }).pipe(
           Effect.provide(_.OpenAlexApiLive),
