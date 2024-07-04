@@ -167,8 +167,8 @@ const RequestsSchema = Schema.Array(
   Schema.Struct({
     timestamp: Temporal.InstantFromStringSchema,
     preprint: Doi.DoiSchema,
-    server: Schema.optional(Preprint.PreprintServerSchema, { nullable: true, as: 'Option' }),
-    language: Schema.optional(LanguageCode.LanguageCodeSchema, { nullable: true, as: 'Option' }),
+    server: Schema.OptionFromNullOr(Preprint.PreprintServerSchema),
+    language: Schema.OptionFromNullOr(LanguageCode.LanguageCodeSchema),
     topics: Schema.Array(OpenAlex.TopicIdSchema),
     subfields: Schema.Array(OpenAlex.SubfieldIdSchema),
     fields: Schema.Array(OpenAlex.FieldIdSchema),
