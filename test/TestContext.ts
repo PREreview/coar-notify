@@ -4,10 +4,10 @@ import fetchMock, { type FetchMockSandbox } from 'fetch-mock'
 
 export class FetchMock extends Context.Tag('test/FetchMock')<FetchMock, FetchMockSandbox>() {}
 
-export const TestHttpClient = HttpClient.client.layer.pipe(
+export const TestHttpClient = HttpClient.layer.pipe(
   Layer.provideMerge(
     Layer.effect(
-      HttpClient.client.Fetch,
+      HttpClient.Fetch,
       Effect.gen(function* (_) {
         const fetchMock = yield* _(FetchMock)
 

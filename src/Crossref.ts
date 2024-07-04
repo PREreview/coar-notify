@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/platform'
 import { type ParseResult, Schema } from '@effect/schema'
 import { Context, Data, Effect, Equal, Layer, Match, Tuple } from 'effect'
 import { StatusCodes } from 'http-status-codes'
@@ -8,7 +8,7 @@ import * as Temporal from './Temporal.js'
 export type Work = Schema.Schema.Type<typeof WorkSchema>
 
 export class GetWorkError extends Data.TaggedError('GetWorkError')<{
-  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError
+  readonly cause?: HttpClientError.HttpClientError | ParseResult.ParseError
   readonly message: string
 }> {}
 
@@ -20,19 +20,19 @@ export class CrossrefApi extends Context.Tag('CrossrefApi')<
 export const CrossrefApiLive = Layer.effect(
   CrossrefApi,
   Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.client.Client)
+    const httpClient = yield* _(HttpClient.HttpClient)
     const client = httpClient.pipe(
-      HttpClient.client.mapRequest(HttpClient.request.acceptJson),
-      HttpClient.client.mapRequest(HttpClient.request.prependUrl('https://api.crossref.org/')),
+      HttpClient.mapRequest(HttpClientRequest.acceptJson),
+      HttpClient.mapRequest(HttpClientRequest.prependUrl('https://api.crossref.org/')),
     )
-    const okClient = HttpClient.client.filterStatus(client, status => Equal.equals(status, StatusCodes.OK))
+    const okClient = HttpClient.filterStatus(client, status => Equal.equals(status, StatusCodes.OK))
 
     const getWork = (doi: Doi.Doi) =>
       Effect.gen(function* (_) {
         const response = yield* _(
-          HttpClient.request.get(`works/${encodeURIComponent(doi)}`),
+          HttpClientRequest.get(`works/${encodeURIComponent(doi)}`),
           okClient,
-          Effect.flatMap(HttpClient.response.schemaBodyJson(MessageSchema(WorkSchema))),
+          Effect.flatMap(HttpClientResponse.schemaBodyJson(MessageSchema(WorkSchema))),
         )
 
         return response.message

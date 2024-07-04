@@ -1,4 +1,4 @@
-import { HttpClient, HttpServer } from '@effect/platform'
+import { HttpClient, HttpClientRequest, HttpMiddleware, HttpServer } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Schema } from '@effect/schema'
 import { Config, Effect, Layer, LogLevel, Logger, Request, Schedule } from 'effect'
@@ -17,20 +17,17 @@ import * as ReviewRequest from './ReviewRequest.js'
 import { Router } from './Router.js'
 
 const ServerLive = Router.pipe(
-  HttpServer.server.serve(HttpServer.middleware.logger),
+  HttpServer.serve(HttpMiddleware.logger),
   Layer.provide(
-    NodeHttpServer.server.layerConfig(() => createServer(), { port: Config.withDefault(Config.integer('PORT'), 3000) }),
+    NodeHttpServer.layerConfig(() => createServer(), { port: Config.withDefault(Config.integer('PORT'), 3000) }),
   ),
 )
 
 const HttpClientLive = Layer.succeed(
-  HttpClient.client.Client,
+  HttpClient.HttpClient,
   LoggingHttpClient.pipe(
-    HttpClient.client.mapRequest(
-      HttpClient.request.setHeader(
-        'User-Agent',
-        'PREreview (https://prereview.org/; mailto:engineering@prereview.org)',
-      ),
+    HttpClient.mapRequest(
+      HttpClientRequest.setHeader('User-Agent', 'PREreview (https://prereview.org/; mailto:engineering@prereview.org)'),
     ),
   ),
 )

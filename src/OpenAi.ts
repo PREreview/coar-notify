@@ -16,7 +16,7 @@ interface OpenAiService {
 
 const make = (params: { readonly apiKey: Secret.Secret }) =>
   Effect.gen(function* (_) {
-    const fetchService = yield* _(Effect.serviceOption(HttpClient.client.Fetch))
+    const fetchService = yield* _(Effect.serviceOption(HttpClient.Fetch))
     const fetch = Option.match(fetchService, { onNone: () => globalThis.fetch, onSome: identity })
 
     const client = new OAI.OpenAI({

@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/platform'
 import { Schema } from '@effect/schema'
 import { Brand, Context, Data, Effect } from 'effect'
 import * as Url from './Url.js'
@@ -107,20 +107,20 @@ export const chatPostMessage = (
 ): Effect.Effect<
   { readonly channel: SlackChannelId; readonly timestamp: SlackTimestamp },
   SlackError,
-  HttpClient.client.Client.Default | SlackApiConfig
+  HttpClient.HttpClient.Default | SlackApiConfig
 > =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
     const request = yield* _(
-      HttpClient.request.post('chat.postMessage', { headers: {} }),
-      HttpClient.request.setHeader('Content-Type', 'application/json'),
-      HttpClient.request.schemaBody(ChatPostMessageSchema)(message),
+      HttpClientRequest.post('chat.postMessage', { headers: {} }),
+      HttpClientRequest.setHeader('Content-Type', 'application/json'),
+      HttpClientRequest.schemaBody(ChatPostMessageSchema)(message),
     )
 
     const response = yield* _(
       client(request),
-      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatPostMessageResponseSchema)),
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(ChatPostMessageResponseSchema)),
       Effect.scoped,
     )
 
@@ -131,7 +131,7 @@ export const chatPostMessage = (
     return { channel: response.channel, timestamp: response.ts }
   }).pipe(
     Effect.catchTags({
-      BodyError: toSlackError,
+      HttpBodyError: toSlackError,
       ParseError: toSlackError,
       RequestError: httpToSlackError,
       ResponseError: httpToSlackError,
@@ -140,19 +140,19 @@ export const chatPostMessage = (
 
 export const chatDelete = (
   message: Schema.Schema.Type<typeof ChatDeleteSchema>,
-): Effect.Effect<void, SlackError, HttpClient.client.Client.Default | SlackApiConfig> =>
+): Effect.Effect<void, SlackError, HttpClient.HttpClient.Default | SlackApiConfig> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
     const request = yield* _(
-      HttpClient.request.post('chat.delete'),
-      HttpClient.request.setHeader('Content-Type', 'application/json'),
-      HttpClient.request.schemaBody(ChatDeleteSchema)(message),
+      HttpClientRequest.post('chat.delete'),
+      HttpClientRequest.setHeader('Content-Type', 'application/json'),
+      HttpClientRequest.schemaBody(ChatDeleteSchema)(message),
     )
 
     const response = yield* _(
       client(request),
-      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatDeleteResponseSchema)),
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(ChatDeleteResponseSchema)),
       Effect.scoped,
     )
 
@@ -163,7 +163,7 @@ export const chatDelete = (
     return { channel: response.channel, timestamp: response.ts }
   }).pipe(
     Effect.catchTags({
-      BodyError: toSlackError,
+      HttpBodyError: toSlackError,
       ParseError: toSlackError,
       RequestError: httpToSlackError,
       ResponseError: httpToSlackError,
@@ -172,17 +172,17 @@ export const chatDelete = (
 
 export const chatGetPermalink = (
   message: Schema.Schema.Type<typeof ChatGetPermalinkSchema>,
-): Effect.Effect<URL, SlackError, HttpClient.client.Client.Default | SlackApiConfig> =>
+): Effect.Effect<URL, SlackError, HttpClient.HttpClient.Default | SlackApiConfig> =>
   Effect.gen(function* (_) {
     const client = yield* _(slackClient)
 
     const urlParams = yield* _(Schema.encode(ChatGetPermalinkSchema)(message))
 
-    const request = HttpClient.request.get('chat.getPermalink', { urlParams })
+    const request = HttpClientRequest.get('chat.getPermalink', { urlParams })
 
     const response = yield* _(
       client(request),
-      Effect.flatMap(HttpClient.response.schemaBodyJson(ChatGetPermalinkResponseSchema)),
+      Effect.flatMap(HttpClientResponse.schemaBodyJson(ChatGetPermalinkResponseSchema)),
       Effect.scoped,
     )
 
@@ -200,13 +200,13 @@ export const chatGetPermalink = (
   )
 
 const slackClient = Effect.gen(function* (_) {
-  const httpClient = yield* _(HttpClient.client.Client)
+  const httpClient = yield* _(HttpClient.HttpClient)
   const { accessToken } = yield* _(SlackApiConfig)
 
   return httpClient.pipe(
-    HttpClient.client.mapRequest(HttpClient.request.acceptJson),
-    HttpClient.client.mapRequest(HttpClient.request.prependUrl('https://slack.com/api/')),
-    HttpClient.client.mapRequest(HttpClient.request.bearerToken(accessToken)),
+    HttpClient.mapRequest(HttpClientRequest.acceptJson),
+    HttpClient.mapRequest(HttpClientRequest.prependUrl('https://slack.com/api/')),
+    HttpClient.mapRequest(HttpClientRequest.bearerToken(accessToken)),
   )
 })
 
@@ -214,6 +214,6 @@ const toSlackError = (error: unknown): SlackError => {
   return new SlackError(error instanceof Error ? { cause: error, message: error.message } : { message: String(error) })
 }
 
-const httpToSlackError = (error: HttpClient.error.HttpClientError): SlackError => {
+const httpToSlackError = (error: HttpClientError.HttpClientError): SlackError => {
   return new SlackError({ cause: error.error instanceof Error ? error.error : undefined, message: error.reason })
 }

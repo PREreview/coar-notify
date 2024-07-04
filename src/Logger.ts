@@ -1,14 +1,14 @@
-import { HttpClient } from '@effect/platform'
+import { Headers, HttpClient, UrlParams } from '@effect/platform'
 import { Effect } from 'effect'
 
-export const LoggingHttpClient = HttpClient.client.makeDefault(request =>
+export const LoggingHttpClient = HttpClient.makeDefault(request =>
   Effect.Do.pipe(
     Effect.tap(() =>
       Effect.logDebug('Sending HTTP Request').pipe(
-        Effect.annotateLogs({ headers: HttpClient.headers.redact(request.headers, 'authorization') }),
+        Effect.annotateLogs({ headers: Headers.redact(request.headers, 'authorization') }),
       ),
     ),
-    Effect.zipRight(HttpClient.client.fetch(request)),
+    Effect.zipRight(HttpClient.fetch(request)),
     Effect.tap(response =>
       Effect.logDebug('Received HTTP response').pipe(
         Effect.annotateLogs({ status: response.status, headers: response.headers }),
@@ -21,7 +21,7 @@ export const LoggingHttpClient = HttpClient.client.makeDefault(request =>
     ),
     Effect.annotateLogs({
       url: request.url,
-      urlParams: HttpClient.urlParams.toString(request.urlParams),
+      urlParams: UrlParams.toString(request.urlParams),
       method: request.method,
     }),
     Effect.withLogSpan('fetch'),

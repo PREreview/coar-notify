@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClient, HttpClientRequest } from '@effect/platform'
 import { Effect, Equal } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import type * as Doi from './Doi.js'
@@ -12,11 +12,11 @@ export function writeAPrereviewUrl(doi: Doi.Doi) {
   )
 }
 
-export const preprintIsReady = (doi: Doi.Doi): Effect.Effect<boolean, never, HttpClient.client.Client.Default> =>
+export const preprintIsReady = (doi: Doi.Doi): Effect.Effect<boolean, never, HttpClient.HttpClient.Default> =>
   Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.client.Client)
+    const httpClient = yield* _(HttpClient.HttpClient)
 
-    const request = HttpClient.request.head(writeAPrereviewUrl(doi))
+    const request = HttpClientRequest.head(writeAPrereviewUrl(doi))
 
     const response = yield* _(httpClient(request))
 

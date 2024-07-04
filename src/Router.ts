@@ -1,4 +1,4 @@
-import { HttpServer } from '@effect/platform'
+import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
 import { Array, Data, Effect, Exit, Match, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
@@ -17,31 +17,31 @@ class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
 }
 
-export const Router = HttpServer.router.empty.pipe(
-  HttpServer.router.get(
+export const Router = HttpRouter.empty.pipe(
+  HttpRouter.get(
     '/health',
     Effect.gen(function* (_) {
       yield* _(Redis.ping(), Effect.timeoutFail({ duration: '900 millis', onTimeout: () => new RedisTimeout() }))
 
-      return yield* _(HttpServer.response.json({ status: 'ok' }), HttpServer.middleware.withLoggerDisabled)
+      return yield* _(HttpServerResponse.json({ status: 'ok' }), HttpMiddleware.withLoggerDisabled)
     }).pipe(
       Effect.catchTags({
         RedisError: error =>
           Effect.gen(function* (_) {
             yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
 
-            return yield* _(HttpServer.response.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
+            return yield* _(HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
           }),
         RedisTimeout: error =>
           Effect.gen(function* (_) {
             yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
 
-            return yield* _(HttpServer.response.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
+            return yield* _(HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
           }),
       }),
     ),
   ),
-  HttpServer.router.get(
+  HttpRouter.get(
     '/requests',
     Effect.gen(function* (_) {
       const notifications = yield* _(
@@ -107,13 +107,13 @@ export const Router = HttpServer.router.empty.pipe(
         ),
       )
 
-      return yield* _(HttpServer.response.schemaJson(RequestsSchema)(notifications))
+      return yield* _(HttpServerResponse.schemaJson(RequestsSchema)(notifications))
     }),
   ),
-  HttpServer.router.post(
+  HttpRouter.post(
     '/inbox',
     Effect.gen(function* (_) {
-      const requestReview = yield* _(HttpServer.request.schemaBodyJson(CoarNotify.RequestReviewSchema))
+      const requestReview = yield* _(HttpServerRequest.schemaBodyJson(CoarNotify.RequestReviewSchema))
       const encoded = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
 
       yield* _(
@@ -135,7 +135,7 @@ export const Router = HttpServer.router.empty.pipe(
         ),
       )
 
-      return yield* _(HttpServer.response.empty({ status: StatusCodes.CREATED }))
+      return yield* _(HttpServerResponse.empty({ status: StatusCodes.CREATED }))
     }).pipe(
       Effect.catchTags({
         BullMqError: error =>
@@ -144,7 +144,7 @@ export const Router = HttpServer.router.empty.pipe(
               Effect.logError('Unable to write job to BullMQ').pipe(Effect.annotateLogs({ message: error.message })),
             )
 
-            return HttpServer.response.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
+            return HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
         ParseError: error =>
           Effect.gen(function* (_) {
@@ -154,13 +154,13 @@ export const Router = HttpServer.router.empty.pipe(
               ),
             )
 
-            return HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST })
+            return HttpServerResponse.empty({ status: StatusCodes.BAD_REQUEST })
           }),
-        RequestError: () => HttpServer.response.empty({ status: StatusCodes.BAD_REQUEST }),
+        RequestError: () => HttpServerResponse.empty({ status: StatusCodes.BAD_REQUEST }),
       }),
     ),
   ),
-  Effect.catchTag('RouteNotFound', () => HttpServer.response.empty({ status: StatusCodes.NOT_FOUND })),
+  Effect.catchTag('RouteNotFound', () => HttpServerResponse.empty({ status: StatusCodes.NOT_FOUND })),
 )
 
 const RequestsSchema = Schema.Array(

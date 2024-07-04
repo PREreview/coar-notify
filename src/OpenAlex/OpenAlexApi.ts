@@ -1,4 +1,10 @@
-import { HttpClient } from '@effect/platform'
+import {
+  HttpClient,
+  type HttpClientError,
+  HttpClientRequest,
+  HttpClientResponse,
+  type UrlParams,
+} from '@effect/platform'
 import { ParseResult, Schema } from '@effect/schema'
 import { Brand, Context, Data, Effect, Either, Equal, Layer, RateLimiter, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
@@ -11,10 +17,10 @@ export type Work = Schema.Schema.Type<typeof WorkSchema>
 export type ListOfWorks = Schema.Schema.Type<typeof ListOfWorksSchema>
 
 export class GetWorkError extends Data.TaggedError('GetWorkError')<{
-  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError | undefined
+  readonly cause?: HttpClientError.HttpClientError | ParseResult.ParseError | undefined
   readonly message: string
 }> {
-  static fromError = (error: HttpClient.error.HttpClientError | ParseResult.ParseError) =>
+  static fromError = (error: HttpClientError.HttpClientError | ParseResult.ParseError) =>
     new GetWorkError({
       cause: error,
       message: error.message,
@@ -22,10 +28,10 @@ export class GetWorkError extends Data.TaggedError('GetWorkError')<{
 }
 
 export class ListWorksError extends Data.TaggedError('ListWorksError')<{
-  readonly cause?: HttpClient.error.HttpClientError | ParseResult.ParseError | undefined
+  readonly cause?: HttpClientError.HttpClientError | ParseResult.ParseError | undefined
   readonly message: string
 }> {
-  static fromError = (error: HttpClient.error.HttpClientError | ParseResult.ParseError) =>
+  static fromError = (error: HttpClientError.HttpClientError | ParseResult.ParseError) =>
     new ListWorksError({
       cause: error,
       message: error.message,
@@ -36,34 +42,34 @@ export class OpenAlexApi extends Context.Tag('OpenAlexApi')<
   OpenAlexApi,
   {
     readonly getWork: (id: Doi.Doi) => Effect.Effect<Work, GetWorkError>
-    readonly listWorks: (params: HttpClient.urlParams.Input) => Effect.Effect<ListOfWorks, ListWorksError>
+    readonly listWorks: (params: UrlParams.Input) => Effect.Effect<ListOfWorks, ListWorksError>
   }
 >() {}
 
 export const OpenAlexApiLive = Layer.scoped(
   OpenAlexApi,
   Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.client.Client)
+    const httpClient = yield* _(HttpClient.HttpClient)
     const rateLimit = yield* _(RateLimiter.make({ limit: 10, interval: '1.5 seconds', algorithm: 'fixed-window' }))
 
     const getWork = (id: Doi.Doi) =>
       pipe(
-        HttpClient.request.get(`https://api.openalex.org/works/${encodeURIComponent(Doi.toUrl(id).href)}`),
-        HttpClient.request.acceptJson,
-        HttpClient.client.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
-        Effect.flatMap(HttpClient.response.schemaBodyJson(WorkSchema)),
+        HttpClientRequest.get(`https://api.openalex.org/works/${encodeURIComponent(Doi.toUrl(id).href)}`),
+        HttpClientRequest.acceptJson,
+        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
+        Effect.flatMap(HttpClientResponse.schemaBodyJson(WorkSchema)),
         Effect.scoped,
         Effect.catchAll(GetWorkError.fromError),
         rateLimit,
       )
 
-    const listWorks = (params: HttpClient.urlParams.Input) =>
+    const listWorks = (params: UrlParams.Input) =>
       pipe(
-        HttpClient.request.get('https://api.openalex.org/works'),
-        HttpClient.request.setUrlParams(params),
-        HttpClient.request.acceptJson,
-        HttpClient.client.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
-        Effect.flatMap(HttpClient.response.schemaBodyJson(ListOfWorksSchema)),
+        HttpClientRequest.get('https://api.openalex.org/works'),
+        HttpClientRequest.setUrlParams(params),
+        HttpClientRequest.acceptJson,
+        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
+        Effect.flatMap(HttpClientResponse.schemaBodyJson(ListOfWorksSchema)),
         Effect.scoped,
         Effect.catchAll(ListWorksError.fromError),
         rateLimit,
