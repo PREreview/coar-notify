@@ -1,4 +1,4 @@
-import { HttpClient } from '@effect/platform'
+import { HttpClientError } from '@effect/platform'
 import { Array, Effect, Equal, type Option, Request, RequestResolver, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import type * as Doi from '../Doi.js'
@@ -36,7 +36,7 @@ const getSingleWork = (request: GetWork) =>
     Effect.asSome,
     Effect.catchIf(
       error =>
-        error.cause instanceof HttpClient.error.ResponseError &&
+        error.cause instanceof HttpClientError.ResponseError &&
         error.cause.reason === 'StatusCode' &&
         Equal.equals(error.cause.response.status, StatusCodes.NOT_FOUND),
       () => Effect.succeedNone,

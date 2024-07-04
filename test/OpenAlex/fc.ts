@@ -1,4 +1,4 @@
-import type { HttpClient } from '@effect/platform'
+import type { HttpClientError } from '@effect/platform'
 import type { ParseResult } from '@effect/schema'
 import { GetWorkError, ListWorksError } from '../../src/OpenAlex/OpenAlexApi.js'
 import * as fc from '../fc.js'
@@ -8,7 +8,7 @@ export * from '../fc.js'
 export const openAlexGetWorkError = ({
   cause,
 }: {
-  cause?: fc.Arbitrary<HttpClient.error.HttpClientError | ParseResult.ParseError>
+  cause?: fc.Arbitrary<HttpClientError.HttpClientError | ParseResult.ParseError>
 } = {}): fc.Arbitrary<GetWorkError> =>
   fc
     .record({
@@ -24,7 +24,7 @@ export const openAlexGetWorkError = ({
 export const openAlexListWorksError = ({
   cause,
 }: {
-  cause?: fc.Arbitrary<HttpClient.error.HttpClientError | ParseResult.ParseError>
+  cause?: fc.Arbitrary<HttpClientError.HttpClientError | ParseResult.ParseError>
 } = {}): fc.Arbitrary<ListWorksError> =>
   fc
     .record({
