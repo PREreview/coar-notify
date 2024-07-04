@@ -42,7 +42,7 @@
     "fast-check": "^3.19.0",
     "fetch-mock": "^9.11.0",
     "open-cli": "^8.0.0",
-    "prettier": "^3.3.1",
+    "prettier": "^3.3.2",
     "prettier-plugin-sh": "^0.14.0",
     "prettier-plugin-toml": "^2.0.1",
     "tsx": "^4.16.2",
