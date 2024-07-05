@@ -2,7 +2,7 @@ import { HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/
 import doiRegex from 'doi-regex'
 import { Array, String } from 'effect'
 import * as fc from 'fast-check'
-import type { MockResponseObject } from 'fetch-mock'
+import type fetchMock from 'fetch-mock'
 import iso6391 from 'iso-639-1'
 import type * as Crossref from '../src/Crossref.js'
 import type * as Datacite from '../src/Datacite.js'
@@ -34,9 +34,9 @@ export const fetchResponse = ({
   body,
   status,
 }: {
-  body?: fc.Arbitrary<MockResponseObject['body']>
-  status?: fc.Arbitrary<MockResponseObject['status']>
-} = {}): fc.Arbitrary<MockResponseObject> =>
+  body?: fc.Arbitrary<fetchMock.MockResponseObject['body']>
+  status?: fc.Arbitrary<fetchMock.MockResponseObject['status']>
+} = {}): fc.Arbitrary<fetchMock.MockResponseObject> =>
   fc.record({
     body: body ?? fc.option(fc.string(), { nil: undefined }),
     status: status ?? fc.option(statusCode(), { nil: undefined }),
