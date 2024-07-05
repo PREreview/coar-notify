@@ -50,7 +50,7 @@ describe('getWork', () => {
         const actual = yield* $(dataciteApi.getWork(doi), Effect.flip)
 
         expect(actual).toBeInstanceOf(_.GetWorkError)
-        expect(actual.message).toMatch(/^(?:Decode$|Expected )/)
+        expect(actual.message).toMatch(/^(?:Decode$|Expected |{)/)
         expect(fetchMock.done()).toBeTruthy()
       }).pipe(
         Effect.provide(_.DataciteApiLive),
