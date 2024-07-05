@@ -3,6 +3,7 @@ import doiRegex from 'doi-regex'
 import { Array, String } from 'effect'
 import * as fc from 'fast-check'
 import type fetchMock from 'fetch-mock'
+import { StatusCodes } from 'http-status-codes'
 import iso6391 from 'iso-639-1'
 import type * as Crossref from '../src/Crossref.js'
 import type * as Datacite from '../src/Datacite.js'
@@ -37,10 +38,25 @@ export const fetchResponse = ({
   body?: fc.Arbitrary<fetchMock.MockResponseObject['body']>
   status?: fc.Arbitrary<fetchMock.MockResponseObject['status']>
 } = {}): fc.Arbitrary<fetchMock.MockResponseObject> =>
-  fc.record({
-    body: body ?? fc.option(fc.string(), { nil: undefined }),
-    status: status ?? fc.option(statusCode(), { nil: undefined }),
-  }) as never
+  fc
+    .record({
+      body: body ?? fc.option(fc.string(), { nil: undefined }),
+      status: status ?? fc.option(statusCode(), { nil: undefined }),
+    })
+    .map(args => ({
+      ...args,
+      body:
+        typeof args.status !== 'number' ||
+        ![
+          StatusCodes.SWITCHING_PROTOCOLS,
+          StatusCodes.EARLY_HINTS,
+          StatusCodes.NO_CONTENT,
+          StatusCodes.RESET_CONTENT,
+          StatusCodes.NOT_MODIFIED,
+        ].includes(args.status)
+          ? args.body
+          : undefined,
+    })) as never
 
 export const urlSearchParams = (): fc.Arbitrary<URLSearchParams> =>
   fc.webQueryParameters().map(query => new URLSearchParams(query))
