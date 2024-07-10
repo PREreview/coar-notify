@@ -23,7 +23,7 @@ export const getPreprint: (
 ) => Effect.Effect<Preprint, GetPreprintError, Crossref.CrossrefApi | Datacite.DataciteApi> = flow(
   Match.value,
   Match.when(
-    Doi.hasRegistrant('1101', '1590', '31219', '31234', '31235', '32942', '35542'),
+    Doi.hasRegistrant('1101', '1590', '20944', '31219', '31234', '31235', '32942', '35542'),
     CrossrefPreprint.getPreprintFromCrossref,
   ),
   Match.when(Doi.hasRegistrant('48550'), DatacitePreprint.getPreprintFromDatacite),

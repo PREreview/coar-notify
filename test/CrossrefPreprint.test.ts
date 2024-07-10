@@ -35,6 +35,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('osf-preprints'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('20944') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('preprints.org'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('31234') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
         fc.constant('PsyArXiv'),
@@ -113,7 +119,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '32942') }),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -173,7 +179,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '32942') }),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -238,7 +244,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.string(),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '32942') }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -308,7 +314,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.string(),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '32942') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '32942') }),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -392,7 +398,9 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['1590', '32942'].includes(registrant)) }),
+        DOI: fc.doi({
+          registrant: fc.doiRegistrant().filter(registrant => !['1590', '20944', '32942'].includes(registrant)),
+        }),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),

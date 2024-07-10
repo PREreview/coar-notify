@@ -15,6 +15,7 @@ export interface CrossrefPreprint {
     | 'edarxiv'
     | 'medrxiv'
     | 'osf-preprints'
+    | 'preprints.org'
     | 'psyarxiv'
     | 'scielo'
     | 'socarxiv'
@@ -29,6 +30,7 @@ export const CrossrefPreprintServerSchema = Schema.Literal(
   'edarxiv',
   'medrxiv',
   'osf-preprints',
+  'preprints.org',
   'psyarxiv',
   'scielo',
   'socarxiv',
@@ -64,6 +66,7 @@ export const getPreprintFromCrossref = (
       Match.when(['1101', { institution: [{ name: 'bioRxiv' }] }], () => 'biorxiv' as const),
       Match.when(['1101', { institution: [{ name: 'medRxiv' }] }], () => 'medrxiv' as const),
       Match.when(['1590'], () => 'scielo' as const),
+      Match.when(['20944'], () => 'preprints.org' as const),
       Match.when(['31219', { 'group-title': 'Open Science Framework' }], () => 'osf-preprints' as const),
       Match.when(['31234', { 'group-title': 'PsyArXiv' }], () => 'psyarxiv' as const),
       Match.when(['31235', { 'group-title': 'SocArXiv' }], () => 'socarxiv' as const),

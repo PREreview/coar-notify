@@ -223,6 +223,7 @@ Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('edarxiv', () => 'EdArXiv'),
               Match.when('medrxiv', () => 'medRxiv'),
               Match.when('osf-preprints', () => 'OSF Preprints'),
+              Match.when('preprints.org', () => 'Preprints.org'),
               Match.when('psyarxiv', () => 'PsyArXiv'),
               Match.when('scielo', () => 'SciELO Preprints'),
               Match.when('socarxiv', () => 'SocArXiv'),
