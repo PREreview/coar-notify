@@ -113,8 +113,10 @@ export const Router = HttpRouter.empty.pipe(
   HttpRouter.post(
     '/prereviews',
     Effect.gen(function* () {
+      yield* HttpServerRequest.schemaHeaders(Schema.Struct({ authorization: Schema.Literal('Bearer secret') }))
+
       return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-    }),
+    }).pipe(Effect.catchTag('ParseError', () => HttpServerResponse.empty({ status: StatusCodes.UNAUTHORIZED }))),
   ),
   HttpRouter.post(
     '/inbox',
