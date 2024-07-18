@@ -3,6 +3,7 @@ import { SmtpConfig } from './Nodemailer.js'
 import { OpenAiConfig } from './OpenAi.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
+import { PrereviewAuthToken } from './Router.js'
 import { SlackApiConfig, SlackChannelId } from './Slack.js'
 
 const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
@@ -39,10 +40,13 @@ const openAiConfig = OpenAiConfig.layer(
   ),
 )
 
+const prereviewAuthTokenConfig = Config.string('PREREVIEW_AUTH_TOKEN')
+
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackApiConfig, slackApiConfig),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
+  Layer.effect(PrereviewAuthToken, prereviewAuthTokenConfig),
   openAiConfig,
   Layer.unwrapEffect(
     smtpConfig.pipe(Effect.map(Option.match({ onNone: () => Layer.empty, onSome: Layer.succeed(SmtpConfig) }))),

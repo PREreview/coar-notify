@@ -1,6 +1,6 @@
 import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Data, Effect, Exit, Match, Option } from 'effect'
+import { Array, Context, Data, Effect, Exit, Match, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import * as BullMq from './BullMq.js'
@@ -12,6 +12,8 @@ import * as Preprint from './Preprint.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
 import * as Temporal from './Temporal.js'
+
+export const PrereviewAuthToken = Context.GenericTag<string>('PrereviewAuthToken')
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
@@ -113,7 +115,8 @@ export const Router = HttpRouter.empty.pipe(
   HttpRouter.post(
     '/prereviews',
     Effect.gen(function* () {
-      yield* HttpServerRequest.schemaHeaders(Schema.Struct({ authorization: Schema.Literal('Bearer secret') }))
+      const token = yield* PrereviewAuthToken
+      yield* HttpServerRequest.schemaHeaders(Schema.Struct({ authorization: Schema.Literal(`Bearer ${token}`) }))
 
       return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
     }).pipe(Effect.catchTag('ParseError', () => HttpServerResponse.empty({ status: StatusCodes.UNAUTHORIZED }))),
