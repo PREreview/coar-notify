@@ -111,6 +111,12 @@ export const Router = HttpRouter.empty.pipe(
     }),
   ),
   HttpRouter.post(
+    '/prereviews',
+    Effect.gen(function* () {
+      return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
+    }),
+  ),
+  HttpRouter.post(
     '/inbox',
     Effect.gen(function* (_) {
       const requestReview = yield* _(HttpServerRequest.schemaBodyJson(CoarNotify.RequestReviewSchema))
