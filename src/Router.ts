@@ -3,6 +3,7 @@ import { Schema, TreeFormatter } from '@effect/schema'
 import { Array, Context, Data, Effect, Exit, Match, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
+import slackifyMarkdown from 'slackify-markdown'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
@@ -11,13 +12,22 @@ import * as OpenAlex from './OpenAlex/index.js'
 import * as Preprint from './Preprint.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
+import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
+import * as Url from './Url.js'
 
 export const PrereviewAuthToken = Context.GenericTag<string>('PrereviewAuthToken')
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
 }
+
+const NewPrereviewSchema = Schema.Struct({
+  url: Url.UrlFromStringSchema,
+  author: Schema.Struct({
+    name: Schema.String.pipe(Schema.trimmed(), Schema.nonEmpty()),
+  }),
+})
 
 export const Router = HttpRouter.empty.pipe(
   HttpRouter.get(
@@ -118,8 +128,25 @@ export const Router = HttpRouter.empty.pipe(
       const token = yield* PrereviewAuthToken
       yield* HttpServerRequest.schemaHeaders(Schema.Struct({ authorization: Schema.Literal(`Bearer ${token}`) }))
 
-      return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-    }).pipe(Effect.catchTag('ParseError', () => HttpServerResponse.empty({ status: StatusCodes.UNAUTHORIZED }))),
+      const prereview = yield* HttpServerRequest.schemaBodyJson(NewPrereviewSchema)
+
+      yield* Slack.chatPostMessage({
+        channel: Slack.SlackChannelId('C05V6TXHETS'),
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: slackifyMarkdown(`${prereview.author.name} has published a PREreview: <${prereview.url.href}>`),
+            },
+          },
+        ],
+        unfurlLinks: true,
+        unfurlMedia: false,
+      })
+
+      return yield* HttpServerResponse.empty({ status: StatusCodes.CREATED })
+    }),
   ),
   HttpRouter.post(
     '/inbox',
