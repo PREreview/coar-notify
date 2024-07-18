@@ -170,7 +170,7 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
 
     const threaded = yield* _(
       OpenAi.createChatCompletion({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
