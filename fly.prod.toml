@@ -4,6 +4,7 @@ primary_region = "iad"
 [env]
 BULLMQ_WORKER_POLL = "30 seconds"
 SLACK_CHANNEL_ID = "C05B95LEN5C"
+SLACK_SHARE_CHANNEL_ID = "C05C2Q0QKQB"
 REDIS_IP_VERSION = "6"
 
 [http_service]

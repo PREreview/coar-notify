@@ -3,7 +3,8 @@ import { SmtpConfig } from './Nodemailer.js'
 import { OpenAiConfig } from './OpenAi.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
-import { PrereviewAuthToken } from './Router.js'
+import { PrereviewAuthToken, SlackShareChannelId } from './Router.js'
+import type * as Slack from './Slack.js'
 import { SlackApiConfig, SlackChannelId } from './Slack.js'
 
 const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
@@ -13,6 +14,11 @@ const slackApiConfig: Config.Config<SlackApiConfig> = Config.nested(
 
 const slackChannelConfig: Config.Config<SlackChannelConfig> = Config.nested(
   Config.map(Config.string('CHANNEL_ID'), id => ({ id: SlackChannelId(id) })),
+  'SLACK',
+)
+
+const slackShareChannelId: Config.Config<Slack.SlackChannelId> = Config.nested(
+  Config.map(Config.string('SHARE_CHANNEL_ID'), SlackChannelId),
   'SLACK',
 )
 
@@ -44,6 +50,7 @@ const prereviewAuthTokenConfig = Config.string('PREREVIEW_AUTH_TOKEN')
 
 export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackApiConfig, slackApiConfig),
+  Layer.effect(SlackShareChannelId, slackShareChannelId),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
   Layer.effect(PrereviewAuthToken, prereviewAuthTokenConfig),

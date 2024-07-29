@@ -16,6 +16,8 @@ import * as Slack from './Slack.js'
 import * as Temporal from './Temporal.js'
 import * as Url from './Url.js'
 
+export const SlackShareChannelId = Context.GenericTag<Slack.SlackChannelId>('SlackShareChannelId')
+
 export const PrereviewAuthToken = Context.GenericTag<string>('PrereviewAuthToken')
 
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
@@ -131,7 +133,7 @@ export const Router = HttpRouter.empty.pipe(
       const prereview = yield* HttpServerRequest.schemaBodyJson(NewPrereviewSchema)
 
       yield* Slack.chatPostMessage({
-        channel: Slack.SlackChannelId('C05V6TXHETS'),
+        channel: yield* SlackShareChannelId,
         blocks: [
           {
             type: 'section',
