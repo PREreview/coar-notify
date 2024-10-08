@@ -9,7 +9,10 @@ import * as fc from './fc.js'
 describe('getPreprintFromDatacite', () => {
   test.prop([
     fc.doi(),
-    fc.tuple(fc.doi({ registrant: fc.constant('48550') }), fc.constant('arxiv')),
+    fc.oneof(
+      fc.tuple(fc.doi({ registrant: fc.constant('48550') }), fc.constant('arxiv')),
+      fc.tuple(fc.doi({ registrant: fc.constant('60763') }), fc.constant('africarxiv')),
+    ),
     fc.string(),
     fc.string(),
     fc.plainDate(),
@@ -53,7 +56,7 @@ describe('getPreprintFromDatacite', () => {
     fc.doi(),
     fc.dataciteWork({
       descriptions: fc.constant([]),
-      doi: fc.doi({ registrant: fc.constant('48550') }),
+      doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
       titles: fc.nonEmptyArray(fc.record({ title: fc.string() })),
       types: fc.constant({ resourceType: 'preprint' }),
     }),
@@ -79,7 +82,7 @@ describe('getPreprintFromDatacite', () => {
           dateType: fc.constant('Submitted'),
         }),
       ),
-      doi: fc.doi({ registrant: fc.constant('48550') }),
+      doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
       descriptions: fc.nonEmptyArray(
         fc.record({
           description: fc.string(),
@@ -111,7 +114,7 @@ describe('getPreprintFromDatacite', () => {
           dateType: fc.string().filter(string => !['Submitted', 'Created', 'Issued'].includes(string.toLowerCase())),
         }),
       ),
-      doi: fc.doi({ registrant: fc.constant('48550') }),
+      doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
       descriptions: fc.nonEmptyArray(
         fc.record({
           description: fc.string(),
@@ -138,7 +141,7 @@ describe('getPreprintFromDatacite', () => {
     fc.doi(),
     fc.oneof(
       fc.dataciteWork({
-        doi: fc.doi({ registrant: fc.constant('48550') }),
+        doi: fc.doi({ registrant: fc.constantFrom('48550') }),
         types: fc.record(
           {
             resourceType: fc.string().filter(string => string !== 'preprint'),
@@ -148,7 +151,17 @@ describe('getPreprintFromDatacite', () => {
         ),
       }),
       fc.dataciteWork({
-        doi: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => registrant !== '48550') }),
+        doi: fc.doi({ registrant: fc.constantFrom('60763') }),
+        types: fc.record(
+          {
+            resourceType: fc.string().filter(string => string !== 'preprint'),
+            resourceTypeGeneral: fc.string().filter(string => !['preprint', 'text'].includes(string.toLowerCase())),
+          },
+          { requiredKeys: ['resourceTypeGeneral'] },
+        ),
+      }),
+      fc.dataciteWork({
+        doi: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['48550', '60763'].includes(registrant)) }),
         types: fc.constant({ resourceTypeGeneral: 'text' }),
       }),
     ),
@@ -169,7 +182,7 @@ describe('getPreprintFromDatacite', () => {
     fc.doi(),
     fc.oneof(
       fc.dataciteWork({
-        doi: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['48550'].includes(registrant)) }),
+        doi: fc.doi({ registrant: fc.doiRegistrant().filter(registrant => !['48550', '60763'].includes(registrant)) }),
         types: fc.record({
           resourceType: fc.constant('preprint'),
           resourceTypeGeneral: fc.constant('preprint'),

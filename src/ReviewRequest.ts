@@ -217,6 +217,7 @@ ${Array.match(preprint.authors, {
 })}
 
 Preprint server: """${Match.value(preprint.server).pipe(
+              Match.when('africarxiv', () => 'AfricArXiv Preprints'),
               Match.when('arxiv', () => 'arXiv'),
               Match.when('biorxiv', () => 'bioRxiv'),
               Match.when('ecoevorxiv', () => 'EcoEvoRxiv'),

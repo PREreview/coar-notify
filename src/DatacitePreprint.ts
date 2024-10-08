@@ -9,7 +9,7 @@ export interface DatacitePreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate
-  readonly server: 'arxiv'
+  readonly server: 'africarxiv' | 'arxiv'
   readonly title: string
 }
 
@@ -45,7 +45,9 @@ export const getPreprintFromDatacite = (
           Predicate.some([
             work => work.types.resourceType?.toLowerCase() === 'preprint',
             work => work.types.resourceTypeGeneral?.toLowerCase() === 'preprint',
-            work => work.types.resourceTypeGeneral?.toLowerCase() === 'text' && Doi.hasRegistrant('48550')(work.doi),
+            work =>
+              work.types.resourceTypeGeneral?.toLowerCase() === 'text' && Doi.hasRegistrant('48550', '60763')(work.doi),
+            work => work.types.resourceTypeGeneral === undefined && Doi.hasRegistrant('60763')(work.doi),
           ]),
         ),
       )
@@ -56,6 +58,7 @@ export const getPreprintFromDatacite = (
     const server = yield* _(
       Match.value([Doi.getRegistrant(work.doi), work]),
       Match.when(['48550'], () => 'arxiv' as const),
+      Match.when(['60763'], () => 'africarxiv' as const),
       Match.either,
       Either.mapLeft(() => new GetPreprintFromDataciteError({ message: 'Not from a supported server' })),
     )
