@@ -10,7 +10,7 @@
     "@effect/platform-node": "^0.53.19",
     "@effect/schema": "^0.68.17",
     "@js-temporal/polyfill": "^0.4.4",
-    "bullmq": "^5.8.3",
+    "bullmq": "^5.20.0",
     "effect": "3.4.7",
     "html-entities": "^2.5.2",
     "http-status-codes": "^2.3.0",
