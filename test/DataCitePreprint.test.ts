@@ -15,7 +15,7 @@ describe('getPreprintFromDatacite', () => {
     ),
     fc.string(),
     fc.string(),
-    fc.plainDate(),
+    fc.oneof(fc.plainYearMonth(), fc.plainDate()),
     fc.constantFrom('Submitted', 'Created', 'Issued'),
   ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted, dateType) =>
     Effect.gen(function* ($) {
@@ -78,7 +78,7 @@ describe('getPreprintFromDatacite', () => {
     fc.dataciteWork({
       dates: fc.nonEmptyArray(
         fc.record({
-          date: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+          date: fc.plainYear(),
           dateType: fc.constant('Submitted'),
         }),
       ),

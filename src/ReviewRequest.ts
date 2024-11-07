@@ -399,8 +399,17 @@ function formatList(list: ReadonlyArray<string>) {
   return formatter.format(list)
 }
 
-function renderDate(date: Temporal.PlainDate) {
-  return date.toLocaleString('en', { dateStyle: 'long' })
+function renderDate(date: Temporal.PlainDate | Temporal.PlainYearMonth) {
+  return pipe(
+    Match.value(date),
+    Match.when({ [Symbol.toStringTag]: 'Temporal.PlainYearMonth' }, date =>
+      date.toLocaleString('en', { calendar: date.calendarId, month: 'long', year: 'numeric' }),
+    ),
+    Match.when({ [Symbol.toStringTag]: 'Temporal.PlainDate' }, date =>
+      date.toLocaleString('en', { dateStyle: 'long' }),
+    ),
+    Match.exhaustive,
+  )
 }
 
 const postMessageOnSlack = flow(

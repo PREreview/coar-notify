@@ -8,7 +8,7 @@ export interface DatacitePreprint {
   readonly abstract: string
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
-  readonly posted: Temporal.PlainDate
+  readonly posted: Temporal.PlainDate | Temporal.PlainYearMonth
   readonly server: 'africarxiv' | 'arxiv'
   readonly title: string
 }
@@ -87,9 +87,7 @@ export const getPreprintFromDatacite = (
           Match.when(Match.instanceOfUnsafe(Temporal.PlainYear), () =>
             Either.left(new GetPreprintFromDataciteError({ message: 'Published date incomplete' })),
           ),
-          Match.when(Match.instanceOfUnsafe(Temporal.PlainYearMonth), () =>
-            Either.left(new GetPreprintFromDataciteError({ message: 'Published date incomplete' })),
-          ),
+          Match.when(Match.instanceOfUnsafe(Temporal.PlainYearMonth), date => Either.right(date)),
           Match.exhaustive,
         ),
       ),
