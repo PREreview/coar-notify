@@ -1,6 +1,6 @@
 import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
 import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Context, Data, Effect, Exit, Match, Option } from 'effect'
+import { Array, Config, Context, Data, Effect, Exit, Match, Option } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import slackifyMarkdown from 'slackify-markdown'
@@ -222,6 +222,12 @@ const RequestsSchema = Schema.Array(
   }),
 )
 
-const notifyScietyCoarInbox = Effect.void
+const notifyScietyCoarInbox = Effect.gen(function* () {
+  const canNotifySciety = yield* Config.withDefault(Config.boolean('CAN_NOTIFY_SCIETY'), false)
+  if (!canNotifySciety) {
+    return
+  }
+  yield* Effect.logDebug('Should notify Sciety')
+})
 
 const md5 = (content: string) => createHash('md5').update(content).digest('hex')
