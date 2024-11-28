@@ -132,20 +132,26 @@ export const Router = HttpRouter.empty.pipe(
 
       const prereview = yield* HttpServerRequest.schemaBodyJson(NewPrereviewSchema)
 
-      yield* Slack.chatPostMessage({
-        channel: yield* SlackShareChannelId,
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: slackifyMarkdown(`${prereview.author.name} has published a PREreview: <${prereview.url.href}>`),
-            },
-          },
+      yield* Effect.all(
+        [
+          Slack.chatPostMessage({
+            channel: yield* SlackShareChannelId,
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: slackifyMarkdown(`${prereview.author.name} has published a PREreview: <${prereview.url.href}>`),
+                },
+              },
+            ],
+            unfurlLinks: true,
+            unfurlMedia: false,
+          }),
+          notifyScietyCoarInbox,
         ],
-        unfurlLinks: true,
-        unfurlMedia: false,
-      })
+        { concurrency: 'unbounded' },
+      )
 
       return yield* HttpServerResponse.empty({ status: StatusCodes.CREATED })
     }),
@@ -215,5 +221,7 @@ const RequestsSchema = Schema.Array(
     domains: Schema.Array(OpenAlex.DomainIdSchema),
   }),
 )
+
+const notifyScietyCoarInbox = Effect.void
 
 const md5 = (content: string) => createHash('md5').update(content).digest('hex')
