@@ -148,7 +148,7 @@ export const Router = HttpRouter.empty.pipe(
             unfurlLinks: true,
             unfurlMedia: false,
           }),
-          notifyScietyCoarInbox,
+          notifyScietyCoarInbox(prereview.url),
         ],
         { concurrency: 'unbounded' },
       )
@@ -222,12 +222,33 @@ const RequestsSchema = Schema.Array(
   }),
 )
 
-const notifyScietyCoarInbox = Effect.gen(function* () {
-  const canNotifySciety = yield* Config.withDefault(Config.boolean('CAN_NOTIFY_SCIETY'), false)
-  if (!canNotifySciety) {
-    return
-  }
-  yield* Effect.logDebug('Should notify Sciety')
-})
+const notifyScietyCoarInbox = (prereviewUrl: URL) =>
+  Effect.gen(function* () {
+    const canNotifySciety = yield* Config.withDefault(Config.boolean('CAN_NOTIFY_SCIETY'), false)
+    if (!canNotifySciety) {
+      return
+    }
+
+    const message = {
+      id: `urn:uuid:${crypto.randomUUID()}`,
+      '@context': ['https://www.w3.org/ns/activitystreams', 'https://purl.org/coar/notify'],
+      type: ['Announce', 'coar-notify:ReviewAction'],
+      origin: {
+        id: 'https://sandbox.prereview.org/',
+        inbox: 'https://coar-notify-sandbox.prereview.org/inbox',
+        type: 'Service',
+      },
+      target: {
+        id: 'https://staging.sciety.org/',
+        inbox: 'https://inbox-sciety-staging.elifesciences.org/inbox',
+        type: 'Service',
+      },
+      object: {
+        id: prereviewUrl,
+      },
+    }
+
+    yield* Effect.annotateLogs(Effect.logDebug('Should notify Sciety'), 'message', message)
+  })
 
 const md5 = (content: string) => createHash('md5').update(content).digest('hex')
