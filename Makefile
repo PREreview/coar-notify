@@ -38,7 +38,7 @@ smoke-test: build-image start-services
 	REDIS_PORT=$(shell docker compose port redis 6379 | awk -F":" '{print $$2}') scripts/smoke-test.sh ${IMAGE_TAG}
 
 start: .env node_modules start-services
-	REDIS_URL=redis://$(shell docker compose port redis 6379) SMTP_URL=smtp://$(shell docker compose port mailcatcher 1025) npx tsx watch --clear-screen=false --require dotenv/config src
+	REDIS_URL=redis://$(shell docker compose port redis 6379) SMTP_URL=smtp://$(shell docker compose port mailcatcher 1025) node_modules/.bin/tsx watch --clear-screen=false --require dotenv/config src
 
 start-services:
 	docker compose up --detach
