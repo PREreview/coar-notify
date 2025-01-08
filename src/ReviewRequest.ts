@@ -269,8 +269,6 @@ ${JSON.stringify(exampleThread)}
       Effect.flatMap(Schema.decode(Schema.parseJson(ThreadSchema))),
     )
 
-    yield* _(Redis.lpush('notifications', encoded))
-
     const posts = threadToSlackBlocks(threaded, preprint)
 
     const parent = yield* _(
@@ -299,6 +297,8 @@ ${JSON.stringify(exampleThread)}
         ),
       ),
     )
+
+    yield* _(Redis.lpush('notifications', encoded))
 
     if (requestReview.actor.id.protocol === 'mailto:') {
       yield* _(
