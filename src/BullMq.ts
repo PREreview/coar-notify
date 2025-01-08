@@ -68,7 +68,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
     QueueTag<(typeof layerOptions)['name'], Q>(layerOptions.name),
     Effect.gen(function* (_) {
       const redis = yield* _(Redis.Redis)
-      const queue = new BullMq.Queue(layerOptions.name, {
+      const queue = new BullMq.Queue<unknown, unknown>(layerOptions.name, {
         connection: redis,
         defaultJobOptions: layerOptions.defaultJobOptions
           ? {
