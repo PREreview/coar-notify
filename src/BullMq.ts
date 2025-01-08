@@ -164,6 +164,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                     Effect.annotateLogs('duration', Duration.format(lockDuration)),
                     Effect.repeat(Schedule.fixed(Duration.unsafeDivide(lockDuration, 2))),
                     Effect.delay(Duration.unsafeDivide(lockDuration, 2)),
+                    Effect.interruptible,
                     Effect.fork,
                   )
 
