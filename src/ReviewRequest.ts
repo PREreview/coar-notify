@@ -1,3 +1,4 @@
+import clip from '@arendjr/text-clipper'
 import { Schema } from '@effect/schema'
 import { Array, Context, Data, Effect, Exit, Match, String, pipe } from 'effect'
 import { decode } from 'html-entities'
@@ -47,7 +48,7 @@ const threadToSlackBlocks = (
           post.text,
           String.replaceAll(
             '[ABSTRACT]',
-            `> ${decode(striptags(preprint.abstract)).replaceAll(/(?:\r\n|\r|\n)+/gm, ' ')}`,
+            `> ${clip(decode(striptags(preprint.abstract)).replaceAll(/(?:\r\n|\r|\n)+/gm, ' '), 2_900)}`,
           ),
           slackifyMarkdown,
           String.trim,
