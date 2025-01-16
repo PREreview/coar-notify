@@ -65,6 +65,8 @@ export const BlockSchema = Schema.Union(ActionsBlockSchema, ContextBlockSchema, 
 
 export type SlackBlock = Schema.Schema.Type<typeof BlockSchema>
 
+export type ChatPostMessage = Schema.Schema.Type<typeof ChatPostMessageSchema>
+
 const ChatPostMessageSchema = Schema.Struct({
   channel: ChannelIdSchema,
   blocks: Schema.NonEmptyArray(BlockSchema),

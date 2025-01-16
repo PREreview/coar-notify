@@ -1,5 +1,5 @@
 import { Schema } from '@effect/schema'
-import { Array, Context, Data, Effect, Exit, Match, String, flow, pipe } from 'effect'
+import { Array, Context, Data, Effect, Exit, Match, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -412,18 +412,22 @@ function renderDate(date: Temporal.PlainDate | Temporal.PlainYearMonth) {
   )
 }
 
-const postMessageOnSlack = flow(
-  Slack.chatPostMessage,
-  Effect.acquireRelease((id, exit) =>
-    Exit.matchEffect(exit, {
-      onFailure: () =>
-        Effect.catchAll(Slack.chatDelete(id), error =>
-          Effect.annotateLogs(Effect.logError('Unable to delete Slack message'), { id, message: error.message }),
-        ),
-      onSuccess: () => Effect.void,
+const postMessageOnSlack = (message: Slack.ChatPostMessage) =>
+  pipe(
+    Effect.logDebug('Posting message on Slack', {
+      blocks: Schema.encodeSync(Schema.Array(Slack.BlockSchema))(message.blocks),
     }),
-  ),
-)
+    Effect.andThen(Slack.chatPostMessage(message)),
+    Effect.acquireRelease((id, exit) =>
+      Exit.matchEffect(exit, {
+        onFailure: () =>
+          Effect.catchAll(Slack.chatDelete(id), error =>
+            Effect.annotateLogs(Effect.logError('Unable to delete Slack message'), { id, message: error.message }),
+          ),
+        onSuccess: () => Effect.void,
+      }),
+    ),
+  )
 
 export const getNotifications = Effect.gen(function* (_) {
   const schema = Schema.Array(Schema.parseJson(NotificationSchema))
