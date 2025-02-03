@@ -1,6 +1,6 @@
 import 'openai/shims/web'
 import { HttpClient } from '@effect/platform'
-import { Config, Context, Data, Effect, Layer, Option, Secret, identity } from 'effect'
+import { Config, Context, Data, Effect, Layer, Option, Redacted, identity } from 'effect'
 import * as OAI from 'openai'
 
 export class OpenAiError extends Data.TaggedError('OpenAiError')<{
@@ -14,13 +14,13 @@ interface OpenAiService {
   ) => Effect.Effect<string, OpenAiError>
 }
 
-const make = (params: { readonly apiKey: Secret.Secret }) =>
+const make = (params: { readonly apiKey: Redacted.Redacted }) =>
   Effect.gen(function* (_) {
     const fetchService = yield* _(Effect.serviceOption(HttpClient.Fetch))
     const fetch = Option.match(fetchService, { onNone: () => globalThis.fetch, onSome: identity })
 
     const client = new OAI.OpenAI({
-      apiKey: Secret.value(params.apiKey),
+      apiKey: Redacted.value(params.apiKey),
       fetch,
     })
 

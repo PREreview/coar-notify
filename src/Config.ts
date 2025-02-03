@@ -40,7 +40,7 @@ const smtpConfig: Config.Config<Option.Option<SmtpConfig>> = Config.option(
 const openAiConfig = OpenAiConfig.layer(
   Config.nested(
     Config.all({
-      apiKey: Config.secret('API_KEY'),
+      apiKey: Config.redacted('API_KEY'),
     }),
     'OPENAI',
   ),
