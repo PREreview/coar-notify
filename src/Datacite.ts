@@ -1,6 +1,5 @@
 import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/platform'
-import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Data, Effect, Equal, Layer, Match } from 'effect'
+import { Context, Data, Effect, Equal, Layer, Match, type ParseResult, Schema } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -31,7 +30,7 @@ export const DataciteApiLive = Layer.effect(
       Effect.gen(function* (_) {
         const response = yield* _(
           HttpClientRequest.get(`dois/${encodeURIComponent(doi)}`),
-          okClient,
+          okClient.execute,
           Effect.flatMap(HttpClientResponse.schemaBodyJson(DataSchema('dois', WorkSchema))),
         )
 

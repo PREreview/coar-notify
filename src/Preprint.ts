@@ -1,5 +1,4 @@
-import { Schema } from '@effect/schema'
-import { Data, Effect, Match, flow } from 'effect'
+import { Data, Effect, Match, Schema, flow } from 'effect'
 import type * as Crossref from './Crossref.js'
 import * as CrossrefPreprint from './CrossrefPreprint.js'
 import type * as Datacite from './Datacite.js'

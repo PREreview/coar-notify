@@ -1,5 +1,4 @@
-import { Schema } from '@effect/schema'
-import { Array, Data, Effect, Either, Match, String, pipe } from 'effect'
+import { Array, Data, Effect, Either, Match, Schema, String, pipe } from 'effect'
 import * as Crossref from './Crossref.js'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'

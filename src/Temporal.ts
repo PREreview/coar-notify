@@ -1,6 +1,5 @@
-import { ParseResult, Schema } from '@effect/schema'
 import { Temporal } from '@js-temporal/polyfill'
-import { Clock, Effect, Tuple } from 'effect'
+import { Clock, Effect, ParseResult, Schema, Tuple } from 'effect'
 
 export const { Instant, PlainDate, PlainYearMonth } = Temporal
 

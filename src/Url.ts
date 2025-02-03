@@ -1,4 +1,4 @@
-import { ParseResult, Schema } from '@effect/schema'
+import { ParseResult, Schema } from 'effect'
 
 export const UrlFromSelfSchema: Schema.Schema<URL> = Schema.instanceOf(URL)
 

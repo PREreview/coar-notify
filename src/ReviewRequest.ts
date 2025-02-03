@@ -1,6 +1,5 @@
 import clip from '@arendjr/text-clipper'
-import { Schema } from '@effect/schema'
-import { Array, Context, Data, Effect, Exit, Match, String, pipe } from 'effect'
+import { Array, Context, Data, Effect, Exit, Match, Schema, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -29,8 +28,8 @@ const ThreadSchema = Schema.Struct({
   posts: Schema.NonEmptyArray(
     Schema.Struct({
       text: Schema.String,
-      fields: Schema.optional(Schema.Array(Schema.String), { default: Array.empty }),
-      actions: Schema.optional(Schema.Array(Schema.Literal('write-prereview')), { default: Array.empty }),
+      fields: Schema.optionalWith(Schema.Array(Schema.String), { default: Array.empty }),
+      actions: Schema.optionalWith(Schema.Array(Schema.Literal('write-prereview')), { default: Array.empty }),
     }),
   ),
 })

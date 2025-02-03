@@ -1,6 +1,5 @@
-import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
-import { Either } from 'effect'
+import { Either, Schema } from 'effect'
 import { describe, expect } from 'vitest'
 import * as _ from '../src/Url.js'
 import * as fc from './fc.js'
