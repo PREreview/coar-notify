@@ -205,17 +205,17 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
   jobName: J,
   payload: P,
   options?: JobOptions,
-): Effect.Effect<JobId, BullMqError, Queue<N, { [K in J]: P }>> =>
+): Effect.Effect<JobId, BullMqError, Queue<N, Record.ReadonlyRecord<J, P>>> =>
   Effect.gen(function* (_) {
     const queue = yield* _(QueueTag(queueName))
 
     return yield* _(queue.add(jobName, payload, options))
   })
 
-export const remove = <N extends string, J extends string, P extends JsonValue>(
+export const remove = <N extends string>(
   queueName: N,
   jobId: JobId,
-): Effect.Effect<void, BullMqError | Cause.NoSuchElementException, Queue<N, { [K in J]: P }>> =>
+): Effect.Effect<void, BullMqError | Cause.NoSuchElementException, Queue<N, QueueJobs>> =>
   Effect.gen(function* (_) {
     const queue = yield* _(QueueTag(queueName))
 
