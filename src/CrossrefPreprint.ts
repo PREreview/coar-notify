@@ -11,6 +11,7 @@ export interface CrossrefPreprint {
   readonly posted: Temporal.PlainDate
   readonly server:
     | 'biorxiv'
+    | 'eartharxiv'
     | 'ecoevorxiv'
     | 'edarxiv'
     | 'medrxiv'
@@ -26,6 +27,7 @@ export const CrossrefPreprint = Data.case<CrossrefPreprint>()
 
 export const CrossrefPreprintServerSchema = Schema.Literal(
   'biorxiv',
+  'eartharxiv',
   'ecoevorxiv',
   'edarxiv',
   'medrxiv',
@@ -68,6 +70,7 @@ export const getPreprintFromCrossref = (
       Match.when(['1590'], () => 'scielo' as const),
       Match.when(['20944'], () => 'preprints.org' as const),
       Match.when(['31219', { 'group-title': 'Open Science Framework' }], () => 'osf-preprints' as const),
+      Match.when(['31223'], () => 'eartharxiv' as const),
       Match.when(['31234', { 'group-title': 'PsyArXiv' }], () => 'psyarxiv' as const),
       Match.when(['31235', { 'group-title': 'SocArXiv' }], () => 'socarxiv' as const),
       Match.when(['32942'], () => 'ecoevorxiv' as const),
