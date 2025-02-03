@@ -5,8 +5,7 @@ import {
   HttpClientResponse,
   type UrlParams,
 } from '@effect/platform'
-import { ParseResult, Schema } from '@effect/schema'
-import { Brand, Context, Data, Effect, Either, Equal, Layer, RateLimiter, pipe } from 'effect'
+import { Brand, Context, Data, Effect, Either, Equal, Layer, ParseResult, RateLimiter, Schema, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from '../Doi.js'
 import * as LanguageCode from '../LanguageCode.js'
@@ -56,7 +55,7 @@ export const OpenAlexApiLive = Layer.scoped(
       pipe(
         HttpClientRequest.get(`https://api.openalex.org/works/${encodeURIComponent(Doi.toUrl(id).href)}`),
         HttpClientRequest.acceptJson,
-        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
+        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)).execute,
         Effect.flatMap(HttpClientResponse.schemaBodyJson(WorkSchema)),
         Effect.scoped,
         Effect.catchAll(GetWorkError.fromError),
@@ -68,7 +67,7 @@ export const OpenAlexApiLive = Layer.scoped(
         HttpClientRequest.get('https://api.openalex.org/works'),
         HttpClientRequest.setUrlParams(params),
         HttpClientRequest.acceptJson,
-        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)),
+        HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)).execute,
         Effect.flatMap(HttpClientResponse.schemaBodyJson(ListOfWorksSchema)),
         Effect.scoped,
         Effect.catchAll(ListWorksError.fromError),
@@ -153,7 +152,7 @@ export const WorkSchema = Schema.Struct({
   doi: Doi.DoiFromUrlSchema,
   language: LanguageCode.LanguageCodeSchema,
   primary_location: Schema.Struct({
-    source: Schema.optional(Schema.Struct({ id: Schema.compose(Url.UrlFromStringSchema, SourceIdFromUrlSchema) }), {
+    source: Schema.optionalWith(Schema.Struct({ id: Schema.compose(Url.UrlFromStringSchema, SourceIdFromUrlSchema) }), {
       nullable: true,
     }),
   }),

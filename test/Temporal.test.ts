@@ -1,6 +1,5 @@
-import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
-import { Effect, Either, Number as Number_, Option, TestClock, TestContext } from 'effect'
+import { Effect, Either, Number as Number_, Option, Schema, TestClock, TestContext } from 'effect'
 import { describe, expect } from 'vitest'
 import * as _ from '../src/Temporal.js'
 import * as fc from './fc.js'

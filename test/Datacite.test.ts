@@ -1,6 +1,5 @@
-import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
-import { Effect, Equal } from 'effect'
+import { Effect, Equal, Schema } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { describe, expect } from 'vitest'
 import * as _ from '../src/Datacite.js'

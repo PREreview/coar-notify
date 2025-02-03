@@ -1,5 +1,5 @@
 import type { HttpClientError } from '@effect/platform'
-import type { ParseResult } from '@effect/schema'
+import type { ParseResult } from 'effect'
 import { GetWorkError, ListWorksError } from '../../src/OpenAlex/OpenAlexApi.js'
 import * as fc from '../fc.js'
 

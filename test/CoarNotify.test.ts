@@ -1,5 +1,5 @@
-import { ParseResult } from '@effect/schema'
 import { test } from '@fast-check/vitest'
+import { ParseResult } from 'effect'
 import { describe, expect } from 'vitest'
 import * as _ from '../src/CoarNotify.js'
 import * as Doi from '../src/Doi.js'

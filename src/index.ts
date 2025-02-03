@@ -1,7 +1,6 @@
-import { HttpClient, HttpClientRequest, HttpMiddleware, HttpServer } from '@effect/platform'
+import { FetchHttpClient, HttpClient, HttpClientRequest, HttpMiddleware, HttpServer } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
-import { Schema } from '@effect/schema'
-import { Config, Effect, Layer, LogLevel, Logger, Request, Schedule } from 'effect'
+import { Config, Effect, Layer, LogLevel, Logger, Request, Schedule, Schema } from 'effect'
 import { createServer } from 'node:http'
 import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
@@ -23,14 +22,19 @@ const ServerLive = Router.pipe(
   ),
 )
 
-const HttpClientLive = Layer.succeed(
+const HttpClientLive = Layer.effect(
   HttpClient.HttpClient,
   LoggingHttpClient.pipe(
-    HttpClient.mapRequest(
-      HttpClientRequest.setHeader('User-Agent', 'PREreview (https://prereview.org/; mailto:engineering@prereview.org)'),
+    Effect.andThen(
+      HttpClient.mapRequest(
+        HttpClientRequest.setHeader(
+          'User-Agent',
+          'PREreview (https://prereview.org/; mailto:engineering@prereview.org)',
+        ),
+      ),
     ),
   ),
-)
+).pipe(Layer.provide(FetchHttpClient.layer))
 
 const RedisLive = Redis.layer
 
@@ -79,5 +83,5 @@ const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
 Layer.launch(Program).pipe(
   Effect.tapErrorCause(Effect.logError),
   Logger.withMinimumLogLevel(LogLevel.Debug),
-  NodeRuntime.runMain,
+  NodeRuntime.runMain({ disablePrettyLogger: true }),
 )

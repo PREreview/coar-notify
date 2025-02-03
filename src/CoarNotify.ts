@@ -1,4 +1,4 @@
-import { Schema } from '@effect/schema'
+import { Schema } from 'effect'
 import * as Doi from './Doi.js'
 import * as Url from './Url.js'
 
@@ -28,6 +28,6 @@ export const RequestReviewSchema = Schema.Struct({
   actor: Schema.Struct({
     id: Url.UrlFromStringSchema,
     type: Schema.Literal('Application', 'Group', 'Organization', 'Person', 'Service'),
-    name: Schema.String.pipe(Schema.trimmed(), Schema.nonEmpty()),
+    name: Schema.NonEmptyTrimmedString,
   }),
 })

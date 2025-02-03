@@ -1,6 +1,5 @@
 import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
-import { Schema, TreeFormatter } from '@effect/schema'
-import { Array, Config, Context, Data, Effect, Exit, Match, Option } from 'effect'
+import { Array, Config, Context, Data, Effect, Exit, Match, Option, ParseResult, Schema } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import slackifyMarkdown from 'slackify-markdown'
@@ -27,7 +26,7 @@ class RedisTimeout extends Data.TaggedError('RedisTimeout') {
 const NewPrereviewSchema = Schema.Struct({
   url: Url.UrlFromStringSchema,
   author: Schema.Struct({
-    name: Schema.String.pipe(Schema.trimmed(), Schema.nonEmpty()),
+    name: Schema.NonEmptyTrimmedString,
   }),
 })
 
@@ -196,7 +195,7 @@ export const Router = HttpRouter.empty.pipe(
           Effect.gen(function* (_) {
             yield* _(
               Effect.logInfo('Invalid request').pipe(
-                Effect.annotateLogs({ message: TreeFormatter.formatErrorSync(error) }),
+                Effect.annotateLogs({ message: ParseResult.TreeFormatter.formatErrorSync(error) }),
               ),
             )
 

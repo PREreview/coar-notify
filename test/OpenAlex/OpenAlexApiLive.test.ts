@@ -1,6 +1,5 @@
-import { Schema } from '@effect/schema'
 import { test } from '@fast-check/vitest'
-import { Effect, Equal } from 'effect'
+import { Effect, Equal, Schema } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { describe, expect } from 'vitest'
 import * as Doi from '../../src/Doi.js'
@@ -75,7 +74,7 @@ describe('OpenAlexApiLive', () => {
         const actual = yield* $(OpenAlexApi.getWork(id), Effect.flip)
 
         expect(actual).toBeInstanceOf(_.GetWorkError)
-        expect(actual.message).toContain('StatusCode error')
+        expect(actual.message).toContain('StatusCode:')
         expect(fetchMock.done()).toBeTruthy()
       }).pipe(
         Effect.provide(_.OpenAlexApiLive),
@@ -175,7 +174,7 @@ describe('OpenAlexApiLive', () => {
         const actual = yield* $(OpenAlexApi.listWorks(query), Effect.flip)
 
         expect(actual).toBeInstanceOf(_.ListWorksError)
-        expect(actual.message).toContain('StatusCode error')
+        expect(actual.message).toContain('StatusCode:')
         expect(fetchMock.done()).toBeTruthy()
       }).pipe(
         Effect.provide(_.OpenAlexApiLive),

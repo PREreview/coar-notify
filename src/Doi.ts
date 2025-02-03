@@ -1,5 +1,4 @@
-import { ParseResult, Schema } from '@effect/schema'
-import { Brand, Either, Option, type Predicate, String, flow } from 'effect'
+import { Brand, Either, Option, ParseResult, type Predicate, Schema, String, flow } from 'effect'
 
 export type Doi = Brand.Branded<string, 'Doi'>
 

@@ -1,6 +1,5 @@
 import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/platform'
-import { type ParseResult, Schema } from '@effect/schema'
-import { Context, Data, Effect, Equal, Layer, Match, Tuple } from 'effect'
+import { Context, Data, Effect, Equal, Layer, Match, type ParseResult, Schema, Tuple } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -31,7 +30,7 @@ export const CrossrefApiLive = Layer.effect(
       Effect.gen(function* (_) {
         const response = yield* _(
           HttpClientRequest.get(`works/${encodeURIComponent(doi)}`),
-          okClient,
+          okClient.execute,
           Effect.flatMap(HttpClientResponse.schemaBodyJson(MessageSchema(WorkSchema))),
         )
 

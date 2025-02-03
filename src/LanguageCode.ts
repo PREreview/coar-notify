@@ -1,5 +1,4 @@
-import { Schema } from '@effect/schema'
-import type { Predicate } from 'effect'
+import { type Predicate, Schema } from 'effect'
 import iso6391, { type LanguageCode } from 'iso-639-1'
 
 export { type LanguageCode } from 'iso-639-1'

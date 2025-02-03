@@ -1,5 +1,5 @@
 import 'openai/shims/web'
-import { HttpClient } from '@effect/platform'
+import { FetchHttpClient } from '@effect/platform'
 import { Config, Context, Data, Effect, Layer, Option, Redacted, identity } from 'effect'
 import * as OAI from 'openai'
 
@@ -16,7 +16,7 @@ interface OpenAiService {
 
 const make = (params: { readonly apiKey: Redacted.Redacted }) =>
   Effect.gen(function* (_) {
-    const fetchService = yield* _(Effect.serviceOption(HttpClient.Fetch))
+    const fetchService = yield* _(Effect.serviceOption(FetchHttpClient.Fetch))
     const fetch = Option.match(fetchService, { onNone: () => globalThis.fetch, onSome: identity })
 
     const client = new OAI.OpenAI({
