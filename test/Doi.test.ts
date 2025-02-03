@@ -28,7 +28,7 @@ describe('Doi', () => {
     expect(_.Doi.is(value)).toBeTruthy()
   })
 
-  test.prop([fc.fullUnicodeString().filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))], {
+  test.prop([fc.string({ unit: 'grapheme' }).filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))], {
     examples: [['10..1000/journal.pone.0011111'], ['1.1/1.1'], ['10/134980'], ['10.0000/.'], ['10.0000/..']],
   })('with a non-DOI', value => {
     expect(_.Doi.is(value)).toBeFalsy()
@@ -98,7 +98,7 @@ describe('DoiSchema', () => {
       expect(actual).toBe(doi)
     })
 
-    test.prop([fc.fullUnicodeString().filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))])(
+    test.prop([fc.string({ unit: 'grapheme' }).filter(s => /\s/.test(s) || !s.includes('/') || !s.startsWith('10.'))])(
       'with a non-DOI',
       value => {
         const actual = Schema.decodeUnknownEither(_.DoiSchema)(value)
@@ -155,7 +155,7 @@ describe('DoiFromUrlSchema', () => {
 
     test.prop([
       fc
-        .fullUnicodeString()
+        .string({ unit: 'grapheme' })
         .filter(s => /\s/.test(s) || !s.includes('/') || !s.includes('10.') || !s.includes('doi.org')),
     ])('with a non-DOI', value => {
       const actual = Schema.decodeUnknownEither(_.DoiFromUrlSchema)(value)

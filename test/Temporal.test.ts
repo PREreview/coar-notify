@@ -31,7 +31,7 @@ describe('PlainYear', () => {
       test.prop([
         fc
           .oneof(
-            fc.fullUnicodeString().filter(s => Option.isNone(Number_.parse(s))),
+            fc.string({ unit: 'grapheme' }).filter(s => Option.isNone(Number_.parse(s))),
             fc.double({ max: -271821 }),
             fc.double({ min: 275761 }),
             fc.double({ min: -1000, max: 1000, minExcluded: true, maxExcluded: true }),

@@ -132,15 +132,15 @@ export const doi = ({
   suffix,
 }: { registrant?: fc.Arbitrary<string>; suffix?: fc.Arbitrary<string> } = {}): fc.Arbitrary<Doi.Doi> =>
   fc
-    .tuple(registrant ?? doiRegistrant(), suffix ?? fc.unicodeString({ minLength: 1 }))
+    .tuple(registrant ?? doiRegistrant(), suffix ?? fc.string({ unit: 'grapheme', minLength: 1 }))
     .map(([prefix, suffix]) => `10.${prefix}/${suffix}` as Doi.Doi)
     .filter(s => doiRegex({ exact: true }).test(s) && !s.endsWith('/.') && !s.endsWith('/..'))
 
 export const doiRegistrant = (): fc.Arbitrary<string> =>
   fc
     .tuple(
-      fc.stringOf(fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), { minLength: 2 }),
-      fc.array(fc.stringOf(fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), { minLength: 1 })),
+      fc.string({ unit: fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), minLength: 2 }),
+      fc.array(fc.string({ unit: fc.constantFrom('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), minLength: 1 })),
     )
     .map(([one, two]) => [one, ...two].join('.'))
 
@@ -212,19 +212,19 @@ export const dataciteWork = (
   })
 
 export const openAlexSourceId = (): fc.Arbitrary<OpenAlex.SourceId> =>
-  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.SourceId)
+  fc.string({ unit: alphanumeric(), minLength: 1 }).map(OpenAlex.SourceId)
 
 export const openAlexTopicId = (): fc.Arbitrary<OpenAlex.TopicId> =>
-  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.TopicId)
+  fc.string({ unit: alphanumeric(), minLength: 1 }).map(OpenAlex.TopicId)
 
 export const openAlexSubfieldId = (): fc.Arbitrary<OpenAlex.SubfieldId> =>
-  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.SubfieldId)
+  fc.string({ unit: alphanumeric(), minLength: 1 }).map(OpenAlex.SubfieldId)
 
 export const openAlexFieldId = (): fc.Arbitrary<OpenAlex.FieldId> =>
-  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.FieldId)
+  fc.string({ unit: alphanumeric(), minLength: 1 }).map(OpenAlex.FieldId)
 
 export const openAlexDomainId = (): fc.Arbitrary<OpenAlex.DomainId> =>
-  fc.stringOf(alphanumeric(), { minLength: 1 }).map(OpenAlex.DomainId)
+  fc.string({ unit: alphanumeric(), minLength: 1 }).map(OpenAlex.DomainId)
 
 export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({

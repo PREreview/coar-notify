@@ -10,7 +10,7 @@ describe('isLanguageCode', () => {
     expect(_.isLanguageCode(value)).toBeTruthy()
   })
 
-  test.prop([fc.fullUnicodeString().filter(s => /[^a-z]/.test(s) || s.length !== 2)], {
+  test.prop([fc.string({ unit: 'grapheme' }).filter(s => /[^a-z]/.test(s) || s.length !== 2)], {
     examples: [['xx'], [' en'], ['en ']],
   })('with a non-language code', value => {
     expect(_.isLanguageCode(value)).toBeFalsy()
@@ -25,7 +25,7 @@ describe('LanguageCodeSchema', () => {
       expect(actual).toBe(languageCode)
     })
 
-    test.prop([fc.fullUnicodeString().filter(s => /[^a-z]/.test(s) || s.length !== 2)], {
+    test.prop([fc.string({ unit: 'grapheme' }).filter(s => /[^a-z]/.test(s) || s.length !== 2)], {
       examples: [['xx'], [' en'], ['en ']],
     })('with a non-language code', value => {
       const actual = Schema.decodeUnknownEither(_.LanguageCodeSchema)(value)
