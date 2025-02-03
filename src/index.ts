@@ -83,5 +83,5 @@ const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
 Layer.launch(Program).pipe(
   Effect.tapErrorCause(Effect.logError),
   Logger.withMinimumLogLevel(LogLevel.Debug),
-  NodeRuntime.runMain,
+  NodeRuntime.runMain({ disablePrettyLogger: true }),
 )
