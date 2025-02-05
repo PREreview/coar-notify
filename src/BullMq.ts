@@ -172,7 +172,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 
                   yield* _(handler(job.data))
 
-                  yield* _(Effect.promise(() => job.moveToCompleted(undefined, token)))
+                  yield* _(Effect.promise(() => job.moveToCompleted(undefined, token, false)))
                   yield* _(Effect.logDebug('Job completed'))
                 }),
                 Effect.catchTag('DelayedJob', ({ delay }) =>
@@ -184,7 +184,7 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                 ),
                 Effect.catchAll(error =>
                   Effect.gen(function* (_) {
-                    yield* _(Effect.promise(() => job.moveToFailed(error, token)))
+                    yield* _(Effect.promise(() => job.moveToFailed(error, token, false)))
                     yield* _(Effect.logDebug('Job failed'), Effect.annotateLogs('reason', job.failedReason))
                   }),
                 ),
