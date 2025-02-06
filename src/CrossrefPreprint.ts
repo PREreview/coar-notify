@@ -21,6 +21,7 @@ export interface CrossrefPreprint {
     | 'psyarxiv'
     | 'scielo'
     | 'socarxiv'
+    | 'techrxiv'
   readonly title: string
 }
 
@@ -39,6 +40,7 @@ export const CrossrefPreprintServerSchema = Schema.Literal(
   'psyarxiv',
   'scielo',
   'socarxiv',
+  'techrxiv',
 )
 
 export class GetPreprintFromCrossrefError extends Data.TaggedError('GetPreprintFromCrossrefError')<{
@@ -80,6 +82,7 @@ export const getPreprintFromCrossref = (
       Match.when(['31235', { 'group-title': 'SocArXiv' }], () => 'socarxiv' as const),
       Match.when(['32942'], () => 'ecoevorxiv' as const),
       Match.when(['35542', { 'group-title': 'EdArXiv' }], () => 'edarxiv' as const),
+      Match.when(['36227'], () => 'techrxiv' as const),
       Match.either,
       Either.mapLeft(() => new GetPreprintFromCrossrefError({ message: 'Not from a supported server' })),
     )

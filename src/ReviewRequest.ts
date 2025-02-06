@@ -294,6 +294,7 @@ Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('psyarxiv', () => 'PsyArXiv'),
               Match.when('scielo', () => 'SciELO Preprints'),
               Match.when('socarxiv', () => 'SocArXiv'),
+              Match.when('techrxiv', () => 'TechRxiv'),
               Match.exhaustive,
             )}"""
 
