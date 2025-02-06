@@ -4,7 +4,7 @@ import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
 
 export interface CrossrefPreprint {
-  readonly abstract: string
+  readonly abstract?: string | undefined
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate
@@ -86,11 +86,6 @@ export const getPreprintFromCrossref = (
       Effect.mapError(() => new GetPreprintFromCrossrefError({ message: 'No title found' })),
     )
 
-    const abstract = yield* pipe(
-      Effect.fromNullable(work.abstract),
-      Effect.mapError(() => new GetPreprintFromCrossrefError({ message: 'No abstract found' })),
-    )
-
     const posted = yield* pipe(
       Match.value(work.published),
       Match.when(Match.instanceOfUnsafe(Temporal.PlainDate), date => Either.right(date)),
@@ -120,7 +115,7 @@ export const getPreprintFromCrossref = (
     )
 
     return CrossrefPreprint({
-      abstract,
+      abstract: work.abstract,
       authors,
       doi: work.DOI,
       posted,

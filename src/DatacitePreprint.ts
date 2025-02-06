@@ -1,10 +1,10 @@
-import { Array, Data, Effect, Either, Match, Predicate, Schema, String, pipe } from 'effect'
+import { Array, Data, Effect, Either, Function, Match, Option, Predicate, Schema, String, pipe } from 'effect'
 import * as Datacite from './Datacite.js'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
 
 export interface DatacitePreprint {
-  readonly abstract: string
+  readonly abstract?: string | undefined
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate | Temporal.PlainYearMonth
@@ -64,12 +64,9 @@ export const getPreprintFromDatacite = (
 
     const title = Array.headNonEmpty(work.titles).title
 
-    const abstract = yield* pipe(
+    const abstract = pipe(
       Array.findFirst(work.descriptions, ({ descriptionType }) => descriptionType.toLowerCase() === 'abstract'),
-      Effect.mapBoth({
-        onFailure: () => new GetPreprintFromDataciteError({ message: 'No abstract found' }),
-        onSuccess: ({ description }) => description,
-      }),
+      Option.match({ onSome: ({ description }) => description, onNone: Function.constUndefined }),
     )
 
     const posted = yield* pipe(

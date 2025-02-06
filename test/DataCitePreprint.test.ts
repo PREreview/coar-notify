@@ -14,7 +14,7 @@ describe('getPreprintFromDatacite', () => {
       fc.tuple(fc.doi({ registrant: fc.constant('60763') }), fc.constant('africarxiv')),
     ),
     fc.string(),
-    fc.string(),
+    fc.option(fc.string(), { nil: undefined }),
     fc.oneof(fc.plainYearMonth(), fc.plainDate()),
     fc.constantFrom('Submitted', 'Created', 'Issued'),
   ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted, dateType) =>
@@ -39,7 +39,8 @@ describe('getPreprintFromDatacite', () => {
                 { familyName: 'Author 2' },
                 { familyName: 'Author 3', givenName: 'Given' },
               ],
-              descriptions: [{ description: abstract, descriptionType: 'Abstract' }],
+              descriptions:
+                typeof abstract === 'string' ? [{ description: abstract, descriptionType: 'Abstract' }] : [],
               doi: expectedDoi,
               dates: Array.of({ date: posted, dateType }),
               titles: [{ title: expectedTitle }],
@@ -55,27 +56,6 @@ describe('getPreprintFromDatacite', () => {
   test.prop([
     fc.doi(),
     fc.dataciteWork({
-      descriptions: fc.constant([]),
-      doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
-      titles: fc.nonEmptyArray(fc.record({ title: fc.string() })),
-      types: fc.constant({ resourceType: 'preprint' }),
-    }),
-  ])("when a work doesn't have an abstract", (doi, work) =>
-    Effect.gen(function* () {
-      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
-
-      expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
-      expect(actual.message).toStrictEqual('No abstract found')
-    }).pipe(
-      Effect.provide(Layer.succeed(Datacite.DataciteApi, { getWork: () => Effect.succeed(work) })),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
-  )
-
-  test.prop([
-    fc.doi(),
-    fc.dataciteWork({
       dates: fc.nonEmptyArray(
         fc.record({
           date: fc.plainYear(),
@@ -83,7 +63,7 @@ describe('getPreprintFromDatacite', () => {
         }),
       ),
       doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
-      descriptions: fc.nonEmptyArray(
+      descriptions: fc.array(
         fc.record({
           description: fc.string(),
           descriptionType: fc.constant('Abstract'),
@@ -115,7 +95,7 @@ describe('getPreprintFromDatacite', () => {
         }),
       ),
       doi: fc.doi({ registrant: fc.constantFrom('48550', '60763') }),
-      descriptions: fc.nonEmptyArray(
+      descriptions: fc.array(
         fc.record({
           description: fc.string(),
           descriptionType: fc.constant('Abstract'),

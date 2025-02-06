@@ -36,7 +36,7 @@ const ThreadSchema = Schema.Struct({
 
 const threadToSlackBlocks = (
   thread: Schema.Schema.Type<typeof ThreadSchema>,
-  preprint: Preprint.Preprint,
+  preprint: Preprint.Preprint & { abstract: string },
 ): Array.NonEmptyReadonlyArray<Array.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
   Array.map(thread.posts, post => [
     {
@@ -165,6 +165,10 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
     }
 
     const preprint = yield* Preprint.getPreprint(requestReview.object['ietf:cite-as'])
+
+    if (!hasAbstract(preprint)) {
+      return yield* Effect.fail(new Error('No abstract found'))
+    }
 
     const threaded = yield* pipe(
       OpenAi.createChatCompletion({
@@ -428,3 +432,6 @@ export const getNotifications = Effect.gen(function* () {
 
   return yield* pipe(Redis.lrange('notifications', 0, -1), Effect.flatMap(Schema.decodeUnknown(schema)))
 })
+
+const hasAbstract = (preprint: Preprint.Preprint): preprint is Preprint.Preprint & { abstract: string } =>
+  typeof preprint.abstract !== 'string'

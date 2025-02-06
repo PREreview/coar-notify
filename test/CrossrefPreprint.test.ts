@@ -78,7 +78,7 @@ describe('getPreprintFromCrossref', () => {
       ),
     ),
     fc.string(),
-    fc.string(),
+    fc.option(fc.string(), { nil: undefined }),
     fc.plainDate(),
   ])(
     'when a work is found',
@@ -182,71 +182,7 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('1101') }),
-        institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-      fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942') }),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-      fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('31219') }),
-        'group-title': fc.constant('Open Science Framework'),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-      fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('31234') }),
-        'group-title': fc.constant('PsyArXiv'),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-      fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('31235') }),
-        'group-title': fc.constant('SocArXiv'),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-      fc.crossrefWork({
-        abstract: fc.constant(undefined),
-        DOI: fc.doi({ registrant: fc.constant('35542') }),
-        'group-title': fc.constant('EdArXiv'),
-        title: fc.nonEmptyArray(fc.string()),
-        type: fc.constant('posted-content'),
-        subtype: fc.constant('preprint'),
-      }),
-    ),
-  ])("when a work doesn't have an abstract", (doi, work) =>
-    Effect.gen(function* () {
-      const actual = yield* pipe(_.getPreprintFromCrossref(doi), Effect.flip)
-
-      expect(actual).toBeInstanceOf(_.GetPreprintFromCrossrefError)
-      expect(actual.message).toStrictEqual('No abstract found')
-    }).pipe(
-      Effect.provide(Layer.succeed(Crossref.CrossrefApi, { getWork: () => Effect.succeed(work) })),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
-  )
-
-  test.prop([
-    fc.doi(),
-    fc.oneof(
-      fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -255,7 +191,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942') }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
@@ -263,7 +199,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31219') }),
         'group-title': fc.constant('Open Science Framework'),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -272,7 +208,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31234') }),
         'group-title': fc.constant('PsyArXiv'),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -281,7 +217,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31235') }),
         'group-title': fc.constant('SocArXiv'),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -290,7 +226,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('35542') }),
         'group-title': fc.constant('EdArXiv'),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
@@ -316,7 +252,7 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('1101') }),
         institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.constant(undefined),
@@ -325,7 +261,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942') }),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
@@ -333,7 +269,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31219') }),
         'group-title': fc.constant('Open Science Framework'),
         published: fc.constant(undefined),
@@ -342,7 +278,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31234') }),
         'group-title': fc.constant('PsyArXiv'),
         published: fc.constant(undefined),
@@ -351,7 +287,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('31235') }),
         'group-title': fc.constant('SocArXiv'),
         published: fc.constant(undefined),
@@ -360,7 +296,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        abstract: fc.string(),
+        abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constant('35542') }),
         'group-title': fc.constant('EdArXiv'),
         published: fc.constant(undefined),
