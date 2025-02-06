@@ -65,6 +65,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('eartharxiv'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('31224') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('engrxiv'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('31235') }),
         fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
         fc.constant('SocArXiv'),
@@ -143,7 +149,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942', '36227') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '31224', '32942', '36227') }),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
@@ -211,7 +217,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942', '36227') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '31224', '32942', '36227') }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -290,7 +296,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
-        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '32942', '36227') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '31224', '32942', '36227') }),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -386,7 +392,10 @@ describe('getPreprintFromCrossref', () => {
         DOI: fc.doi({
           registrant: fc
             .doiRegistrant()
-            .filter(registrant => !['1590', '20944', '31124', '31222', '31223', '32942', '36227'].includes(registrant)),
+            .filter(
+              registrant =>
+                !['1590', '20944', '31124', '31222', '31223', '31224', '32942', '36227'].includes(registrant),
+            ),
         }),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
