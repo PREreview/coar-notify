@@ -29,6 +29,12 @@ describe('getPreprintFromCrossref', () => {
         fc.constant('scielo'),
       ),
       fc.tuple(
+        fc.doi({ registrant: fc.constant('21203') }),
+        fc.constant([{ name: 'Research Square' }]),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('research-square'),
+      ),
+      fc.tuple(
         fc.doi({ registrant: fc.constant('31124') }),
         fc.constant([{ name: 'Advance' }]),
         fc.option(fc.string(), { nil: undefined }),
@@ -155,6 +161,13 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('21203') }),
+        institution: fc.constantFrom([{ name: 'Research Square' }]),
+        title: fc.constant([]),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
         DOI: fc.doi({ registrant: fc.constant('31124') }),
         institution: fc.constantFrom([{ name: 'Advance' }]),
         title: fc.constant([]),
@@ -218,6 +231,15 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '31224', '32942', '36227') }),
+        published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.option(fc.string(), { nil: undefined }),
+        DOI: fc.doi({ registrant: fc.constant('21203') }),
+        institution: fc.constant([{ name: 'Research Square' }]),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -297,6 +319,15 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({ registrant: fc.constantFrom('1590', '20944', '31222', '31223', '31224', '32942', '36227') }),
+        published: fc.constant(undefined),
+        title: fc.nonEmptyArray(fc.string()),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        abstract: fc.option(fc.string(), { nil: undefined }),
+        DOI: fc.doi({ registrant: fc.constant('21203') }),
+        institution: fc.constant([{ name: 'Research Square' }]),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
         type: fc.constant('posted-content'),
@@ -394,7 +425,7 @@ describe('getPreprintFromCrossref', () => {
             .doiRegistrant()
             .filter(
               registrant =>
-                !['1590', '20944', '31124', '31222', '31223', '31224', '32942', '36227'].includes(registrant),
+                !['1590', '20944', '21203', '31124', '31222', '31223', '31224', '32942', '36227'].includes(registrant),
             ),
         }),
         type: fc.constant('posted-content'),
@@ -405,6 +436,12 @@ describe('getPreprintFromCrossref', () => {
         institution: fc.array(
           fc.record({ name: fc.string().filter(name => !['Advance', 'bioRxiv', 'medRxiv'].includes(name)) }),
         ),
+        type: fc.constant('posted-content'),
+        subtype: fc.constant('preprint'),
+      }),
+      fc.crossrefWork({
+        DOI: fc.doi({ registrant: fc.constant('21203') }),
+        institution: fc.array(fc.record({ name: fc.string().filter(name => name !== 'Research Square') })),
         type: fc.constant('posted-content'),
         subtype: fc.constant('preprint'),
       }),

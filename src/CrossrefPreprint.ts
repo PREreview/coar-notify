@@ -20,6 +20,7 @@ export interface CrossrefPreprint {
     | 'osf-preprints'
     | 'preprints.org'
     | 'psyarxiv'
+    | 'research-square'
     | 'scielo'
     | 'socarxiv'
     | 'techrxiv'
@@ -40,6 +41,7 @@ export const CrossrefPreprintServerSchema = Schema.Literal(
   'osf-preprints',
   'preprints.org',
   'psyarxiv',
+  'research-square',
   'scielo',
   'socarxiv',
   'techrxiv',
@@ -76,6 +78,7 @@ export const getPreprintFromCrossref = (
       Match.when(['1101', { institution: [{ name: 'medRxiv' }] }], () => 'medrxiv' as const),
       Match.when(['1590'], () => 'scielo' as const),
       Match.when(['20944'], () => 'preprints.org' as const),
+      Match.when(['21203', { institution: [{ name: 'Research Square' }] }], () => 'research-square' as const),
       Match.when(['31124', { institution: [{ name: 'Advance' }] }], () => 'advance' as const),
       Match.when(['31219', { 'group-title': 'Open Science Framework' }], () => 'osf-preprints' as const),
       Match.when(['31222'], () => 'metaarxiv' as const),
