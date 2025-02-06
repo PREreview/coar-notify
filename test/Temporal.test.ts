@@ -62,10 +62,10 @@ describe('PlainYear', () => {
 })
 
 test.prop([fc.epochMilliseconds()])('Timestamp', epochMilliseconds =>
-  Effect.gen(function* ($) {
-    yield* $(TestClock.setTime(epochMilliseconds))
+  Effect.gen(function* () {
+    yield* TestClock.setTime(epochMilliseconds)
 
-    const actual = yield* $(_.Timestamp)
+    const actual = yield* _.Timestamp
 
     expect(actual.epochMilliseconds).toStrictEqual(epochMilliseconds)
   }).pipe(Effect.provide(TestContext.TestContext), Effect.runPromise),

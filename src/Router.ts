@@ -1,5 +1,5 @@
 import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
-import { Array, Config, Context, Data, Effect, Exit, Match, Option, ParseResult, Schema } from 'effect'
+import { Array, Config, Context, Data, Effect, Exit, Match, Option, ParseResult, Schema, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
 import slackifyMarkdown from 'slackify-markdown'
@@ -33,37 +33,37 @@ const NewPrereviewSchema = Schema.Struct({
 export const Router = HttpRouter.empty.pipe(
   HttpRouter.get(
     '/health',
-    Effect.gen(function* (_) {
-      yield* _(Redis.ping(), Effect.timeoutFail({ duration: '900 millis', onTimeout: () => new RedisTimeout() }))
+    Effect.gen(function* () {
+      yield* pipe(Redis.ping(), Effect.timeoutFail({ duration: '900 millis', onTimeout: () => new RedisTimeout() }))
 
-      return yield* _(HttpServerResponse.json({ status: 'ok' }), HttpMiddleware.withLoggerDisabled)
+      return yield* pipe(HttpServerResponse.json({ status: 'ok' }), HttpMiddleware.withLoggerDisabled)
     }).pipe(
       Effect.catchTags({
         RedisError: error =>
-          Effect.gen(function* (_) {
-            yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
+          Effect.gen(function* () {
+            yield* Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message }))
 
-            return yield* _(HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
+            return yield* HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
         RedisTimeout: error =>
-          Effect.gen(function* (_) {
-            yield* _(Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message })))
+          Effect.gen(function* () {
+            yield* Effect.logError('Unable to ping Redis').pipe(Effect.annotateLogs({ message: error.message }))
 
-            return yield* _(HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE }))
+            return yield* HttpServerResponse.json({ status: 'error' }, { status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
       }),
     ),
   ),
   HttpRouter.get(
     '/requests',
-    Effect.gen(function* (_) {
-      const notifications = yield* _(
+    Effect.gen(function* () {
+      const notifications = yield* pipe(
         getNotifications,
         Effect.flatMap(
           Effect.forEach(
             ({ notification, timestamp }) =>
-              Effect.gen(function* (_) {
-                const work = yield* _(OpenAlex.getWork(notification.object['ietf:cite-as']))
+              Effect.gen(function* () {
+                const work = yield* OpenAlex.getWork(notification.object['ietf:cite-as'])
 
                 return {
                   timestamp,
@@ -120,7 +120,7 @@ export const Router = HttpRouter.empty.pipe(
         ),
       )
 
-      return yield* _(HttpServerResponse.schemaJson(RequestsSchema)(notifications))
+      return yield* HttpServerResponse.schemaJson(RequestsSchema)(notifications)
     }),
   ),
   HttpRouter.post(
@@ -157,11 +157,11 @@ export const Router = HttpRouter.empty.pipe(
   ),
   HttpRouter.post(
     '/inbox',
-    Effect.gen(function* (_) {
-      const requestReview = yield* _(HttpServerRequest.schemaBodyJson(CoarNotify.RequestReviewSchema))
-      const encoded = yield* _(Schema.encode(CoarNotify.RequestReviewSchema)(requestReview))
+    Effect.gen(function* () {
+      const requestReview = yield* HttpServerRequest.schemaBodyJson(CoarNotify.RequestReviewSchema)
+      const encoded = yield* Schema.encode(CoarNotify.RequestReviewSchema)(requestReview)
 
-      yield* _(
+      yield* pipe(
         BullMq.add('coar-notify', 'request-review', encoded, {
           jobId: BullMq.JobId(md5(requestReview.object['ietf:cite-as'])),
         }),
@@ -180,23 +180,21 @@ export const Router = HttpRouter.empty.pipe(
         ),
       )
 
-      return yield* _(HttpServerResponse.empty({ status: StatusCodes.CREATED }))
+      return yield* HttpServerResponse.empty({ status: StatusCodes.CREATED })
     }).pipe(
       Effect.catchTags({
         BullMqError: error =>
-          Effect.gen(function* (_) {
-            yield* _(
-              Effect.logError('Unable to write job to BullMQ').pipe(Effect.annotateLogs({ message: error.message })),
+          Effect.gen(function* () {
+            yield* Effect.logError('Unable to write job to BullMQ').pipe(
+              Effect.annotateLogs({ message: error.message }),
             )
 
             return HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
           }),
         ParseError: error =>
-          Effect.gen(function* (_) {
-            yield* _(
-              Effect.logInfo('Invalid request').pipe(
-                Effect.annotateLogs({ message: ParseResult.TreeFormatter.formatErrorSync(error) }),
-              ),
+          Effect.gen(function* () {
+            yield* Effect.logInfo('Invalid request').pipe(
+              Effect.annotateLogs({ message: ParseResult.TreeFormatter.formatErrorSync(error) }),
             )
 
             return HttpServerResponse.empty({ status: StatusCodes.BAD_REQUEST })

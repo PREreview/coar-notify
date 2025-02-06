@@ -44,10 +44,10 @@ const QueueWorkerLive = Layer.effectDiscard(
       BullMq.run(
         'coar-notify',
         data =>
-          Effect.gen(function* (_) {
-            const requestReview = yield* _(Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data))
+          Effect.gen(function* () {
+            const requestReview = yield* Schema.decodeUnknown(CoarNotify.RequestReviewSchema)(data)
 
-            yield* _(ReviewRequest.handleReviewRequest(requestReview))
+            yield* ReviewRequest.handleReviewRequest(requestReview)
           }).pipe(
             Effect.catchTag('PreprintNotReady', () => Effect.fail(new BullMq.DelayedJob({ delay: '10 minutes' }))),
           ),

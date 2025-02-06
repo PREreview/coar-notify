@@ -15,8 +15,8 @@ interface OpenAiService {
 }
 
 const make = (params: { readonly apiKey: Redacted.Redacted }) =>
-  Effect.gen(function* (_) {
-    const fetchService = yield* _(Effect.serviceOption(FetchHttpClient.Fetch))
+  Effect.gen(function* () {
+    const fetchService = yield* Effect.serviceOption(FetchHttpClient.Fetch)
     const fetch = Option.match(fetchService, { onNone: () => globalThis.fetch, onSome: identity })
 
     const client = new OAI.OpenAI({
@@ -41,10 +41,10 @@ const make = (params: { readonly apiKey: Redacted.Redacted }) =>
 export const createChatCompletion = (
   body: OAI.OpenAI.ChatCompletionCreateParamsNonStreaming,
 ): Effect.Effect<string, OpenAiError, OpenAi> =>
-  Effect.gen(function* (_) {
-    const openAi = yield* _(OpenAi)
+  Effect.gen(function* () {
+    const openAi = yield* OpenAi
 
-    return yield* _(openAi.createChatCompletion(body))
+    return yield* openAi.createChatCompletion(body)
   })
 
 export class OpenAiConfig extends Context.Tag('OpenAiConfig')<OpenAiConfig, Parameters<typeof make>[0]>() {

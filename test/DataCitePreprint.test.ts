@@ -1,5 +1,5 @@
 import { test } from '@fast-check/vitest'
-import { Array, Effect, Layer } from 'effect'
+import { Array, Effect, Layer, pipe } from 'effect'
 import { describe, expect } from 'vitest'
 import * as Datacite from '../src/Datacite.js'
 import * as _ from '../src/DatacitePreprint.js'
@@ -18,8 +18,8 @@ describe('getPreprintFromDatacite', () => {
     fc.oneof(fc.plainYearMonth(), fc.plainDate()),
     fc.constantFrom('Submitted', 'Created', 'Issued'),
   ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted, dateType) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi))
+    Effect.gen(function* () {
+      const actual = yield* _.getPreprintFromDatacite(doi)
 
       expect(actual).toStrictEqual({
         abstract,
@@ -61,8 +61,8 @@ describe('getPreprintFromDatacite', () => {
       types: fc.constant({ resourceType: 'preprint' }),
     }),
   ])("when a work doesn't have an abstract", (doi, work) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual('No abstract found')
@@ -93,8 +93,8 @@ describe('getPreprintFromDatacite', () => {
       types: fc.constant({ resourceType: 'preprint' }),
     }),
   ])('when a work has an incomplete published date', (doi, work) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual('Published date incomplete')
@@ -125,8 +125,8 @@ describe('getPreprintFromDatacite', () => {
       types: fc.constant({ resourceType: 'preprint' }),
     }),
   ])("when a work doesn't have a published date", (doi, work) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual('No published date found')
@@ -166,8 +166,8 @@ describe('getPreprintFromDatacite', () => {
       }),
     ),
   ])("when a work isn't a preprint", (doi, work) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual('Not a preprint')
@@ -190,8 +190,8 @@ describe('getPreprintFromDatacite', () => {
       }),
     ),
   ])("when the preprint server isn't supported", (doi, work) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual('Not from a supported server')
@@ -203,8 +203,8 @@ describe('getPreprintFromDatacite', () => {
   )
 
   test.prop([fc.doi(), fc.string()])("when a work can't be found", (doi, message) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getPreprintFromDatacite(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getPreprintFromDatacite(doi), Effect.flip)
 
       expect(actual).toBeInstanceOf(_.GetPreprintFromDataciteError)
       expect(actual.message).toStrictEqual(message)

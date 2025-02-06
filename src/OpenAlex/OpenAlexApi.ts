@@ -47,9 +47,9 @@ export class OpenAlexApi extends Context.Tag('OpenAlexApi')<
 
 export const OpenAlexApiLive = Layer.scoped(
   OpenAlexApi,
-  Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.HttpClient)
-    const rateLimit = yield* _(RateLimiter.make({ limit: 10, interval: '1.5 seconds', algorithm: 'fixed-window' }))
+  Effect.gen(function* () {
+    const httpClient = yield* HttpClient.HttpClient
+    const rateLimit = yield* RateLimiter.make({ limit: 10, interval: '1.5 seconds', algorithm: 'fixed-window' })
 
     const getWork = (id: Doi.Doi) =>
       pipe(

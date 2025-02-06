@@ -12,6 +12,7 @@ import {
   type Record,
   Runtime,
   Schedule,
+  pipe,
 } from 'effect'
 import type { JsonValue } from 'type-fest'
 import * as Redis from './Redis.js'
@@ -66,8 +67,8 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
 ): Layer.Layer<Queue<N, Q>, never, Redis.Redis> {
   return Layer.scoped(
     QueueTag<(typeof layerOptions)['name'], Q>(layerOptions.name),
-    Effect.gen(function* (_) {
-      const redis = yield* _(Redis.Redis)
+    Effect.gen(function* () {
+      const redis = yield* Redis.Redis
       const queue = new BullMq.Queue<unknown, unknown>(layerOptions.name, {
         connection: redis,
         defaultJobOptions: layerOptions.defaultJobOptions
@@ -82,15 +83,16 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
       })
       const lockDuration = '30 seconds' satisfies Duration.DurationInput
 
-      yield* _(Effect.addFinalizer(() => Effect.promise(() => queue.close())))
+      yield* Effect.addFinalizer(() => Effect.promise(() => queue.close()))
 
       const add: Queue<N, Q>['add'] = (jobName, payload, options) =>
-        Effect.gen(function* (_) {
-          const job = yield* _(
-            Effect.tryPromise({ try: () => queue.add(jobName, payload, options), catch: toBullMqError }),
-          )
+        Effect.gen(function* () {
+          const job = yield* Effect.tryPromise({
+            try: () => queue.add(jobName, payload, options),
+            catch: toBullMqError,
+          })
 
-          yield* _(
+          yield* pipe(
             Effect.logDebug('Job added to queue'),
             Effect.annotateLogs({
               jobId: job.id,
@@ -102,27 +104,25 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobName: jobName }))
 
       const remove: Queue<N, Q>['remove'] = jobId =>
-        Effect.gen(function* (_) {
-          const job = yield* _(
+        Effect.gen(function* () {
+          const job = yield* pipe(
             Effect.tryPromise({ try: () => queue.getJob(jobId), catch: toBullMqError }),
             Effect.flatMap(Effect.fromNullable),
           )
 
-          yield* _(Effect.tryPromise({ try: () => job.remove(), catch: toBullMqError }))
+          yield* Effect.tryPromise({ try: () => job.remove(), catch: toBullMqError })
 
-          yield* _(Effect.logDebug('Job removed from queue'))
+          yield* Effect.logDebug('Job removed from queue')
         }).pipe(Effect.annotateLogs({ queue: layerOptions.name, jobId: jobId }))
 
       const run: Queue<N, Q>['run'] = (handler, schedule) =>
         Effect.acquireUseRelease(
-          Effect.gen(function* (_) {
-            const runtime = yield* _(Effect.runtime())
-            const connection = yield* _(
-              Redis.duplicate(redis, {
-                maxRetriesPerRequest: null,
-                lazyConnect: true,
-              }),
-            )
+          Effect.gen(function* () {
+            const runtime = yield* Effect.runtime()
+            const connection = yield* Redis.duplicate(redis, {
+              maxRetriesPerRequest: null,
+              lazyConnect: true,
+            })
 
             const worker = new BullMq.Worker<JsonValue, unknown>(layerOptions.name, undefined, {
               autorun: false,
@@ -145,9 +145,9 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
             return worker
           }),
           worker =>
-            Effect.gen(function* (_) {
-              const token = (yield* _(Random.nextInt)).toString()
-              const job = yield* _(
+            Effect.gen(function* () {
+              const token = (yield* Random.nextInt).toString()
+              const job = yield* pipe(
                 Effect.promise(() => worker.getNextJob(token, { block: false })),
                 Effect.orElseSucceed(() => undefined),
               )
@@ -156,9 +156,9 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                 return
               }
 
-              yield* _(
-                Effect.gen(function* (_) {
-                  yield* _(
+              yield* pipe(
+                Effect.gen(function* () {
+                  yield* pipe(
                     Effect.promise(() => job.extendLock(token, Duration.toMillis(lockDuration))),
                     Effect.tap(() => Effect.logInfo('Job lock extended')),
                     Effect.annotateLogs('duration', Duration.format(lockDuration)),
@@ -168,24 +168,24 @@ export function makeLayer<N extends string, Q extends QueueJobs>(
                     Effect.fork,
                   )
 
-                  yield* _(Effect.logDebug('Job active'))
+                  yield* Effect.logDebug('Job active')
 
-                  yield* _(handler(job.data))
+                  yield* handler(job.data)
 
-                  yield* _(Effect.promise(() => job.moveToCompleted(undefined, token, false)))
-                  yield* _(Effect.logDebug('Job completed'))
+                  yield* Effect.promise(() => job.moveToCompleted(undefined, token, false))
+                  yield* Effect.logDebug('Job completed')
                 }),
                 Effect.catchTag('DelayedJob', ({ delay }) =>
-                  Effect.gen(function* (_) {
-                    const timestamp = yield* _(Clock.currentTimeMillis)
-                    yield* _(Effect.promise(() => job.moveToDelayed(timestamp + Duration.toMillis(delay), token)))
-                    yield* _(Effect.logDebug('Job delayed'), Effect.annotateLogs('delay', Duration.format(delay)))
+                  Effect.gen(function* () {
+                    const timestamp = yield* Clock.currentTimeMillis
+                    yield* Effect.promise(() => job.moveToDelayed(timestamp + Duration.toMillis(delay), token))
+                    yield* pipe(Effect.logDebug('Job delayed'), Effect.annotateLogs('delay', Duration.format(delay)))
                   }),
                 ),
                 Effect.catchAll(error =>
-                  Effect.gen(function* (_) {
-                    yield* _(Effect.promise(() => job.moveToFailed(error, token, false)))
-                    yield* _(Effect.logDebug('Job failed'), Effect.annotateLogs('reason', job.failedReason))
+                  Effect.gen(function* () {
+                    yield* Effect.promise(() => job.moveToFailed(error, token, false))
+                    yield* pipe(Effect.logDebug('Job failed'), Effect.annotateLogs('reason', job.failedReason))
                   }),
                 ),
                 Effect.uninterruptible,
@@ -206,20 +206,20 @@ export const add = <N extends string, J extends string, P extends JsonValue>(
   payload: P,
   options?: JobOptions,
 ): Effect.Effect<JobId, BullMqError, Queue<N, Record.ReadonlyRecord<J, P>>> =>
-  Effect.gen(function* (_) {
-    const queue = yield* _(QueueTag(queueName))
+  Effect.gen(function* () {
+    const queue = yield* QueueTag(queueName)
 
-    return yield* _(queue.add(jobName, payload, options))
+    return yield* queue.add(jobName, payload, options)
   })
 
 export const remove = <N extends string>(
   queueName: N,
   jobId: JobId,
 ): Effect.Effect<void, BullMqError | Cause.NoSuchElementException, Queue<N, QueueJobs>> =>
-  Effect.gen(function* (_) {
-    const queue = yield* _(QueueTag(queueName))
+  Effect.gen(function* () {
+    const queue = yield* QueueTag(queueName)
 
-    return yield* _(queue.remove(jobId))
+    return yield* queue.remove(jobId)
   })
 
 export const run = <N extends string, R1, R2>(
@@ -227,10 +227,10 @@ export const run = <N extends string, R1, R2>(
   handler: Processor<R1>,
   schedule: Schedule.Schedule<unknown, void, R2>,
 ): Effect.Effect<void, never, Queue<N, Record.ReadonlyRecord<never, never>> | R1 | R2> =>
-  Effect.gen(function* (_) {
-    const queue = yield* _(QueueTag(queueName))
+  Effect.gen(function* () {
+    const queue = yield* QueueTag(queueName)
 
-    return yield* _(queue.run(handler, schedule))
+    return yield* queue.run(handler, schedule)
   })
 
 const toBullMqError = (error: unknown): BullMqError =>

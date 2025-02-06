@@ -8,8 +8,8 @@ export const TestHttpClient = FetchHttpClient.layer.pipe(
   Layer.provideMerge(
     Layer.effect(
       FetchHttpClient.Fetch,
-      Effect.gen(function* (_) {
-        const fetchMock = yield* _(FetchMock)
+      Effect.gen(function* () {
+        const fetchMock = yield* FetchMock
 
         return (input, init) => fetchMock(input instanceof URL ? input.href : input, init)
       }),

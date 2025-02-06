@@ -24,9 +24,9 @@ export class GetPreprintFromDataciteError extends Data.TaggedError('GetPreprintF
 export const getPreprintFromDatacite = (
   doi: Doi.Doi,
 ): Effect.Effect<DatacitePreprint, GetPreprintFromDataciteError, Datacite.DataciteApi> =>
-  Effect.gen(function* (_) {
-    const dataciteApi = yield* _(Datacite.DataciteApi)
-    const work = yield* _(
+  Effect.gen(function* () {
+    const dataciteApi = yield* Datacite.DataciteApi
+    const work = yield* pipe(
       dataciteApi.getWork(doi),
       Effect.mapError(
         error =>
@@ -51,10 +51,10 @@ export const getPreprintFromDatacite = (
         ),
       )
     ) {
-      yield* _(Effect.fail(new GetPreprintFromDataciteError({ message: 'Not a preprint' })))
+      yield* Effect.fail(new GetPreprintFromDataciteError({ message: 'Not a preprint' }))
     }
 
-    const server = yield* _(
+    const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.doi), work]),
       Match.when(['48550'], () => 'arxiv' as const),
       Match.when(['60763'], () => 'africarxiv' as const),
@@ -64,7 +64,7 @@ export const getPreprintFromDatacite = (
 
     const title = Array.headNonEmpty(work.titles).title
 
-    const abstract = yield* _(
+    const abstract = yield* pipe(
       Array.findFirst(work.descriptions, ({ descriptionType }) => descriptionType.toLowerCase() === 'abstract'),
       Effect.mapBoth({
         onFailure: () => new GetPreprintFromDataciteError({ message: 'No abstract found' }),
@@ -72,7 +72,7 @@ export const getPreprintFromDatacite = (
       }),
     )
 
-    const posted = yield* _(
+    const posted = yield* pipe(
       Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'submitted'),
       Effect.orElse(() => Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'created')),
       Effect.orElse(() => Array.findFirst(work.dates, ({ dateType }) => dateType.toLowerCase() === 'issued')),

@@ -13,12 +13,12 @@ export function writeAPrereviewUrl(doi: Doi.Doi) {
 }
 
 export const preprintIsReady = (doi: Doi.Doi): Effect.Effect<boolean, never, HttpClient.HttpClient> =>
-  Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.HttpClient)
+  Effect.gen(function* () {
+    const httpClient = yield* HttpClient.HttpClient
 
     const request = HttpClientRequest.head(writeAPrereviewUrl(doi))
 
-    const response = yield* _(httpClient.execute(request))
+    const response = yield* httpClient.execute(request)
 
     return Equal.equals(response.status, StatusCodes.OK)
   }).pipe(

@@ -47,9 +47,9 @@ export class GetPreprintFromCrossrefError extends Data.TaggedError('GetPreprintF
 export const getPreprintFromCrossref = (
   doi: Doi.Doi,
 ): Effect.Effect<CrossrefPreprint, GetPreprintFromCrossrefError, Crossref.CrossrefApi> =>
-  Effect.gen(function* (_) {
-    const crossrefApi = yield* _(Crossref.CrossrefApi)
-    const work = yield* _(
+  Effect.gen(function* () {
+    const crossrefApi = yield* Crossref.CrossrefApi
+    const work = yield* pipe(
       crossrefApi.getWork(doi),
       Effect.mapError(
         error =>
@@ -61,10 +61,10 @@ export const getPreprintFromCrossref = (
     )
 
     if (work.type !== 'posted-content' || work.subtype !== 'preprint') {
-      yield* _(Effect.fail(new GetPreprintFromCrossrefError({ message: 'Not a preprint' })))
+      yield* Effect.fail(new GetPreprintFromCrossrefError({ message: 'Not a preprint' }))
     }
 
-    const server = yield* _(
+    const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.DOI), work]),
       Match.when(['1101', { institution: [{ name: 'bioRxiv' }] }], () => 'biorxiv' as const),
       Match.when(['1101', { institution: [{ name: 'medRxiv' }] }], () => 'medrxiv' as const),
@@ -81,17 +81,17 @@ export const getPreprintFromCrossref = (
       Either.mapLeft(() => new GetPreprintFromCrossrefError({ message: 'Not from a supported server' })),
     )
 
-    const title = yield* _(
+    const title = yield* pipe(
       Array.head(work.title),
       Effect.mapError(() => new GetPreprintFromCrossrefError({ message: 'No title found' })),
     )
 
-    const abstract = yield* _(
+    const abstract = yield* pipe(
       Effect.fromNullable(work.abstract),
       Effect.mapError(() => new GetPreprintFromCrossrefError({ message: 'No abstract found' })),
     )
 
-    const posted = yield* _(
+    const posted = yield* pipe(
       Match.value(work.published),
       Match.when(Match.instanceOfUnsafe(Temporal.PlainDate), date => Either.right(date)),
       Match.when(Match.instanceOfUnsafe(Temporal.PlainYear), () =>

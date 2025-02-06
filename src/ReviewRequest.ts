@@ -151,24 +151,22 @@ const exampleThreads: Array.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof T
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
 
 export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
-  Effect.gen(function* (_) {
-    const timestamp = yield* _(Temporal.Timestamp)
-    const encoded = yield* _(
-      Schema.encode(Schema.parseJson(NotificationSchema))({
-        timestamp,
-        notification: requestReview,
-      }),
-    )
+  Effect.gen(function* () {
+    const timestamp = yield* Temporal.Timestamp
+    const encoded = yield* Schema.encode(Schema.parseJson(NotificationSchema))({
+      timestamp,
+      notification: requestReview,
+    })
 
-    const preprintIsReady = yield* _(Prereview.preprintIsReady(requestReview.object['ietf:cite-as']))
+    const preprintIsReady = yield* Prereview.preprintIsReady(requestReview.object['ietf:cite-as'])
 
     if (!preprintIsReady) {
-      yield* _(Effect.fail(new PreprintNotReady()))
+      yield* Effect.fail(new PreprintNotReady())
     }
 
-    const preprint = yield* _(Preprint.getPreprint(requestReview.object['ietf:cite-as']))
+    const preprint = yield* Preprint.getPreprint(requestReview.object['ietf:cite-as'])
 
-    const threaded = yield* _(
+    const threaded = yield* pipe(
       OpenAi.createChatCompletion({
         model: 'gpt-4o',
         messages: [
@@ -273,42 +271,37 @@ ${JSON.stringify(exampleThread)}
 
     const posts = threadToSlackBlocks(threaded, preprint)
 
-    const parent = yield* _(
-      postMessageOnSlack({
-        channel: (yield* _(SlackChannelConfig)).id,
-        blocks: Array.headNonEmpty(posts),
-        unfurlLinks: false,
-        unfurlMedia: false,
-      }),
-    )
+    const parent = yield* postMessageOnSlack({
+      channel: (yield* SlackChannelConfig).id,
+      blocks: Array.headNonEmpty(posts),
+      unfurlLinks: false,
+      unfurlMedia: false,
+    })
 
-    yield* _(
-      Effect.all(
-        pipe(
-          Array.tailNonEmpty(posts),
-          Array.map(blocks =>
-            postMessageOnSlack({
-              channel: parent.channel,
-              thread: parent.timestamp,
-              blocks,
-              unfurlLinks: false,
-              unfurlMedia: false,
-            }),
-          ),
-          Array.intersperse(Effect.sleep('100 millis')),
+    yield* Effect.all(
+      pipe(
+        Array.tailNonEmpty(posts),
+        Array.map(blocks =>
+          postMessageOnSlack({
+            channel: parent.channel,
+            thread: parent.timestamp,
+            blocks,
+            unfurlLinks: false,
+            unfurlMedia: false,
+          }),
         ),
+        Array.intersperse(Effect.sleep('100 millis')),
       ),
     )
 
-    yield* _(Redis.lpush('notifications', encoded))
+    yield* Redis.lpush('notifications', encoded)
 
     if (requestReview.actor.id.protocol === 'mailto:') {
-      yield* _(
-        Nodemailer.sendMail({
-          from: { name: 'PREreview', address: 'help@prereview.org' },
-          to: { name: requestReview.actor.name, address: requestReview.actor.id.pathname },
-          subject: 'Review requested from the PREreview community',
-          html: mjml(`
+      yield* Nodemailer.sendMail({
+        from: { name: 'PREreview', address: 'help@prereview.org' },
+        to: { name: requestReview.actor.name, address: requestReview.actor.id.pathname },
+        subject: 'Review requested from the PREreview community',
+        html: mjml(`
               <mjml>
                 <mj-body>
                   <mj-section>
@@ -353,7 +346,7 @@ ${JSON.stringify(exampleThread)}
                 </mj-body>
               </mjml>
             `).html,
-          text: `
+        text: `
 Hi ${requestReview.actor.name},
 
 Thank you for requesting a review from PREreview.
@@ -373,8 +366,7 @@ PREreview is a platform, resource center, and convener.
 We provide ways for feedback to preprints to be done openly, rapidly, constructively, and by a global community of peers.
 Join us at https://prereview.org and sign up to our vibrant Slack community at https://bit.ly/PREreview-Slack.
 `.trim(),
-        }),
-      )
+      })
     }
   }).pipe(
     Effect.tapErrorTag('GetPreprintError', error =>
@@ -431,8 +423,8 @@ const postMessageOnSlack = (message: Slack.ChatPostMessage) =>
     ),
   )
 
-export const getNotifications = Effect.gen(function* (_) {
+export const getNotifications = Effect.gen(function* () {
   const schema = Schema.Array(Schema.parseJson(NotificationSchema))
 
-  return yield* _(Redis.lrange('notifications', 0, -1), Effect.flatMap(Schema.decodeUnknown(schema)))
+  return yield* pipe(Redis.lrange('notifications', 0, -1), Effect.flatMap(Schema.decodeUnknown(schema)))
 })

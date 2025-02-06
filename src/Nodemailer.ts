@@ -18,8 +18,8 @@ export const SmtpConfig = Context.GenericTag<SmtpConfig>('SmtpConfig')
 
 export const layer: Layer.Layer<Transporter> = Layer.scoped(
   Transporter,
-  Effect.gen(function* (_) {
-    const smtpConfig = yield* _(Effect.serviceOption(SmtpConfig))
+  Effect.gen(function* () {
+    const smtpConfig = yield* Effect.serviceOption(SmtpConfig)
 
     return Option.match(smtpConfig, {
       onNone: () => Nodemailer.createTransport({ streamTransport: true }),
@@ -31,10 +31,10 @@ export const layer: Layer.Layer<Transporter> = Layer.scoped(
 export const sendMail = (
   mailOptions: Nodemailer.SendMailOptions,
 ): Effect.Effect<unknown, TransporterError, Transporter> =>
-  Effect.gen(function* (_) {
-    const transporter = yield* _(Transporter)
+  Effect.gen(function* () {
+    const transporter = yield* Transporter
 
-    yield* _(Effect.tryPromise({ try: () => transporter.sendMail(mailOptions), catch: toTransporterError }))
+    yield* Effect.tryPromise({ try: () => transporter.sendMail(mailOptions), catch: toTransporterError })
   })
 
 const toTransporterError = (error: unknown): TransporterError =>

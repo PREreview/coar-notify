@@ -1,5 +1,5 @@
 import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from '@effect/platform'
-import { Context, Data, Effect, Equal, Layer, Match, type ParseResult, Schema } from 'effect'
+import { Context, Data, Effect, Equal, Layer, Match, type ParseResult, Schema, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from './Doi.js'
 import * as Temporal from './Temporal.js'
@@ -18,8 +18,8 @@ export class DataciteApi extends Context.Tag('DataciteApi')<
 
 export const DataciteApiLive = Layer.effect(
   DataciteApi,
-  Effect.gen(function* (_) {
-    const httpClient = yield* _(HttpClient.HttpClient)
+  Effect.gen(function* () {
+    const httpClient = yield* HttpClient.HttpClient
     const client = httpClient.pipe(
       HttpClient.mapRequest(HttpClientRequest.acceptJson),
       HttpClient.mapRequest(HttpClientRequest.prependUrl('https://api.datacite.org/')),
@@ -27,8 +27,8 @@ export const DataciteApiLive = Layer.effect(
     const okClient = HttpClient.filterStatus(client, status => Equal.equals(status, StatusCodes.OK))
 
     const getWork = (doi: Doi.Doi) =>
-      Effect.gen(function* (_) {
-        const response = yield* _(
+      Effect.gen(function* () {
+        const response = yield* pipe(
           HttpClientRequest.get(`dois/${encodeURIComponent(doi)}`),
           okClient.execute,
           Effect.flatMap(HttpClientResponse.schemaBodyJson(DataSchema('dois', WorkSchema))),

@@ -1,5 +1,5 @@
 import { test } from '@fast-check/vitest'
-import { Array, Effect, Option } from 'effect'
+import { Array, Effect, Option, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { describe, expect, vi } from 'vitest'
 import * as _ from '../../src/OpenAlex/GetWork.js'
@@ -11,8 +11,8 @@ describe('getWork', () => {
   test.prop([fc.openAlexWork()])('when the work is found', async work => {
     const getWork = vi.fn(() => Effect.succeed(work))
 
-    await Effect.gen(function* ($) {
-      const actual = yield* $(_.getWork(work.doi))
+    await Effect.gen(function* () {
+      const actual = yield* _.getWork(work.doi)
 
       expect(actual).toStrictEqual(Option.some(work))
     }).pipe(
@@ -31,10 +31,10 @@ describe('getWork', () => {
   ])('when many works are found', async works => {
     const listWorks = vi.fn(() => Effect.succeed(works))
 
-    await Effect.gen(function* ($) {
+    await Effect.gen(function* () {
       const dois = Array.map(works.results, work => work.doi)
 
-      const actual = yield* $(Effect.forEach(dois, _.getWork, { batching: true }))
+      const actual = yield* Effect.forEach(dois, _.getWork, { batching: true })
 
       expect(actual).toStrictEqual(Array.map(works.results, Option.some))
     }).pipe(
@@ -52,8 +52,8 @@ describe('getWork', () => {
       cause: fc.httpClientStatusCodeResponseError({ status: fc.constant(StatusCodes.NOT_FOUND) }),
     }),
   ])("when the work isn't found", (doi, error) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getWork(doi))
+    Effect.gen(function* () {
+      const actual = yield* _.getWork(doi)
 
       expect(actual).toStrictEqual(Option.none())
     }).pipe(
@@ -69,8 +69,8 @@ describe('getWork', () => {
   test.prop([fc.nonEmptyArray(fc.doi(), { minLength: 2, maxLength: 50 }), fc.openAlexListOfWorks()])(
     "when a work isn't found",
     (dois, works) =>
-      Effect.gen(function* ($) {
-        const actual = yield* $(Effect.forEach(dois, _.getWork, { batching: true }))
+      Effect.gen(function* () {
+        const actual = yield* Effect.forEach(dois, _.getWork, { batching: true })
 
         expect(actual).toStrictEqual(Array.map(dois, () => Option.none()))
       }).pipe(
@@ -84,8 +84,8 @@ describe('getWork', () => {
   )
 
   test.prop([fc.doi(), fc.openAlexGetWorkError()])("when the work can't be loaded", (doi, error) =>
-    Effect.gen(function* ($) {
-      const actual = yield* $(_.getWork(doi), Effect.flip)
+    Effect.gen(function* () {
+      const actual = yield* pipe(_.getWork(doi), Effect.flip)
 
       expect(actual).toStrictEqual(error)
     }).pipe(
@@ -101,8 +101,8 @@ describe('getWork', () => {
   test.prop([fc.nonEmptyArray(fc.doi(), { minLength: 2, maxLength: 50 }), fc.openAlexListWorksError()])(
     "when works can't be loaded",
     (dois, error) =>
-      Effect.gen(function* ($) {
-        const actual = yield* $(Effect.forEach(dois, _.getWork, { batching: true }), Effect.flip)
+      Effect.gen(function* () {
+        const actual = yield* pipe(Effect.forEach(dois, _.getWork, { batching: true }), Effect.flip)
 
         expect(actual).toStrictEqual(error)
       }).pipe(

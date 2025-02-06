@@ -20,9 +20,9 @@ export class RedisError extends Data.TaggedError('RedisError')<{
 export const layer: Layer.Layer<Redis, never, RedisConfig> = Layer.scoped(
   Redis,
   Effect.acquireRelease(
-    Effect.gen(function* (_) {
-      const config = yield* _(RedisConfig)
-      const runtime = yield* _(Effect.runtime())
+    Effect.gen(function* () {
+      const config = yield* RedisConfig
+      const runtime = yield* Effect.runtime()
 
       const redis = new IoRedis.Redis(config.url.href, { enableOfflineQueue: false, family: config.family })
 
@@ -47,8 +47,8 @@ export const duplicate = (
   override?: Partial<IoRedis.RedisOptions>,
 ): Effect.Effect<Redis, never, Scope.Scope> =>
   Effect.acquireRelease(
-    Effect.gen(function* (_) {
-      const runtime = yield* _(Effect.runtime())
+    Effect.gen(function* () {
+      const runtime = yield* Effect.runtime()
 
       const redis = original.duplicate(override)
 
@@ -68,14 +68,14 @@ export const duplicate = (
   )
 
 export const ping = (): Effect.Effect<'PONG', RedisError, Redis> =>
-  Effect.gen(function* (_) {
-    const redis = yield* _(Redis)
+  Effect.gen(function* () {
+    const redis = yield* Redis
 
     if (redis.status !== 'ready') {
-      yield* _(Effect.fail(new RedisError({ message: `Redis not ready (${redis.status})` })))
+      yield* Effect.fail(new RedisError({ message: `Redis not ready (${redis.status})` }))
     }
 
-    return yield* _(Effect.tryPromise({ try: () => redis.ping(), catch: toRedisError }))
+    return yield* Effect.tryPromise({ try: () => redis.ping(), catch: toRedisError })
   })
 
 export const lrange = (
@@ -83,19 +83,19 @@ export const lrange = (
   start: number,
   stop: number,
 ): Effect.Effect<Array<unknown>, RedisError, Redis> =>
-  Effect.gen(function* (_) {
-    const redis = yield* _(Redis)
+  Effect.gen(function* () {
+    const redis = yield* Redis
 
-    return yield* _(Effect.tryPromise({ try: () => redis.lrange(key, start, stop), catch: toRedisError }))
+    return yield* Effect.tryPromise({ try: () => redis.lrange(key, start, stop), catch: toRedisError })
   })
 
 export const lpush = (
   ...args: [key: IoRedis.RedisKey, ...elements: ReadonlyArray<IoRedis.RedisValue>]
 ): Effect.Effect<void, RedisError, Redis> =>
-  Effect.gen(function* (_) {
-    const redis = yield* _(Redis)
+  Effect.gen(function* () {
+    const redis = yield* Redis
 
-    yield* _(Effect.tryPromise({ try: () => redis.lpush(...args), catch: toRedisError }))
+    yield* Effect.tryPromise({ try: () => redis.lpush(...args), catch: toRedisError })
   })
 
 const toRedisError = (error: unknown): RedisError =>
