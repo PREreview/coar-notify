@@ -86,6 +86,7 @@ export const Router = HttpRouter.empty.pipe(
                     Option.liftNullable(() =>
                       Match.value(Doi.getRegistrant(notification.object['ietf:cite-as'])).pipe(
                         Match.when('1590', () => 'scielo' as const),
+                        Match.when('31124', () => 'advance' as const),
                         Match.when('31219', () => 'osf-preprints' as const),
                         Match.when('31234', () => 'psyarxiv' as const),
                         Match.when('31235', () => 'socarxiv' as const),
