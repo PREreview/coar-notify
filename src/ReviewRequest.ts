@@ -1,5 +1,5 @@
 import clip from '@arendjr/text-clipper'
-import { Array, Context, Data, Effect, Exit, Match, Schema, String, pipe } from 'effect'
+import { Array, Context, Data, Effect, Exit, Match, Option, Schema, String, pipe } from 'effect'
 import { decode } from 'html-entities'
 import mjml from 'mjml'
 import slackifyMarkdown from 'slackify-markdown'
@@ -36,7 +36,7 @@ const ThreadSchema = Schema.Struct({
 
 const threadToSlackBlocks = (
   thread: Schema.Schema.Type<typeof ThreadSchema>,
-  preprint: Preprint.Preprint & { abstract: string },
+  preprint: Preprint.Preprint,
 ): Array.NonEmptyReadonlyArray<Array.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
   Array.map(thread.posts, post => [
     {
@@ -47,7 +47,10 @@ const threadToSlackBlocks = (
           post.text,
           String.replaceAll(
             '[ABSTRACT]',
-            `> ${clip(decode(striptags(preprint.abstract)).replaceAll(/(?:\r\n|\r|\n)+/gm, ' '), 2_900)}`,
+            Option.match(Option.fromNullable(preprint.abstract), {
+              onSome: abstract => `> ${clip(decode(striptags(abstract)).replaceAll(/(?:\r\n|\r|\n)+/gm, ' '), 2_900)}`,
+              onNone: () => '> The abstract is unavailable.',
+            }),
           ),
           slackifyMarkdown,
           String.trim,
@@ -148,6 +151,54 @@ const exampleThreads: Array.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof T
   },
 ]
 
+const exampleThreadsWithoutAbstract: Array.NonEmptyReadonlyArray<Schema.Schema.Encoded<typeof ThreadSchema>> = [
+  {
+    posts: [
+      {
+        text: '🏛️ Chris Wilkinson needs your help with reviews of a preprint all about the **Teaching of Museological Documentation**. I’ll reply to this post with more details. 💬',
+      },
+      {
+        text: '🙌 Thanks for taking a look. The preprint is:\n\n**[Teaching of Museological Documentation: A Study at the Federal University of Pará](https://doi.org/10.1101/2024.03.15.585231)**\nby Jéssica Tarine Moitinho de Lima and Mariana Corrêa Velloso',
+        fields: ['**Posted**\nMarch 6, 2024', '**Server**\nSciELO Preprints'],
+      },
+      {
+        text: 'Still with me? Great stuff. 👏\n\nPlease do help Chris Wilkinson with a PREreview, or pass this on to someone who could.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+  {
+    posts: [
+      {
+        text: '🌿 Help Chris Wilkinson by writing a PREreview on the role of **LHCBM1** in **non-photochemical quenching** in **Chlamydomonas reinhardtii**. 🧵 Take a look in the thread for details.',
+      },
+      {
+        text: '👋 Thanks for dropping by! Here are the details of the preprint:\n\n**[The role of LHCBM1 in non-photochemical quenching in _Chlamydomonas reinhardtii_](https://doi.org/10.1101/2024.03.15.585231)**\nby Xin Liu, Wojciech Nawrocki, and Roberta Croce',
+        fields: ['**Posted**\nJanuary 14, 2022', '**Server**\nbioRxiv'],
+      },
+      {
+        text: 'Thanks for reading this far. 🌟\n\nPlease consider writing a PREreview for Chris or share this opportunity with others who might be interested.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+  {
+    posts: [
+      {
+        text: 'SciELO Preprints is looking for PREreviews of a paper on **distributed leadership patterns** in 🇨🇱 **Chilean technical professional education**. See in the replies for more.',
+      },
+      {
+        text: '👏 Thanks for checking this out! The preprint is **[Patrones de Liderazgo Distribuido en Centros Secundarios de Formación Profesional en Chile](https://doi.org/10.1590/scielopreprints.8341)** by Oscar Maureira Cabrera, Luis Ahumada-Figueroa, and Erick Vidal-Muñoz.',
+        fields: ['**Posted**\nApril 1, 2024', '**Server**\nSciELO Preprints'],
+      },
+      {
+        text: 'Thanks for taking a look. 🚀\n\nPlease help by writing a PREreview or share this request with others who may be interested.',
+        actions: ['write-prereview'],
+      },
+    ],
+  },
+]
+
 export class PreprintNotReady extends Data.TaggedError('PreprintNotReady') {}
 
 export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
@@ -166,9 +217,10 @@ export const handleReviewRequest = (requestReview: CoarNotify.RequestReview) =>
 
     const preprint = yield* Preprint.getPreprint(requestReview.object['ietf:cite-as'])
 
-    if (!hasAbstract(preprint)) {
-      return yield* Effect.fail(new Error('No abstract found'))
-    }
+    const examples = Option.match(Option.fromNullable(preprint.abstract), {
+      onSome: () => exampleThreads,
+      onNone: () => exampleThreadsWithoutAbstract,
+    })
 
     const threaded = yield* pipe(
       OpenAi.createChatCompletion({
@@ -197,9 +249,18 @@ Someone has requested a review of a scientific preprint. The requester is not re
 
 Write a series of posts to form a thread on Slack.
 
+${Option.match(Option.fromNullable(preprint.abstract), {
+  onSome: () => `
 For the opening post, write a sentence of about 16 words using the most important keywords, disciplines and topics mentioned in the abstract, saying that the requester is looking for people to review the preprint. Highlight the terms in bold. Include a prompt to see more details by opening the thread and looking at the replies.
 
 In the subsequent replies, thank the reader and encourage them to find out more information. Include details about the preprint, including the [ABSTRACT] as a placeholder for the abstract. In the final reply, provide a call to action to write the review or to pass on the request.
+`,
+  onNone: () => `
+For the opening post, write a sentence of about 16 words using 1 or 2 important keywords, disciplines and topics mentioned in the title, saying that the requester is looking for people to review the preprint. Highlight the terms in bold. Include a prompt to see more details by opening the thread and looking at the replies.
+
+In the subsequent replies, thank the reader and encourage them to find out more information. Include details about the preprint. In the final reply, provide a call to action to write the review or to pass on the request.
+`,
+})}
 
 The action 'Write a PREreview' (identified with 'write-prereview') must be attached to a reply.
 
@@ -239,19 +300,24 @@ DOI: """${preprint.doi}"""
 
 Posted: """${renderDate(preprint.posted)}"""
 
+${Option.match(Option.fromNullable(preprint.abstract), {
+  onSome: abstract => `
 Abstract: """
-${preprint.abstract}
+${abstract}
 """
+  `,
+  onNone: () => '',
+})}
   `,
           },
           {
             role: 'user',
             content: `
-Here are ${Array.length(exampleThreads)} examples from previous requests:
+Here are ${Array.length(examples)} examples from previous requests:
 
 ${pipe(
   Array.map(
-    exampleThreads,
+    examples,
     exampleThread => `
 \`\`\`json
 ${JSON.stringify(exampleThread)}
@@ -432,6 +498,3 @@ export const getNotifications = Effect.gen(function* () {
 
   return yield* pipe(Redis.lrange('notifications', 0, -1), Effect.flatMap(Schema.decodeUnknown(schema)))
 })
-
-const hasAbstract = (preprint: Preprint.Preprint): preprint is Preprint.Preprint & { abstract: string } =>
-  typeof preprint.abstract !== 'string'
