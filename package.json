@@ -40,7 +40,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-no-comments": "^1.1.10",
     "fast-check": "^3.23.2",
-    "fetch-mock": "^10.0.7",
+    "fetch-mock": "^12.3.0",
     "open-cli": "^8.0.0",
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.14.0",
