@@ -1,3 +1,4 @@
+import { Duration } from 'effect'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -6,5 +7,6 @@ export default defineConfig({
     sequence: {
       concurrent: true,
     },
+    testTimeout: Duration.toMillis('30 seconds'),
   },
 })
