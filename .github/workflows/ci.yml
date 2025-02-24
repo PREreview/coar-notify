@@ -39,7 +39,7 @@ jobs:
           target: prod
 
       - name: 'Upload build'
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: image
           path: /tmp/image.tar
