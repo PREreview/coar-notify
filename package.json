@@ -43,7 +43,7 @@
     "fetch-mock": "^10.0.7",
     "open-cli": "^8.0.0",
     "prettier": "^3.5.2",
-    "prettier-plugin-sh": "^0.14.0",
+    "prettier-plugin-sh": "^0.15.0",
     "prettier-plugin-toml": "^2.0.2",
     "tsx": "^4.19.3",
     "type-fest": "^4.35.0",
