@@ -8,7 +8,7 @@ export interface DatacitePreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate | Temporal.PlainYearMonth
-  readonly server: 'africarxiv' | 'arxiv'
+  readonly server: 'africarxiv' | 'arxiv' | 'zenodo'
   readonly title: string
 }
 
@@ -56,6 +56,7 @@ export const getPreprintFromDatacite = (
 
     const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.doi), work]),
+      Match.when(['5281'], () => 'zenodo' as const),
       Match.when(['48550'], () => 'arxiv' as const),
       Match.when(['60763'], () => 'africarxiv' as const),
       Match.either,
