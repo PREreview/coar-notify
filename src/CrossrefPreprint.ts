@@ -11,6 +11,7 @@ export interface CrossrefPreprint {
   readonly server:
     | 'advance'
     | 'biorxiv'
+    | 'chemrxiv'
     | 'eartharxiv'
     | 'ecoevorxiv'
     | 'edarxiv'
@@ -32,6 +33,7 @@ export const CrossrefPreprint = Data.case<CrossrefPreprint>()
 export const CrossrefPreprintServerSchema = Schema.Literal(
   'advance',
   'biorxiv',
+  'chemrxiv',
   'eartharxiv',
   'ecoevorxiv',
   'edarxiv',
@@ -79,6 +81,7 @@ export const getPreprintFromCrossref = (
       Match.when(['1590'], () => 'scielo' as const),
       Match.when(['20944'], () => 'preprints.org' as const),
       Match.when(['21203', { institution: [{ name: 'Research Square' }] }], () => 'research-square' as const),
+      Match.when(['26434'], () => 'chemrxiv' as const),
       Match.when(['31124', { institution: [{ name: 'Advance' }] }], () => 'advance' as const),
       Match.when(['31219', { 'group-title': 'Open Science Framework' }], () => 'osf-preprints' as const),
       Match.when(['31222'], () => 'metaarxiv' as const),

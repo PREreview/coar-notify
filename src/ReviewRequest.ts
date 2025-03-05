@@ -284,6 +284,7 @@ Preprint server: """${Match.value(preprint.server).pipe(
               Match.when('africarxiv', () => 'AfricArXiv Preprints'),
               Match.when('arxiv', () => 'arXiv'),
               Match.when('biorxiv', () => 'bioRxiv'),
+              Match.when('chemrxiv', () => 'ChemRxiv'),
               Match.when('eartharxiv', () => 'EarthArXiv'),
               Match.when('ecoevorxiv', () => 'EcoEvoRxiv'),
               Match.when('edarxiv', () => 'EdArXiv'),

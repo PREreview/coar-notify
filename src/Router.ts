@@ -71,6 +71,7 @@ export const Router = HttpRouter.empty.pipe(
                   server: Option.orElse(
                     Option.flatMapNullable(work, work =>
                       Match.value(work.primary_location.source?.id).pipe(
+                        Match.when('3005989158', () => 'chemrxiv' as const),
                         Match.when('4306400194', () => 'arxiv' as const),
                         Match.when('4306402450', () => 'research-square' as const),
                         Match.when('4306402567', () => 'biorxiv' as const),
@@ -88,6 +89,7 @@ export const Router = HttpRouter.empty.pipe(
                       Match.value(Doi.getRegistrant(notification.object['ietf:cite-as'])).pipe(
                         Match.when('1590', () => 'scielo' as const),
                         Match.when('21203', () => 'research-square' as const),
+                        Match.when('26434', () => 'chemrxiv' as const),
                         Match.when('31124', () => 'advance' as const),
                         Match.when('31219', () => 'osf-preprints' as const),
                         Match.when('31224', () => 'engrxiv' as const),
