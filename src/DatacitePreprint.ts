@@ -14,7 +14,7 @@ export interface DatacitePreprint {
 
 export const DatacitePreprint = Data.case<DatacitePreprint>()
 
-export const DatacitePreprintServerSchema = Schema.Literal('arxiv')
+export const DatacitePreprintServerSchema = Schema.Literal('africarxiv', 'arxiv', 'zenodo')
 
 export class GetPreprintFromDataciteError extends Data.TaggedError('GetPreprintFromDataciteError')<{
   readonly cause?: Error
