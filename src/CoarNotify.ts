@@ -16,7 +16,7 @@ export const RequestReviewSchema = Schema.Struct({
   type: Schema.Tuple(Schema.Literal('Offer'), Schema.Literal('coar-notify:ReviewAction')),
   origin: Schema.Struct({
     id: Url.UrlFromStringSchema,
-    inbox: Url.UrlFromStringSchema,
+    inbox: Schema.optionalWith(Url.UrlFromStringSchema, { exact: true }),
     type: Schema.Literal('Organization', 'Service'),
   }),
   target: Schema.Struct({
