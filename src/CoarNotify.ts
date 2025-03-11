@@ -55,7 +55,7 @@ export const AnnounceReviewSchema = Schema.Struct({
     type: Schema.Literal('Service'),
   }),
   context: Schema.Struct({
-    id: Schema.String,
+    id: Url.UrlFromStringSchema,
     'ietf:cite-as': Doi.DoiFromUrlSchema,
   }),
   object: Schema.Struct({

@@ -164,7 +164,7 @@ describe('AnnounceReviewSchema', () => {
       '@context': ['https://www.w3.org/ns/activitystreams', 'https://coar-notify.net'],
       id: new URL('urn:uuid:572b8e81-d92f-4ed5-8178-cc7f04f44cd1'),
       context: {
-        id: 'https://research-organisation.org/repository/preprint/201203/421/',
+        id: new URL('https://research-organisation.org/repository/preprint/201203/421/'),
         'ietf:cite-as': Doi.Doi('10.5555/12345680'),
       },
       object: {
