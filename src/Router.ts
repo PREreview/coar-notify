@@ -1,4 +1,12 @@
-import { HttpMiddleware, HttpRouter, HttpServerRequest, HttpServerResponse } from '@effect/platform'
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+  HttpMiddleware,
+  HttpRouter,
+  HttpServerRequest,
+  HttpServerResponse,
+} from '@effect/platform'
 import { Array, Config, Context, Data, Effect, Exit, Match, Option, ParseResult, Schema, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { createHash } from 'node:crypto'
@@ -269,9 +277,14 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
     },
   })
 
-  const encoded = yield* Schema.encode(CoarNotify.AnnounceReviewSchema)(message)
-
-  yield* Effect.annotateLogs(Effect.logDebug('Should notify preprint server'), 'message', encoded)
+  yield* pipe(
+    HttpClientRequest.post(message.target.inbox),
+    HttpClientRequest.schemaBodyJson(CoarNotify.AnnounceReviewSchema)(message),
+    Effect.andThen(HttpClient.execute),
+    Effect.andThen(HttpClientResponse.filterStatusOk),
+    Effect.tapError(error => Effect.logError('Failed to notify preprint server').pipe(Effect.annotateLogs({ error }))),
+    Effect.scoped,
+  )
 })
 
 const notifyScietyCoarInbox = (prereviewUrl: URL) =>
