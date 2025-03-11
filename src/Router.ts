@@ -24,6 +24,10 @@ class RedisTimeout extends Data.TaggedError('RedisTimeout') {
 }
 
 const NewPrereviewSchema = Schema.Struct({
+  preprint: Schema.Struct({
+    doi: Schema.optionalWith(Doi.DoiSchema, { exact: true }),
+  }),
+  doi: Doi.DoiSchema,
   url: Url.UrlFromStringSchema,
   author: Schema.Struct({
     name: Schema.NonEmptyTrimmedString,
