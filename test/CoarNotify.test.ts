@@ -126,3 +126,63 @@ describe('RequestReviewSchema', () => {
     ).toThrow()
   })
 })
+
+describe('AnnounceReviewSchema', () => {
+  test('accepts valid input', () => {
+    expect(
+      ParseResult.decodeUnknownSync(_.AnnounceReviewSchema)({
+        '@context': ['https://www.w3.org/ns/activitystreams', 'https://coar-notify.net'],
+        id: 'urn:uuid:572b8e81-d92f-4ed5-8178-cc7f04f44cd1',
+        context: {
+          id: 'https://research-organisation.org/repository/preprint/201203/421/',
+          'ietf:cite-as': 'https://doi.org/10.5555/12345680',
+          type: 'sorg:AboutPage',
+          'ietf:item': {
+            id: 'https://research-organisation.org/repository/preprint/201203/421/content.pdf',
+            mediaType: 'application/pdf',
+            type: ['Article', 'sorg:ScholarlyArticle'],
+          },
+        },
+        object: {
+          id: 'https://review-service.com/review/geo/202103/0021',
+          'ietf:cite-as': 'https://doi.org/10.3214/987654',
+          type: ['Page', 'sorg:Review'],
+        },
+        origin: {
+          id: 'https://research-organisation.org/repository',
+          inbox: 'https://research-organisation.org/inbox/',
+          type: 'Service',
+        },
+        target: {
+          id: 'https://review-service.org/',
+          inbox: 'https://review-service.org/inbox',
+          type: 'Service',
+        },
+        type: ['Announce', 'coar-notify:ReviewAction'],
+      }),
+    ).toStrictEqual({
+      '@context': ['https://www.w3.org/ns/activitystreams', 'https://coar-notify.net'],
+      id: new URL('urn:uuid:572b8e81-d92f-4ed5-8178-cc7f04f44cd1'),
+      context: {
+        id: 'https://research-organisation.org/repository/preprint/201203/421/',
+        'ietf:cite-as': Doi.Doi('10.5555/12345680'),
+      },
+      object: {
+        id: new URL('https://review-service.com/review/geo/202103/0021'),
+        'ietf:cite-as': Doi.Doi('10.3214/987654'),
+        type: ['Page', 'sorg:Review'],
+      },
+      origin: {
+        id: new URL('https://research-organisation.org/repository'),
+        inbox: new URL('https://research-organisation.org/inbox/'),
+        type: 'Service',
+      },
+      target: {
+        id: new URL('https://review-service.org/'),
+        inbox: new URL('https://review-service.org/inbox'),
+        type: 'Service',
+      },
+      type: ['Announce', 'coar-notify:ReviewAction'],
+    })
+  })
+})
