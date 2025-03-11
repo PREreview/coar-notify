@@ -128,7 +128,7 @@ describe('getPreprintFromDatacite', () => {
             resourceType: fc.string().filter(string => string !== 'preprint'),
             resourceTypeGeneral: fc.string().filter(string => !['preprint', 'text'].includes(string.toLowerCase())),
           },
-          { withDeletedKeys: true },
+          { requiredKeys: [] },
         ),
       }),
       fc.dataciteWork({

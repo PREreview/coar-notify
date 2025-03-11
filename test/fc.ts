@@ -207,7 +207,7 @@ export const dataciteWork = (
       }),
     ),
     titles: nonEmptyArray(fc.record({ title: fc.string() })),
-    types: fc.record({ resourceType: fc.string(), resourceTypeGeneral: fc.string() }, { withDeletedKeys: true }),
+    types: fc.record({ resourceType: fc.string(), resourceTypeGeneral: fc.string() }, { requiredKeys: [] }),
     ...props,
   })
 
@@ -230,7 +230,7 @@ export const openAlexWork = (): fc.Arbitrary<OpenAlex.Work> =>
   fc.record({
     doi: doi(),
     language: languageCode(),
-    primary_location: fc.record({ source: fc.record({ id: openAlexSourceId() }) }, { withDeletedKeys: true }),
+    primary_location: fc.record({ source: fc.record({ id: openAlexSourceId() }) }, { requiredKeys: [] }),
     topics: fc.array(
       fc.record({
         id: openAlexTopicId(),

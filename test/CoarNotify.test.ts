@@ -75,7 +75,7 @@ describe('RequestReviewSchema', () => {
               inbox: fc.anything(),
               type: fc.anything(),
             },
-            { withDeletedKeys: true },
+            { requiredKeys: [] },
           ),
           actor: fc.record(
             {
@@ -83,10 +83,10 @@ describe('RequestReviewSchema', () => {
               name: fc.untrimmedString(),
               type: fc.string(),
             },
-            { withDeletedKeys: true },
+            { requiredKeys: [] },
           ),
         },
-        { withDeletedKeys: true },
+        { requiredKeys: [] },
       )
       .filter(input => Object.keys(input).length > 0),
   ])('rejects invalid input', input => {
