@@ -165,6 +165,7 @@ export const Router = HttpRouter.empty.pipe(
             unfurlLinks: true,
             unfurlMedia: false,
           }),
+          notifyPreprintServer(prereview),
           notifyScietyCoarInbox(prereview.url),
         ],
         { concurrency: 'unbounded' },
@@ -236,6 +237,42 @@ const RequestsSchema = Schema.Array(
     domains: Schema.Array(OpenAlex.DomainIdSchema),
   }),
 )
+
+const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereviewSchema.Type) {
+  const canNotifyPreprintServer = yield* Config.withDefault(Config.boolean('CAN_NOTIFY_PREPRINT_SERVER'), false)
+  if (!canNotifyPreprintServer || !prereview.preprint.doi) {
+    return
+  }
+
+  const message = CoarNotify.AnnounceReviewSchema.make({
+    id: new URL(`urn:uuid:${crypto.randomUUID()}`),
+    '@context': ['https://www.w3.org/ns/activitystreams', 'https://coar-notify.net'],
+    type: ['Announce', 'coar-notify:ReviewAction'],
+    origin: {
+      id: new URL('https://sandbox.prereview.org/'),
+      inbox: new URL('https://coar-notify-sandbox.prereview.org/inbox'),
+      type: 'Service',
+    },
+    target: {
+      id: new URL('https://coar-notify-inbox.fly.dev'),
+      inbox: new URL('https://coar-notify-inbox.fly.dev/inbox'),
+      type: 'Service',
+    },
+    context: {
+      id: Doi.toUrl(prereview.preprint.doi),
+      'ietf:cite-as': prereview.preprint.doi,
+    },
+    object: {
+      id: prereview.url,
+      'ietf:cite-as': prereview.doi,
+      type: ['Page', 'sorg:Review'],
+    },
+  })
+
+  const encoded = yield* Schema.encode(CoarNotify.AnnounceReviewSchema)(message)
+
+  yield* Effect.annotateLogs(Effect.logDebug('Should notify preprint server'), 'message', encoded)
+})
 
 const notifyScietyCoarInbox = (prereviewUrl: URL) =>
   Effect.gen(function* () {
