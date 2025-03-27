@@ -23,7 +23,7 @@
     "striptags": "^3.2.0"
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.1.6",
+    "@fast-check/vitest": "^0.2.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@tsconfig/node22": "^22.0.0",
     "@types/doi-regex": "^0.1.3",
