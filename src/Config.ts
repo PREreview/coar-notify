@@ -1,6 +1,7 @@
 import { Config, Effect, Layer, Option } from 'effect'
 import { SmtpConfig } from './Nodemailer.js'
 import { OpenAiConfig } from './OpenAi.js'
+import * as Prereview from './Prereview.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
 import { PrereviewAuthToken, SlackShareChannelId } from './Router.js'
@@ -46,6 +47,15 @@ const openAiConfig = OpenAiConfig.layer(
   ),
 )
 
+const prereviewConfig = Prereview.layerConfig(
+  Config.nested(
+    Config.all({
+      url: Config.url('URL'),
+    }),
+    'PREREVIEW',
+  ),
+)
+
 const prereviewAuthTokenConfig = Config.string('PREREVIEW_AUTH_TOKEN')
 
 export const ConfigLive = Layer.mergeAll(
@@ -53,6 +63,7 @@ export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackShareChannelId, slackShareChannelId),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
+  prereviewConfig,
   Layer.effect(PrereviewAuthToken, prereviewAuthTokenConfig),
   openAiConfig,
   Layer.unwrapEffect(

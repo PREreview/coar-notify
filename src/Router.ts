@@ -17,6 +17,7 @@ import * as Doi from './Doi.js'
 import * as LanguageCode from './LanguageCode.js'
 import * as OpenAlex from './OpenAlex/index.js'
 import * as Preprint from './Preprint.js'
+import * as Prereview from './Prereview.js'
 import * as Redis from './Redis.js'
 import { getNotifications } from './ReviewRequest.js'
 import * as Slack from './Slack.js'
@@ -252,12 +253,14 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
     return
   }
 
+  const prereviewUrl = yield* Prereview.PrereviewUrl
+
   const message = CoarNotify.AnnounceReviewSchema.make({
     id: new URL(`urn:uuid:${crypto.randomUUID()}`),
     '@context': ['https://www.w3.org/ns/activitystreams', 'https://coar-notify.net'],
     type: ['Announce', 'coar-notify:ReviewAction'],
     origin: {
-      id: new URL('https://sandbox.prereview.org/'),
+      id: prereviewUrl,
       inbox: new URL('https://coar-notify-sandbox.prereview.org/inbox'),
       type: 'Service',
     },

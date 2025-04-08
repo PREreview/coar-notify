@@ -37,6 +37,7 @@ const ThreadSchema = Schema.Struct({
 const threadToSlackBlocks = (
   thread: Schema.Schema.Type<typeof ThreadSchema>,
   preprint: Preprint.Preprint,
+  prereviewUrl: URL,
 ): Array.NonEmptyReadonlyArray<Array.NonEmptyReadonlyArray<Slack.SlackBlock>> =>
   Array.map(thread.posts, post => [
     {
@@ -89,7 +90,7 @@ const threadToSlackBlocks = (
                     },
 
                     style: 'primary',
-                    url: Prereview.writeAPrereviewUrl(preprint.doi),
+                    url: Prereview.writeAPrereviewUrl(preprint.doi, prereviewUrl),
                   }) as Slack.SlackButtonElement,
               ),
               Match.exhaustive,
@@ -345,7 +346,9 @@ ${JSON.stringify(exampleThread)}
       Effect.flatMap(Schema.decode(Schema.parseJson(ThreadSchema))),
     )
 
-    const posts = threadToSlackBlocks(threaded, preprint)
+    const prereviewUrl = yield* Prereview.PrereviewUrl
+
+    const posts = threadToSlackBlocks(threaded, preprint, prereviewUrl)
 
     const parent = yield* postMessageOnSlack({
       channel: (yield* SlackChannelConfig).id,

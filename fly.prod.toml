@@ -4,6 +4,7 @@ kill_timeout = 120
 
 [env]
 BULLMQ_WORKER_POLL = "30 seconds"
+PREREVIEW_URL = "https://prereview.org/"
 SLACK_CHANNEL_ID = "C05B95LEN5C"
 SLACK_SHARE_CHANNEL_ID = "C05C2Q0QKQB"
 REDIS_IP_VERSION = "6"
