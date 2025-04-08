@@ -28,6 +28,8 @@ export const SlackShareChannelId = Context.GenericTag<Slack.SlackChannelId>('Sla
 
 export const PrereviewAuthToken = Context.GenericTag<string>('PrereviewAuthToken')
 
+export class PublicUrl extends Context.Tag('PublicUrl')<PublicUrl, URL>() {}
+
 class RedisTimeout extends Data.TaggedError('RedisTimeout') {
   readonly message = 'Connection timeout'
 }
@@ -254,6 +256,7 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
   }
 
   const prereviewUrl = yield* Prereview.PrereviewUrl
+  const publicUrl = yield* PublicUrl
 
   const message = CoarNotify.AnnounceReviewSchema.make({
     id: new URL(`urn:uuid:${crypto.randomUUID()}`),
@@ -261,7 +264,7 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
     type: ['Announce', 'coar-notify:ReviewAction'],
     origin: {
       id: prereviewUrl,
-      inbox: new URL('https://coar-notify-sandbox.prereview.org/inbox'),
+      inbox: new URL(`${publicUrl.origin}/inbox`),
       type: 'Service',
     },
     target: {

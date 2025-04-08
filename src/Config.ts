@@ -4,7 +4,7 @@ import { OpenAiConfig } from './OpenAi.js'
 import * as Prereview from './Prereview.js'
 import { RedisConfig } from './Redis.js'
 import { SlackChannelConfig } from './ReviewRequest.js'
-import { PrereviewAuthToken, SlackShareChannelId } from './Router.js'
+import { PrereviewAuthToken, PublicUrl, SlackShareChannelId } from './Router.js'
 import type * as Slack from './Slack.js'
 import { SlackApiConfig, SlackChannelId } from './Slack.js'
 
@@ -47,6 +47,8 @@ const openAiConfig = OpenAiConfig.layer(
   ),
 )
 
+const publicUrlConfig = Config.url('PUBLIC_URL')
+
 const prereviewConfig = Prereview.layerConfig(
   Config.nested(
     Config.all({
@@ -63,6 +65,7 @@ export const ConfigLive = Layer.mergeAll(
   Layer.effect(SlackShareChannelId, slackShareChannelId),
   Layer.effect(SlackChannelConfig, slackChannelConfig),
   Layer.effect(RedisConfig, redisConfig),
+  Layer.effect(PublicUrl, publicUrlConfig),
   prereviewConfig,
   Layer.effect(PrereviewAuthToken, prereviewAuthTokenConfig),
   openAiConfig,

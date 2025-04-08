@@ -5,6 +5,7 @@ kill_timeout = 120
 [env]
 BULLMQ_WORKER_POLL = "30 seconds"
 PREREVIEW_URL = "https://sandbox.prereview.org/"
+PUBLIC_URL = "https://coar-notify-sandbox.prereview.org/"
 SLACK_CHANNEL_ID = "C05N0JHBC1Y"
 SLACK_SHARE_CHANNEL_ID = "C05V6TXHETS"
 REDIS_IP_VERSION = "6"
