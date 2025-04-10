@@ -9,6 +9,7 @@ PUBLIC_URL = "https://coar-notify.prereview.org/"
 SLACK_CHANNEL_ID = "C05B95LEN5C"
 SLACK_SHARE_CHANNEL_ID = "C05C2Q0QKQB"
 REDIS_IP_VERSION = "6"
+CAN_NOTIFY_PREPRINT_SERVER = "true"
 
 [http_service]
 internal_port = 3000

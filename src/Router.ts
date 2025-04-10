@@ -254,12 +254,31 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
     Config.literal(true, false, 'sandbox')('CAN_NOTIFY_PREPRINT_SERVER'),
     false,
   )
-  if (canNotifyPreprintServer !== 'sandbox' || !prereview.preprint.doi) {
+  if (canNotifyPreprintServer === false || !prereview.preprint.doi) {
     return
   }
 
   const prereviewUrl = yield* Prereview.PrereviewUrl
   const publicUrl = yield* PublicUrl
+
+  const target: Option.Option<(typeof CoarNotify.AnnounceReviewSchema.Type)['target']> =
+    canNotifyPreprintServer === 'sandbox'
+      ? Option.some({
+          id: new URL('https://coar-notify-inbox.fly.dev'),
+          inbox: new URL('https://coar-notify-inbox.fly.dev/inbox'),
+          type: 'Service',
+        })
+      : Doi.hasRegistrant('20944')(prereview.preprint.doi)
+        ? Option.some({
+            id: new URL('https://www.preprints.org/'),
+            inbox: new URL('https://www.preprints.org/inbox'),
+            type: 'Service',
+          })
+        : Option.none()
+
+  if (Option.isNone(target)) {
+    return
+  }
 
   const message = CoarNotify.AnnounceReviewSchema.make({
     id: new URL(`urn:uuid:${crypto.randomUUID()}`),
@@ -270,11 +289,7 @@ const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereview
       inbox: new URL(`${publicUrl.origin}/inbox`),
       type: 'Service',
     },
-    target: {
-      id: new URL('https://coar-notify-inbox.fly.dev'),
-      inbox: new URL('https://coar-notify-inbox.fly.dev/inbox'),
-      type: 'Service',
-    },
+    target: target.value,
     context: {
       id: Doi.toUrl(prereview.preprint.doi),
       'ietf:cite-as': prereview.preprint.doi,
