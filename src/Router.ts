@@ -250,8 +250,11 @@ const RequestsSchema = Schema.Array(
 )
 
 const notifyPreprintServer = Effect.fn(function* (prereview: typeof NewPrereviewSchema.Type) {
-  const canNotifyPreprintServer = yield* Config.withDefault(Config.boolean('CAN_NOTIFY_PREPRINT_SERVER'), false)
-  if (!canNotifyPreprintServer || !prereview.preprint.doi) {
+  const canNotifyPreprintServer = yield* Config.withDefault(
+    Config.literal(true, false, 'sandbox')('CAN_NOTIFY_PREPRINT_SERVER'),
+    false,
+  )
+  if (canNotifyPreprintServer !== 'sandbox' || !prereview.preprint.doi) {
     return
   }
 

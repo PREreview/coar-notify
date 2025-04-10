@@ -9,7 +9,7 @@ PUBLIC_URL = "https://coar-notify-sandbox.prereview.org/"
 SLACK_CHANNEL_ID = "C05N0JHBC1Y"
 SLACK_SHARE_CHANNEL_ID = "C05V6TXHETS"
 REDIS_IP_VERSION = "6"
-CAN_NOTIFY_PREPRINT_SERVER = "true"
+CAN_NOTIFY_PREPRINT_SERVER = "sandbox"
 CAN_NOTIFY_SCIETY = "true"
 
 [http_service]
