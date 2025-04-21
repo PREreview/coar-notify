@@ -150,7 +150,7 @@ const DomainIdFromUrlSchema = Schema.transformOrFail(Url.UrlFromSelfSchema, Doma
 
 export const WorkSchema = Schema.Struct({
   doi: Doi.DoiFromUrlSchema,
-  language: LanguageCode.LanguageCodeSchema,
+  language: Schema.optionalWith(LanguageCode.LanguageCodeSchema, { nullable: true }),
   primary_location: Schema.Struct({
     source: Schema.optionalWith(Schema.Struct({ id: Schema.compose(Url.UrlFromStringSchema, SourceIdFromUrlSchema) }), {
       nullable: true,

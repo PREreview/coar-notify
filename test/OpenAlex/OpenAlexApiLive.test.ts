@@ -51,7 +51,7 @@ describe('OpenAlexApiLive', () => {
           const actual = yield* pipe(OpenAlexApi.getWork(id), Effect.flip)
 
           expect(actual).toBeInstanceOf(_.GetWorkError)
-          expect(actual.message).toMatch(/^(?:Decode error|Expected |{)/)
+          expect(actual.message).toMatch(/^(?:Decode error|Expected |\()/)
           expect(fetchMock.done()).toBeTruthy()
         }).pipe(
           Effect.provide(_.OpenAlexApiLive),

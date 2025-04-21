@@ -125,7 +125,7 @@ export const Router = HttpRouter.empty.pipe(
                       ),
                     ),
                   ),
-                  language: Option.map(work, work => work.language),
+                  language: Option.flatMapNullable(work, work => work.language),
                   topics: Option.match(work, {
                     onNone: () => [],
                     onSome: work => Array.map(work.topics, topic => topic.id),
