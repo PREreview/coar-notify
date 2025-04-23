@@ -41,7 +41,7 @@ export const getPreprint: (
     ),
     CrossrefPreprint.getPreprintFromCrossref,
   ),
-  Match.when(Doi.hasRegistrant('5281', '48550', '60763'), DatacitePreprint.getPreprintFromDatacite),
+  Match.when(Doi.hasRegistrant('5281', '17605', '48550', '60763'), DatacitePreprint.getPreprintFromDatacite),
   Match.orElse(() => Effect.fail('Not from a supported server')),
   Effect.mapError(toGetPreprintError),
 )

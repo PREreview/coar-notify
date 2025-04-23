@@ -8,13 +8,13 @@ export interface DatacitePreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate | Temporal.PlainYearMonth
-  readonly server: 'africarxiv' | 'arxiv' | 'zenodo'
+  readonly server: 'africarxiv' | 'arxiv' | 'osf' | 'zenodo'
   readonly title: string
 }
 
 export const DatacitePreprint = Data.case<DatacitePreprint>()
 
-export const DatacitePreprintServerSchema = Schema.Literal('africarxiv', 'arxiv', 'zenodo')
+export const DatacitePreprintServerSchema = Schema.Literal('africarxiv', 'arxiv', 'osf', 'zenodo')
 
 export class GetPreprintFromDataciteError extends Data.TaggedError('GetPreprintFromDataciteError')<{
   readonly cause?: Error
@@ -57,6 +57,7 @@ export const getPreprintFromDatacite = (
     const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.doi), work]),
       Match.when(['5281'], () => 'zenodo' as const),
+      Match.when(['17605'], () => 'osf' as const),
       Match.when(['48550'], () => 'arxiv' as const),
       Match.when(['60763'], () => 'africarxiv' as const),
       Match.either,

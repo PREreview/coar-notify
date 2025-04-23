@@ -11,6 +11,7 @@ describe('getPreprintFromDatacite', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(fc.doi({ registrant: fc.constant('5281') }), fc.constant('zenodo')),
+      fc.tuple(fc.doi({ registrant: fc.constant('17605') }), fc.constant('osf')),
       fc.tuple(fc.doi({ registrant: fc.constant('48550') }), fc.constant('arxiv')),
       fc.tuple(fc.doi({ registrant: fc.constant('60763') }), fc.constant('africarxiv')),
     ),
@@ -63,7 +64,7 @@ describe('getPreprintFromDatacite', () => {
           dateType: fc.constant('Submitted'),
         }),
       ),
-      doi: fc.doi({ registrant: fc.constantFrom('5281', '48550', '60763') }),
+      doi: fc.doi({ registrant: fc.constantFrom('5281', '17605', '48550', '60763') }),
       descriptions: fc.array(
         fc.record({
           description: fc.string(),
@@ -95,7 +96,7 @@ describe('getPreprintFromDatacite', () => {
           dateType: fc.string().filter(string => !['Submitted', 'Created', 'Issued'].includes(string.toLowerCase())),
         }),
       ),
-      doi: fc.doi({ registrant: fc.constantFrom('5281', '48550', '60763') }),
+      doi: fc.doi({ registrant: fc.constantFrom('5281', '17605', '48550', '60763') }),
       descriptions: fc.array(
         fc.record({
           description: fc.string(),
@@ -164,7 +165,9 @@ describe('getPreprintFromDatacite', () => {
     fc.oneof(
       fc.dataciteWork({
         doi: fc.doi({
-          registrant: fc.doiRegistrant().filter(registrant => !['5281', '48550', '60763'].includes(registrant)),
+          registrant: fc
+            .doiRegistrant()
+            .filter(registrant => !['5281', '17605', '48550', '60763'].includes(registrant)),
         }),
         types: fc.record({
           resourceType: fc.constant('preprint'),
