@@ -10,49 +10,57 @@ describe('getPreprintFromDatacite', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
-      fc.tuple(fc.doi({ registrant: fc.constant('5281') }), fc.constant('zenodo')),
-      fc.tuple(fc.doi({ registrant: fc.constant('17605') }), fc.constant('osf')),
-      fc.tuple(fc.doi({ registrant: fc.constant('48550') }), fc.constant('arxiv')),
-      fc.tuple(fc.doi({ registrant: fc.constant('60763') }), fc.constant('africarxiv')),
+      fc.tuple(fc.doi({ registrant: fc.constant('5281') }), fc.constant('zenodo'), fc.string()),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('17605') }),
+        fc.constant('lifecycle-journal'),
+        fc.constant('Lifecycle Journal'),
+      ),
+      fc.tuple(fc.doi({ registrant: fc.constant('17605') }), fc.constant('osf'), fc.string()),
+      fc.tuple(fc.doi({ registrant: fc.constant('48550') }), fc.constant('arxiv'), fc.string()),
+      fc.tuple(fc.doi({ registrant: fc.constant('60763') }), fc.constant('africarxiv'), fc.string()),
     ),
     fc.string(),
     fc.option(fc.string(), { nil: undefined }),
     fc.oneof(fc.plainYearMonth(), fc.plainDate()),
     fc.constantFrom('Submitted', 'Created', 'Issued'),
-  ])('when a work is found', (doi, [expectedDoi, expectedServer], expectedTitle, abstract, posted, dateType) =>
-    Effect.gen(function* () {
-      const actual = yield* _.getPreprintFromDatacite(doi)
+  ])(
+    'when a work is found',
+    (doi, [expectedDoi, expectedServer, publisher], expectedTitle, abstract, posted, dateType) =>
+      Effect.gen(function* () {
+        const actual = yield* _.getPreprintFromDatacite(doi)
 
-      expect(actual).toStrictEqual({
-        abstract,
-        authors: ['Author 1', 'Author 2', 'Given Author 3'],
-        doi: expectedDoi,
-        posted,
-        server: expectedServer,
-        title: expectedTitle,
-      })
-    }).pipe(
-      Effect.provide(
-        Layer.succeed(Datacite.DataciteApi, {
-          getWork: () =>
-            Effect.succeed({
-              creators: [
-                { name: 'Author 1' },
-                { familyName: 'Author 2' },
-                { familyName: 'Author 3', givenName: 'Given' },
-              ],
-              descriptions:
-                typeof abstract === 'string' ? [{ description: abstract, descriptionType: 'Abstract' }] : [],
-              doi: expectedDoi,
-              dates: Array.of({ date: posted, dateType }),
-              titles: [{ title: expectedTitle }],
-              types: { resourceType: 'Preprint' },
-            }),
-        }),
+        expect(actual).toStrictEqual({
+          abstract,
+          authors: ['Author 1', 'Author 2', 'Given Author 3'],
+          doi: expectedDoi,
+          posted,
+          server: expectedServer,
+          title: expectedTitle,
+        })
+      }).pipe(
+        Effect.provide(
+          Layer.succeed(Datacite.DataciteApi, {
+            getWork: () =>
+              Effect.succeed({
+                creators: [
+                  { name: 'Author 1' },
+                  { familyName: 'Author 2' },
+                  { familyName: 'Author 3', givenName: 'Given' },
+                ],
+                descriptions:
+                  typeof abstract === 'string' ? [{ description: abstract, descriptionType: 'Abstract' }] : [],
+                doi: expectedDoi,
+                dates: Array.of({ date: posted, dateType }),
+                publisher,
+                titles: [{ title: expectedTitle }],
+                types: { resourceType: 'Preprint' },
+              }),
+          }),
+        ),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
       ),
-      Effect.provide(TestContext.TestContext),
-      Effect.runPromise,
-    ),
   )
 
   test.prop([
@@ -122,6 +130,18 @@ describe('getPreprintFromDatacite', () => {
   test.prop([
     fc.doi(),
     fc.oneof(
+      fc.dataciteWork({
+        doi: fc.doi({ registrant: fc.constantFrom('17605') }),
+        types: fc.record(
+          {
+            resourceType: fc.string().filter(string => string !== 'preprint'),
+            resourceTypeGeneral: fc
+              .string()
+              .filter(string => !['journalarticle', 'studyregistration'].includes(string.toLowerCase())),
+          },
+          { requiredKeys: [] },
+        ),
+      }),
       fc.dataciteWork({
         doi: fc.doi({ registrant: fc.constantFrom('48550') }),
         types: fc.record(

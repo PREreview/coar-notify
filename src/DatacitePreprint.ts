@@ -8,13 +8,13 @@ export interface DatacitePreprint {
   readonly authors: ReadonlyArray<string>
   readonly doi: Doi.Doi
   readonly posted: Temporal.PlainDate | Temporal.PlainYearMonth
-  readonly server: 'africarxiv' | 'arxiv' | 'osf' | 'zenodo'
+  readonly server: 'africarxiv' | 'arxiv' | 'lifecycle-journal' | 'osf' | 'zenodo'
   readonly title: string
 }
 
 export const DatacitePreprint = Data.case<DatacitePreprint>()
 
-export const DatacitePreprintServerSchema = Schema.Literal('africarxiv', 'arxiv', 'osf', 'zenodo')
+export const DatacitePreprintServerSchema = Schema.Literal('africarxiv', 'arxiv', 'lifecycle-journal', 'osf', 'zenodo')
 
 export class GetPreprintFromDataciteError extends Data.TaggedError('GetPreprintFromDataciteError')<{
   readonly cause?: Error
@@ -47,6 +47,10 @@ export const getPreprintFromDatacite = (
             work =>
               work.types.resourceTypeGeneral?.toLowerCase() === 'text' && Doi.hasRegistrant('48550', '60763')(work.doi),
             work => work.types.resourceTypeGeneral === undefined && Doi.hasRegistrant('60763')(work.doi),
+            work =>
+              work.publisher === 'Lifecycle Journal' &&
+              ['journalarticle', 'studyregistration'].includes(work.types.resourceTypeGeneral?.toLowerCase() ?? '') &&
+              Doi.hasRegistrant('17605')(work.doi),
           ]),
         ),
       )
@@ -57,6 +61,7 @@ export const getPreprintFromDatacite = (
     const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.doi), work]),
       Match.when(['5281'], () => 'zenodo' as const),
+      Match.when(['17605', { publisher: 'Lifecycle Journal' }], () => 'lifecycle-journal' as const),
       Match.when(['17605'], () => 'osf' as const),
       Match.when(['48550'], () => 'arxiv' as const),
       Match.when(['60763'], () => 'africarxiv' as const),

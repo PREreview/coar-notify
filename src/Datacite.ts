@@ -93,6 +93,7 @@ export const WorkSchema = Schema.Struct({
       dateType: Schema.String,
     }),
   ),
+  publisher: Schema.String,
   titles: Schema.NonEmptyArray(Schema.Struct({ title: Schema.String })),
   types: Schema.Struct({
     resourceType: Schema.optional(Schema.String),

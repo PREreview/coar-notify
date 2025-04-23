@@ -10,6 +10,7 @@ const servers = {
   ecoevorxiv: 'EcoEvoRxiv',
   edarxiv: 'EdArXiv',
   engrxiv: 'engrXiv',
+  'lifecycle-journal': 'Lifecycle Journal',
   osf: 'OSF',
   medrxiv: 'medRxiv',
   metaarxiv: 'MetaArXiv',

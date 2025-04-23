@@ -206,6 +206,7 @@ export const dataciteWork = (
         dateType: fc.string(),
       }),
     ),
+    publisher: fc.string(),
     titles: nonEmptyArray(fc.record({ title: fc.string() })),
     types: fc.record({ resourceType: fc.string(), resourceTypeGeneral: fc.string() }, { requiredKeys: [] }),
     ...props,
