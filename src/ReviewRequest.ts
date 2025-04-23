@@ -8,6 +8,7 @@ import * as CoarNotify from './CoarNotify.js'
 import * as Nodemailer from './Nodemailer.js'
 import * as OpenAi from './OpenAi.js'
 import * as Preprint from './Preprint.js'
+import * as PreprintServers from './PreprintServers.js'
 import * as Prereview from './Prereview.js'
 import * as Redis from './Redis.js'
 import * as Slack from './Slack.js'
@@ -280,28 +281,7 @@ ${Array.match(preprint.authors, {
   onNonEmpty: authors => `Authors: """${formatList(authors)}"""`,
 })}
 
-Preprint server: """${Match.value(preprint.server).pipe(
-              Match.when('advance', () => 'Advance'),
-              Match.when('africarxiv', () => 'AfricArXiv Preprints'),
-              Match.when('arxiv', () => 'arXiv'),
-              Match.when('biorxiv', () => 'bioRxiv'),
-              Match.when('chemrxiv', () => 'ChemRxiv'),
-              Match.when('eartharxiv', () => 'EarthArXiv'),
-              Match.when('ecoevorxiv', () => 'EcoEvoRxiv'),
-              Match.when('edarxiv', () => 'EdArXiv'),
-              Match.when('engrxiv', () => 'engrXiv'),
-              Match.when('medrxiv', () => 'medRxiv'),
-              Match.when('metaarxiv', () => 'MetaArXiv'),
-              Match.when('osf-preprints', () => 'OSF Preprints'),
-              Match.when('preprints.org', () => 'Preprints.org'),
-              Match.when('psyarxiv', () => 'PsyArXiv'),
-              Match.when('research-square', () => 'Research Square'),
-              Match.when('scielo', () => 'SciELO Preprints'),
-              Match.when('socarxiv', () => 'SocArXiv'),
-              Match.when('techrxiv', () => 'TechRxiv'),
-              Match.when('zenodo', () => 'Zenodo'),
-              Match.exhaustive,
-            )}"""
+Preprint server: """${PreprintServers.getName(preprint.server)}"""
 
 DOI: """${preprint.doi}"""
 
