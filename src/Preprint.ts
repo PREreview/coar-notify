@@ -38,6 +38,7 @@ export const getPreprint: (
       '32942',
       '35542',
       '36227',
+      '55458',
     ),
     CrossrefPreprint.getPreprintFromCrossref,
   ),

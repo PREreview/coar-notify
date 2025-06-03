@@ -14,6 +14,7 @@ const servers = {
   osf: 'OSF',
   medrxiv: 'medRxiv',
   metaarxiv: 'MetaArXiv',
+  neurolibre: 'NeuroLibre',
   'osf-preprints': 'OSF Preprints',
   'preprints.org': 'Preprints.org',
   psyarxiv: 'PsyArXiv',

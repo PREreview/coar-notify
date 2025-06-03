@@ -18,6 +18,7 @@ export interface CrossrefPreprint {
     | 'engrxiv'
     | 'medrxiv'
     | 'metaarxiv'
+    | 'neurolibre'
     | 'osf-preprints'
     | 'preprints.org'
     | 'psyarxiv'
@@ -40,6 +41,7 @@ export const CrossrefPreprintServerSchema = Schema.Literal(
   'engrxiv',
   'medrxiv',
   'metaarxiv',
+  'neurolibre',
   'osf-preprints',
   'preprints.org',
   'psyarxiv',
@@ -92,6 +94,7 @@ export const getPreprintFromCrossref = (
       Match.when(['32942'], () => 'ecoevorxiv' as const),
       Match.when(['35542', { 'group-title': 'EdArXiv' }], () => 'edarxiv' as const),
       Match.when(['36227'], () => 'techrxiv' as const),
+      Match.when(['55458'], () => 'neurolibre' as const),
       Match.either,
       Either.mapLeft(() => new GetPreprintFromCrossrefError({ message: 'Not from a supported server' })),
     )

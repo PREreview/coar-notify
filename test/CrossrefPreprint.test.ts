@@ -106,6 +106,12 @@ describe('getPreprintFromCrossref', () => {
         fc.option(fc.string(), { nil: undefined }),
         fc.constant('techrxiv'),
       ),
+      fc.tuple(
+        fc.doi({ registrant: fc.constant('55458') }),
+        fc.option(fc.array(fc.record({ name: fc.string() })), { nil: undefined }),
+        fc.option(fc.string(), { nil: undefined }),
+        fc.constant('neurolibre'),
+      ),
     ),
     fc.string(),
     fc.option(fc.string(), { nil: undefined }),
@@ -162,7 +168,7 @@ describe('getPreprintFromCrossref', () => {
       }),
       fc.crossrefWork({
         DOI: fc.doi({
-          registrant: fc.constantFrom('1590', '20944', '26434', '31222', '31223', '31224', '32942', '36227'),
+          registrant: fc.constantFrom('1590', '20944', '26434', '31222', '31223', '31224', '32942', '36227', '55458'),
         }),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
@@ -239,7 +245,7 @@ describe('getPreprintFromCrossref', () => {
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
         DOI: fc.doi({
-          registrant: fc.constantFrom('1590', '20944', '26434', '31222', '31223', '31224', '32942', '36227'),
+          registrant: fc.constantFrom('1590', '20944', '26434', '31222', '31223', '31224', '32942', '36227', '55458'),
         }),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
@@ -437,9 +443,19 @@ describe('getPreprintFromCrossref', () => {
             .doiRegistrant()
             .filter(
               registrant =>
-                !['1590', '20944', '21203', '26434', '31124', '31222', '31223', '31224', '32942', '36227'].includes(
-                  registrant,
-                ),
+                ![
+                  '1590',
+                  '20944',
+                  '21203',
+                  '26434',
+                  '31124',
+                  '31222',
+                  '31223',
+                  '31224',
+                  '32942',
+                  '36227',
+                  '55458',
+                ].includes(registrant),
             ),
         }),
         type: fc.constant('posted-content'),
