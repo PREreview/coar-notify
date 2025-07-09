@@ -485,5 +485,5 @@ const postMessageOnSlack = (message: Slack.ChatPostMessage) =>
 export const getNotifications = Effect.gen(function* () {
   const schema = Schema.Array(Schema.parseJson(NotificationSchema))
 
-  return yield* pipe(Redis.lrange('notifications', 0, -1), Effect.flatMap(Schema.decodeUnknown(schema)))
+  return yield* pipe(Redis.lrange('notifications', 0, 100), Effect.flatMap(Schema.decodeUnknown(schema)))
 })
