@@ -110,7 +110,7 @@ const Program = Layer.mergeAll(ServerLive, QueueWorkerLive).pipe(
   Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, RedisLive, Nodemailer.layer)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.json),
-  Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 1_000, timeToLive: '60 minutes' }))),
+  Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 2_000, timeToLive: '6 hours' }))),
 )
 
 Layer.launch(Program).pipe(
