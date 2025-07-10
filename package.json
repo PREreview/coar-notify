@@ -30,7 +30,7 @@
     "@types/mjml": "^4.7.4",
     "@types/node": "^22.14.1",
     "@types/nodemailer": "^6.4.17",
-    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
     "@typescript-eslint/parser": "^8.30.1",
     "doi-regex": "^0.1.17",
     "dotenv": "^16.4.7",
