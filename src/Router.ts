@@ -41,7 +41,7 @@ const NewPrereviewSchema = Schema.Struct({
   doi: Doi.DoiSchema,
   url: Url.UrlFromStringSchema,
   author: Schema.Struct({
-    name: Schema.NonEmptyTrimmedString,
+    name: Schema.compose(Schema.Trim, Schema.NonEmptyString),
   }),
 })
 

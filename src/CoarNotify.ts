@@ -31,7 +31,7 @@ export const RequestReviewSchema = Schema.Struct({
   actor: Schema.Struct({
     id: Url.UrlFromStringSchema,
     type: Schema.Literal('Application', 'Group', 'Organization', 'Person', 'Service'),
-    name: Schema.NonEmptyTrimmedString,
+    name: Schema.compose(Schema.Trim, Schema.NonEmptyString),
   }),
 })
 
