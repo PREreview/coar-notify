@@ -72,8 +72,16 @@ export const Router = HttpRouter.empty.pipe(
   HttpRouter.get(
     '/requests',
     Effect.gen(function* () {
+      const { page } = yield* HttpRouter.schemaParams(
+        Schema.Struct({
+          page: Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1)),
+        }),
+      ).pipe(Effect.catchTag('ParseError', () => Effect.succeed({ page: 1 })))
+
+      console.log('page', page)
+
       const notifications = yield* pipe(
-        getNotifications(1),
+        getNotifications(page),
         Effect.flatMap(
           Effect.forEach(
             ({ notification, timestamp }) =>
