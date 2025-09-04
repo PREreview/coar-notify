@@ -50,7 +50,7 @@ const getPageOfWorks = (requests: Array.NonEmptyArray<GetWork>) =>
     Effect.flatMap(OpenAlexApi.OpenAlexApi, openAlexApi =>
       openAlexApi.listWorks({
         filter: `doi:${Array.join(
-          Array.map(requests, request => request.doi),
+          Array.map(requests, request => request.doi.toLowerCase()),
           '|',
         )}`,
         'per-page': requests.length.toString(),
