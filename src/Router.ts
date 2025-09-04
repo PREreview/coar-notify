@@ -73,7 +73,7 @@ export const Router = HttpRouter.empty.pipe(
     '/requests',
     Effect.gen(function* () {
       const notifications = yield* pipe(
-        getNotifications,
+        getNotifications(1),
         Effect.flatMap(
           Effect.forEach(
             ({ notification, timestamp }) =>
