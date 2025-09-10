@@ -19,7 +19,7 @@
     "mjml": "^4.15.3",
     "nodemailer": "^7.0.5",
     "openai": "^5.20.0",
-    "slackify-markdown": "^4.4.0",
+    "slackify-markdown": "^4.5.0",
     "striptags": "^3.2.0"
   },
   "devDependencies": {
