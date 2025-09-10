@@ -11,7 +11,7 @@ export class PlainYear {
   private readonly internal: Temporal.PlainYearMonth
   readonly year: number
 
-  constructor(isoYear: number, calendar?: Temporal.CalendarLike, referenceISODay?: number) {
+  constructor(isoYear: number, calendar?: string, referenceISODay?: number) {
     this.internal = new Temporal.PlainYearMonth(isoYear, 1, calendar, referenceISODay)
     this.year = this.internal.year
   }
@@ -22,10 +22,10 @@ export class PlainYear {
         throw new TypeError(`invalid year ${item}`)
       }
 
-      return new PlainYear(Temporal.PlainYearMonth.from(`${item}-01`, options).getISOFields().isoYear)
+      return new PlainYear(Temporal.PlainYearMonth.from(`${item}-01`, options).year)
     }
 
-    return new PlainYear(Temporal.PlainYearMonth.from({ ...item, month: 1 }, options).getISOFields().isoYear)
+    return new PlainYear(Temporal.PlainYearMonth.from({ ...item, month: 1 }, options).year)
   }
 
   toString(): string {
