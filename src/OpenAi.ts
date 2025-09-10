@@ -1,4 +1,3 @@
-import 'openai/shims/web'
 import { FetchHttpClient } from '@effect/platform'
 import { Config, Context, Data, Effect, Layer, Option, Redacted, identity } from 'effect'
 import * as OAI from 'openai'
