@@ -78,8 +78,6 @@ export const Router = HttpRouter.empty.pipe(
         }),
       ).pipe(Effect.catchTag('ParseError', () => Effect.succeed({ page: 1 })))
 
-      console.log('page', page)
-
       const notifications = yield* pipe(
         getNotifications(page),
         Effect.flatMap(
