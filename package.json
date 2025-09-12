@@ -7,7 +7,7 @@
   "type": "module",
   "dependencies": {
     "@arendjr/text-clipper": "npm:@jsr/arendjr__text-clipper@^3.0.0",
-    "@effect/platform": "0.90.8",
+    "@effect/platform": "0.90.9",
     "@effect/platform-node": "^0.96.1",
     "@js-temporal/polyfill": "^0.5.1",
     "bullmq": "^5.58.5",
