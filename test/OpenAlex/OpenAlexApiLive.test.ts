@@ -1,5 +1,5 @@
 import { test } from '@fast-check/vitest'
-import { Array, Effect, Equal, Fiber, Schema, TestClock, identity, pipe } from 'effect'
+import { Array, Effect, Equal, Fiber, Schema, TestClock, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { describe, expect } from 'vitest'
 import * as Doi from '../../src/Doi.js'
