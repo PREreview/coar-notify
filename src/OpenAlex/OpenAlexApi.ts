@@ -1,11 +1,18 @@
+import { HttpClient, HttpClientError, HttpClientRequest, HttpClientResponse, type UrlParams } from '@effect/platform'
 import {
-  HttpClient,
-  type HttpClientError,
-  HttpClientRequest,
-  HttpClientResponse,
-  type UrlParams,
-} from '@effect/platform'
-import { Brand, Context, Data, Effect, Either, Equal, Layer, ParseResult, RateLimiter, Schema, pipe } from 'effect'
+  Brand,
+  Context,
+  Data,
+  Effect,
+  Either,
+  Equal,
+  Layer,
+  ParseResult,
+  RateLimiter,
+  Schedule,
+  Schema,
+  pipe,
+} from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Doi from '../Doi.js'
 import * as LanguageCode from '../LanguageCode.js'
@@ -58,6 +65,11 @@ export const OpenAlexApiLive = Layer.scoped(
         HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)).execute,
         Effect.flatMap(HttpClientResponse.schemaBodyJson(WorkSchema)),
         Effect.scoped,
+        Effect.retry({
+          while: error => HttpClientError.isHttpClientError(error) && error.reason === 'StatusCode',
+          times: 2,
+          schedule: Schedule.fixed('500 millis'),
+        }),
         Effect.catchAll(GetWorkError.fromError),
         rateLimit,
       )
@@ -70,6 +82,11 @@ export const OpenAlexApiLive = Layer.scoped(
         HttpClient.filterStatus(httpClient, status => Equal.equals(status, StatusCodes.OK)).execute,
         Effect.flatMap(HttpClientResponse.schemaBodyJson(ListOfWorksSchema)),
         Effect.scoped,
+        Effect.retry({
+          while: error => HttpClientError.isHttpClientError(error) && error.reason === 'StatusCode',
+          times: 2,
+          schedule: Schedule.fixed('500 millis'),
+        }),
         Effect.catchAll(ListWorksError.fromError),
         rateLimit,
       )
