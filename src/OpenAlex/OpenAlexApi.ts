@@ -49,7 +49,7 @@ export const OpenAlexApiLive = Layer.scoped(
   OpenAlexApi,
   Effect.gen(function* () {
     const httpClient = yield* HttpClient.HttpClient
-    const rateLimit = yield* RateLimiter.make({ limit: 10, interval: '1.5 seconds', algorithm: 'fixed-window' })
+    const rateLimit = yield* RateLimiter.make({ limit: 5, interval: '1.5 seconds', algorithm: 'fixed-window' })
 
     const getWork = (id: Doi.Doi) =>
       pipe(
