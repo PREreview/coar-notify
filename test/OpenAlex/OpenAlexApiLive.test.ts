@@ -1,5 +1,5 @@
 import { test } from '@fast-check/vitest'
-import { Effect, Equal, Schema, pipe } from 'effect'
+import { Array, Effect, Equal, Fiber, Schema, TestClock, identity, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import { describe, expect } from 'vitest'
 import * as Doi from '../../src/Doi.js'
@@ -63,8 +63,46 @@ describe('OpenAlexApiLive', () => {
 
     test.prop([
       fc.doi(),
-      fc.fetchResponse({ status: fc.statusCode().filter(status => !Equal.equals(status, StatusCodes.OK)) }),
-    ])('when the response has a non-200 status code', (id, response) =>
+      fc.fetchResponse({
+        status: fc.constant(StatusCodes.TOO_MANY_REQUESTS),
+      }),
+      fc.fetchResponse({
+        status: fc.statusCode().filter(status => !Equal.equals(status, StatusCodes.TOO_MANY_REQUESTS)),
+      }),
+    ])('when the response has a 429 status code', (id, response1, response2) =>
+      Effect.gen(function* () {
+        const fetchMock = yield* TestContext.FetchMock
+        const OpenAlexApi = yield* _.OpenAlexApi
+
+        fetchMock
+          .getOnce(
+            { name: 'original', url: `https://api.openalex.org/works/${encodeURIComponent(Doi.toUrl(id).href)}` },
+            response1,
+          )
+          .getOnce(
+            { name: 'retry', url: `https://api.openalex.org/works/${encodeURIComponent(Doi.toUrl(id).href)}` },
+            response2,
+          )
+
+        const fiber = yield* pipe(OpenAlexApi.getWork(id), Effect.either, Effect.fork)
+        yield* TestClock.adjust('1 second')
+        yield* Fiber.join(fiber)
+      }).pipe(
+        Effect.provide(_.OpenAlexApiLive),
+        Effect.provide(TestContext.TestHttpClient),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
+      ),
+    )
+
+    test.prop([
+      fc.doi(),
+      fc.fetchResponse({
+        status: fc
+          .statusCode()
+          .filter(status => !Array.contains([StatusCodes.OK, StatusCodes.TOO_MANY_REQUESTS], status)),
+      }),
+    ])('when the response has a non-200/429 status code', (id, response) =>
       Effect.gen(function* () {
         const fetchMock = yield* TestContext.FetchMock
         const OpenAlexApi = yield* _.OpenAlexApi
@@ -163,8 +201,40 @@ describe('OpenAlexApiLive', () => {
 
     test.prop([
       fc.urlSearchParams(),
-      fc.fetchResponse({ status: fc.statusCode().filter(status => !Equal.equals(status, StatusCodes.OK)) }),
-    ])('when the response has a non-200 status code', (query, response) =>
+      fc.fetchResponse({
+        status: fc.constant(StatusCodes.TOO_MANY_REQUESTS),
+      }),
+      fc.fetchResponse({
+        status: fc.statusCode().filter(status => !Equal.equals(status, StatusCodes.TOO_MANY_REQUESTS)),
+      }),
+    ])('when the response has a 429 status code', (query, response1, response2) =>
+      Effect.gen(function* () {
+        const fetchMock = yield* TestContext.FetchMock
+        const OpenAlexApi = yield* _.OpenAlexApi
+
+        fetchMock
+          .getOnce({ name: 'original', url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query }, response1)
+          .getOnce({ name: 'retry', url: /^https:\/\/api\.openalex\.org\/works($|\?)/, query }, response2)
+
+        const fiber = yield* pipe(OpenAlexApi.listWorks(query), Effect.either, Effect.fork)
+        yield* TestClock.adjust('1 second')
+        yield* Fiber.join(fiber)
+      }).pipe(
+        Effect.provide(_.OpenAlexApiLive),
+        Effect.provide(TestContext.TestHttpClient),
+        Effect.provide(TestContext.TestContext),
+        Effect.runPromise,
+      ),
+    )
+
+    test.prop([
+      fc.urlSearchParams(),
+      fc.fetchResponse({
+        status: fc
+          .statusCode()
+          .filter(status => !Array.contains([StatusCodes.OK, StatusCodes.TOO_MANY_REQUESTS], status)),
+      }),
+    ])('when the response has a non-200/429 status code', (query, response) =>
       Effect.gen(function* () {
         const fetchMock = yield* TestContext.FetchMock
         const OpenAlexApi = yield* _.OpenAlexApi

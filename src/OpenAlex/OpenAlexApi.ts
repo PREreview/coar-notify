@@ -66,7 +66,10 @@ export const OpenAlexApiLive = Layer.scoped(
         Effect.flatMap(HttpClientResponse.schemaBodyJson(WorkSchema)),
         Effect.scoped,
         Effect.retry({
-          while: error => HttpClientError.isHttpClientError(error) && error.reason === 'StatusCode',
+          while: error =>
+            error.cause instanceof HttpClientError.ResponseError &&
+            error.cause.reason === 'StatusCode' &&
+            Equal.equals(error.cause.response.status, StatusCodes.TOO_MANY_REQUESTS),
           times: 2,
           schedule: Schedule.fixed('500 millis'),
         }),
@@ -83,7 +86,10 @@ export const OpenAlexApiLive = Layer.scoped(
         Effect.flatMap(HttpClientResponse.schemaBodyJson(ListOfWorksSchema)),
         Effect.scoped,
         Effect.retry({
-          while: error => HttpClientError.isHttpClientError(error) && error.reason === 'StatusCode',
+          while: error =>
+            error.cause instanceof HttpClientError.ResponseError &&
+            error.cause.reason === 'StatusCode' &&
+            Equal.equals(error.cause.response.status, StatusCodes.TOO_MANY_REQUESTS),
           times: 2,
           schedule: Schedule.fixed('500 millis'),
         }),
