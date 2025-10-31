@@ -44,7 +44,7 @@
     "open-cli": "^8.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-sh": "^0.18.0",
-    "prettier-plugin-toml": "^2.0.2",
+    "prettier-plugin-toml": "^2.0.6",
     "tsx": "^4.19.3",
     "type-fest": "^4.41.0",
     "typescript": "^5.8.3",
