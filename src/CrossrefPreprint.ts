@@ -78,8 +78,16 @@ export const getPreprintFromCrossref = (
 
     const server = yield* pipe(
       Match.value([Doi.getRegistrant(work.DOI), work]),
-      Match.when(['1101', { institution: [{ name: 'bioRxiv' }] }], () => 'biorxiv' as const),
-      Match.when(['1101', { institution: [{ name: 'medRxiv' }] }], () => 'medrxiv' as const),
+      Match.whenOr(
+        ['1101', { institution: [{ name: 'bioRxiv' }] }],
+        ['64898', { institution: [{ name: 'bioRxiv' }] }],
+        () => 'biorxiv' as const,
+      ),
+      Match.whenOr(
+        ['1101', { institution: [{ name: 'medRxiv' }] }],
+        ['64898', { institution: [{ name: 'medRxiv' }] }],
+        () => 'medrxiv' as const,
+      ),
       Match.when(['1590'], () => 'scielo' as const),
       Match.when(['20944'], () => 'preprints.org' as const),
       Match.when(['21203', { institution: [{ name: 'Research Square' }] }], () => 'research-square' as const),

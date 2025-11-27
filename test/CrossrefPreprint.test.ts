@@ -11,13 +11,13 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.tuple(
-        fc.doi({ registrant: fc.constant('1101') }),
+        fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         fc.constant([{ name: 'bioRxiv' }]),
         fc.option(fc.string(), { nil: undefined }),
         fc.constant('biorxiv'),
       ),
       fc.tuple(
-        fc.doi({ registrant: fc.constant('1101') }),
+        fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         fc.constant([{ name: 'medRxiv' }]),
         fc.option(fc.string(), { nil: undefined }),
         fc.constant('medrxiv'),
@@ -160,7 +160,7 @@ describe('getPreprintFromCrossref', () => {
     fc.doi(),
     fc.oneof(
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         title: fc.constant([]),
         type: fc.constant('posted-content'),
@@ -235,7 +235,7 @@ describe('getPreprintFromCrossref', () => {
     fc.oneof(
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
-        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.oneof(fc.plainYear(), fc.plainYearMonth()),
         title: fc.nonEmptyArray(fc.string()),
@@ -325,7 +325,7 @@ describe('getPreprintFromCrossref', () => {
     fc.oneof(
       fc.crossrefWork({
         abstract: fc.option(fc.string(), { nil: undefined }),
-        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         institution: fc.constantFrom([{ name: 'bioRxiv' }], [{ name: 'medRxiv' }]),
         published: fc.constant(undefined),
         title: fc.nonEmptyArray(fc.string()),
@@ -462,7 +462,7 @@ describe('getPreprintFromCrossref', () => {
         subtype: fc.constant('preprint'),
       }),
       fc.crossrefWork({
-        DOI: fc.doi({ registrant: fc.constant('1101') }),
+        DOI: fc.doi({ registrant: fc.constantFrom('1101', '64898') }),
         institution: fc.array(
           fc.record({ name: fc.string().filter(name => !['Advance', 'bioRxiv', 'medRxiv'].includes(name)) }),
         ),
