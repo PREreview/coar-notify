@@ -195,13 +195,16 @@ export const Router = HttpRouter.empty.pipe(
       const prereviewUrl = yield* Prereview.PrereviewUrl
 
       if (prereviewUrl.href === 'https://prereview.org/') {
-        return yield* HttpServerResponse.json({ app: 'prereview' }, { contentType: 'application/vnd.fly.replay+json' })
+        return yield* HttpServerResponse.json(
+          { app: 'prereview' },
+          { headers: { 'content-type': 'application/vnd.fly.replay+json' } },
+        )
       }
 
       if (prereviewUrl.href === 'https://sandbox.prereview.org/') {
         return yield* HttpServerResponse.json(
           { app: 'prereview-sandbox' },
-          { contentType: 'application/vnd.fly.replay+json' },
+          { headers: { 'content-type': 'application/vnd.fly.replay+json' } },
         )
       }
 
