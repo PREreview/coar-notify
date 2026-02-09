@@ -7,11 +7,9 @@ import {
   HttpServerRequest,
   HttpServerResponse,
 } from '@effect/platform'
-import { Array, Config, Context, Data, Effect, Exit, Match, Option, ParseResult, Schema, pipe } from 'effect'
+import { Array, Config, Context, Data, Effect, Match, Option, Schema, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
-import { createHash } from 'node:crypto'
 import slackifyMarkdown from 'slackify-markdown'
-import * as BullMq from './BullMq.js'
 import * as CoarNotify from './CoarNotify.js'
 import * as Doi from './Doi.js'
 import * as LanguageCode from './LanguageCode.js'
@@ -194,50 +192,21 @@ export const Router = HttpRouter.empty.pipe(
   HttpRouter.post(
     '/inbox',
     Effect.gen(function* () {
-      const requestReview = yield* HttpServerRequest.schemaBodyJson(CoarNotify.RequestReviewSchema)
-      const encoded = yield* Schema.encode(CoarNotify.RequestReviewSchema)(requestReview)
+      const prereviewUrl = yield* Prereview.PrereviewUrl
 
-      yield* pipe(
-        BullMq.add('coar-notify', 'request-review', encoded, {
-          jobId: BullMq.JobId(md5(requestReview.object['ietf:cite-as'])),
-        }),
-        Effect.acquireRelease((jobId, exit) =>
-          Exit.matchEffect(exit, {
-            onFailure: () =>
-              Effect.catchAll(BullMq.remove('coar-notify', jobId), error =>
-                Effect.annotateLogs(Effect.logError('Unable to remove job'), {
-                  queue: 'coar-notify',
-                  jobId,
-                  message: error.message,
-                }),
-              ),
-            onSuccess: () => Effect.void,
-          }),
-        ),
-      )
+      if (prereviewUrl.href === 'https://prereview.org/') {
+        return yield* HttpServerResponse.json({ app: 'prereview' }, { contentType: 'application/vnd.fly.replay+json' })
+      }
 
-      return yield* HttpServerResponse.empty({ status: StatusCodes.CREATED })
-    }).pipe(
-      Effect.catchTags({
-        BullMqError: error =>
-          Effect.gen(function* () {
-            yield* Effect.logError('Unable to write job to BullMQ').pipe(
-              Effect.annotateLogs({ message: error.message }),
-            )
+      if (prereviewUrl.href === 'https://sandbox.prereview.org/') {
+        return yield* HttpServerResponse.json(
+          { app: 'prereview-sandbox' },
+          { contentType: 'application/vnd.fly.replay+json' },
+        )
+      }
 
-            return HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
-          }),
-        ParseError: error =>
-          Effect.gen(function* () {
-            yield* Effect.logInfo('Invalid request').pipe(
-              Effect.annotateLogs({ message: ParseResult.TreeFormatter.formatErrorSync(error) }),
-            )
-
-            return HttpServerResponse.empty({ status: StatusCodes.BAD_REQUEST })
-          }),
-        RequestError: () => HttpServerResponse.empty({ status: StatusCodes.BAD_REQUEST }),
-      }),
-    ),
+      return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
+    }),
   ),
   Effect.catchTag('RouteNotFound', () => HttpServerResponse.empty({ status: StatusCodes.NOT_FOUND })),
 )
@@ -345,5 +314,3 @@ const notifyScietyCoarInbox = (prereviewUrl: URL) =>
 
     yield* Effect.annotateLogs(Effect.logDebug('Should notify Sciety'), 'message', message)
   })
-
-const md5 = (content: string) => createHash('md5').update(content).digest('hex')
