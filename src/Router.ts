@@ -195,17 +195,11 @@ export const Router = HttpRouter.empty.pipe(
       const prereviewUrl = yield* Prereview.PrereviewUrl
 
       if (prereviewUrl.href === 'https://prereview.org/') {
-        return yield* HttpServerResponse.json(
-          { app: 'prereview' },
-          { headers: { 'content-type': 'application/vnd.fly.replay+json' } },
-        )
+        return yield* HttpServerResponse.empty({ headers: { 'fly-replay': 'app=prereview' } })
       }
 
       if (prereviewUrl.href === 'https://sandbox.prereview.org/') {
-        return yield* HttpServerResponse.json(
-          { app: 'prereview-sandbox' },
-          { headers: { 'content-type': 'application/vnd.fly.replay+json' } },
-        )
+        return yield* HttpServerResponse.empty({ headers: { 'fly-replay': 'app=prereview-sandbox' } })
       }
 
       return yield* HttpServerResponse.empty({ status: StatusCodes.SERVICE_UNAVAILABLE })
