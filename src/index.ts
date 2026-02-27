@@ -11,11 +11,7 @@ import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Config, Effect, Layer, LogLevel, Logger, Option, Request } from 'effect'
 import { createServer } from 'node:http'
 import { ConfigLive } from './Config.js'
-import * as Crossref from './Crossref.js'
-import * as Datacite from './Datacite.js'
 import { LoggingHttpClient } from './Logger.js'
-import * as Nodemailer from './Nodemailer.js'
-import { OpenAi } from './OpenAi.js'
 import * as OpenAlex from './OpenAlex/index.js'
 import * as Redis from './Redis.js'
 import { PublicUrl, Router } from './Router.js'
@@ -69,8 +65,8 @@ const HttpClientLive = Layer.effect(
 const RedisLive = Redis.layer
 
 const Program = ServerLive.pipe(
-  Layer.provide(Layer.mergeAll(Crossref.CrossrefApiLive, Datacite.DataciteApiLive, OpenAlex.OpenAlexApiLive)),
-  Layer.provide(Layer.mergeAll(OpenAi.Live, HttpClientLive, RedisLive, Nodemailer.layer)),
+  Layer.provide(OpenAlex.OpenAlexApiLive),
+  Layer.provide(Layer.mergeAll(HttpClientLive, RedisLive)),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.json),
   Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 5_000, timeToLive: '1 week' }))),
