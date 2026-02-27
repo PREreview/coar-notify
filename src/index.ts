@@ -1,18 +1,8 @@
-import {
-  FetchHttpClient,
-  Headers,
-  HttpClient,
-  HttpClientRequest,
-  HttpMiddleware,
-  HttpServer,
-  HttpServerRequest,
-} from '@effect/platform'
+import { Headers, HttpMiddleware, HttpServer, HttpServerRequest } from '@effect/platform'
 import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Config, Effect, Layer, LogLevel, Logger, Option, Request } from 'effect'
 import { createServer } from 'node:http'
 import { ConfigLive } from './Config.js'
-import { LoggingHttpClient } from './Logger.js'
-import * as OpenAlex from './OpenAlex/index.js'
 import * as Redis from './Redis.js'
 import { PublicUrl, Router } from './Router.js'
 
@@ -48,25 +38,10 @@ const ServerLive = Router.pipe(
   ),
 )
 
-const HttpClientLive = Layer.effect(
-  HttpClient.HttpClient,
-  LoggingHttpClient.pipe(
-    Effect.andThen(
-      HttpClient.mapRequest(
-        HttpClientRequest.setHeader(
-          'User-Agent',
-          'PREreview (https://prereview.org/; mailto:engineering@prereview.org)',
-        ),
-      ),
-    ),
-  ),
-).pipe(Layer.provide(FetchHttpClient.layer))
-
 const RedisLive = Redis.layer
 
 const Program = ServerLive.pipe(
-  Layer.provide(OpenAlex.OpenAlexApiLive),
-  Layer.provide(Layer.mergeAll(HttpClientLive, RedisLive)),
+  Layer.provide(RedisLive),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.json),
   Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 5_000, timeToLive: '1 week' }))),
