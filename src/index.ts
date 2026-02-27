@@ -3,7 +3,6 @@ import { NodeHttpServer, NodeRuntime } from '@effect/platform-node'
 import { Config, Effect, Layer, LogLevel, Logger, Option, Request } from 'effect'
 import { createServer } from 'node:http'
 import { ConfigLive } from './Config.js'
-import * as Redis from './Redis.js'
 import { PublicUrl, Router } from './Router.js'
 
 const logRequest = HttpMiddleware.make(app =>
@@ -38,10 +37,7 @@ const ServerLive = Router.pipe(
   ),
 )
 
-const RedisLive = Redis.layer
-
 const Program = ServerLive.pipe(
-  Layer.provide(RedisLive),
   Layer.provide(ConfigLive),
   Layer.provide(Logger.json),
   Layer.provide(Layer.setRequestCache(Request.makeCache({ capacity: 5_000, timeToLive: '1 week' }))),
