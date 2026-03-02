@@ -9,7 +9,7 @@ PUBLIC_URL = "https://coar-notify.prereview.org/"
 [http_service]
 internal_port = 3000
 force_https = true
-auto_stop_machines = true
+auto_stop_machines = "suspend"
 auto_start_machines = true
 min_machines_running = 0
 
