@@ -2,11 +2,6 @@ import { HttpMiddleware, HttpRouter, HttpServerResponse } from '@effect/platform
 import { Context, Effect, pipe } from 'effect'
 import { StatusCodes } from 'http-status-codes'
 import * as Prereview from './Prereview.js'
-import type * as Slack from './Slack.js'
-
-export const SlackShareChannelId = Context.GenericTag<Slack.SlackChannelId>('SlackShareChannelId')
-
-export const PrereviewAuthToken = Context.GenericTag<string>('PrereviewAuthToken')
 
 export class PublicUrl extends Context.Tag('PublicUrl')<PublicUrl, URL>() {}
 

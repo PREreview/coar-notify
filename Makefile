@@ -1,4 +1,4 @@
-.PHONY: build build-image check fix format lint mailcatcher smoke-test start start-services test typecheck
+.PHONY: build build-image check fix format lint smoke-test start typecheck
 
 IMAGE_TAG=prereview-coar-notify
 
@@ -15,7 +15,7 @@ build: node_modules
 build-image:
 	docker build --target prod --tag ${IMAGE_TAG} .
 
-check: format lint test typecheck
+check: format lint typecheck
 
 fix: node_modules
 	npx eslint . --fix --max-warnings 0
@@ -30,18 +30,9 @@ lint: node_modules
 typecheck: node_modules
 	npx tsc --noEmit
 
-test: node_modules
-	npx vitest run
-
 smoke-test: SHELL := /usr/bin/env bash
-smoke-test: build-image start-services
-	REDIS_PORT=$(shell docker compose port redis 6379 | awk -F":" '{print $$2}') scripts/smoke-test.sh ${IMAGE_TAG}
+smoke-test: build-image
+	scripts/smoke-test.sh ${IMAGE_TAG}
 
-start: .env node_modules start-services
-	REDIS_URL=redis://$(shell docker compose port redis 6379) SMTP_URL=smtp://$(shell docker compose port mailcatcher 1025) node_modules/.bin/tsx watch --clear-screen=false --require dotenv/config src
-
-start-services:
-	docker compose up --detach
-
-mailcatcher: node_modules start-services
-	npx open-cli http://$(shell docker compose port mailcatcher 1080 | sed 's/0\.\0\.0\.0/localhost/')
+start: .env node_modules
+	node_modules/.bin/tsx watch --clear-screen=false --require dotenv/config src

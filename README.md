@@ -1,6 +1,6 @@
 # PREreview COAR Notify
 
-The source code for PREreview’s [COAR Notify] integration.
+The source code for PREreview’s legacy [COAR Notify] integration.
 
 ## Development
 
@@ -8,8 +8,6 @@ The source code for PREreview’s [COAR Notify] integration.
 
 <summary>Requirements</summary>
 
-- [Docker]
-- [Docker Compose]
 - [GNU Make]
 - [Node.js]
 - Unix-like operating system
@@ -33,8 +31,6 @@ You will also have a `.env` file. This file contains environment variables contr
 Once it passes CI, we deploy every commit on the `main` branch, which [Fly.io] hosts.
 
 [coar notify]: https://www.coar-repositories.org/notify/
-[docker]: https://www.docker.com/
-[docker compose]: https://docs.docker.com/compose/
 [fly.io]: https://fly.io/
 [gnu make]: https://www.gnu.org/software/make/
 [node.js]: https://nodejs.org/

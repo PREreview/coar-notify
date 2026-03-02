@@ -23,20 +23,12 @@
     "import/no-cycle": "error",
     "import/no-duplicates": ["error", { "prefer-inline": true }],
     "import/no-extraneous-dependencies": ["error"],
-    "import/no-internal-modules": ["error", { "allow": ["*/index.js", "openai/shims/*", "vitest/config"] }],
+    "import/no-internal-modules": ["error", { "allow": ["*/index.js"] }],
     "import/no-named-as-default": "off",
     "import/no-named-as-default-member": "off",
     "no-comments/disallowComments": ["error"],
     "quotes": ["error", "single", { "avoidEscape": true }]
   },
-  "overrides": [
-    {
-      "files": ["test/**/*.ts"],
-      "rules": {
-        "import/no-internal-modules": "off"
-      }
-    }
-  ],
   "settings": {
     "import/resolver": {
       "typescript": true

@@ -86,44 +86,12 @@ jobs:
       - name: 'Run the linter'
         run: npx eslint . --max-warnings 0
 
-  test:
-    name: 'Test'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-
-    steps:
-      - name: 'Checkout code'
-        uses: actions/checkout@v5.0.0
-
-      - name: 'Set up Node.js'
-        uses: actions/setup-node@v5.0.0
-        with:
-          node-version-file: package.json
-          cache: ${{ !env.ACT && 'npm' || '' }}
-
-      - name: 'Install dependencies'
-        run: npm ci
-
-      - name: 'Run the tests'
-        run: npx vitest run
-
   test-smoke:
     name: 'Smoke test'
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     needs:
       - build-image
-
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - '6379:6379'
 
     steps:
       - name: 'Checkout code'
@@ -140,8 +108,6 @@ jobs:
 
       - name: 'Run smoke test'
         run: scripts/smoke-test.sh ${{ needs.build-image.outputs.image }}
-        env:
-          REDIS_PORT: 6379
 
   typecheck:
     name: 'Typecheck'
@@ -175,7 +141,6 @@ jobs:
       - build-image
       - format
       - lint
-      - test
       - test-smoke
       - typecheck
 
