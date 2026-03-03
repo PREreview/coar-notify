@@ -23,7 +23,7 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-no-comments": "^1.1.10",
-    "prettier": "^3.5.3",
+    "prettier": "^3.8.1",
     "prettier-plugin-sh": "^0.18.0",
     "prettier-plugin-toml": "^2.0.6",
     "tsx": "^4.21.0",
